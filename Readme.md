@@ -23,7 +23,7 @@ cd source
 ./manage.py runserver
 ```
 
-
+You can now inspect a demo UI build with the EMP framwork by opening [http://localhost:8000](http://localhost:8000).
 
 ## Contact
 
@@ -31,4 +31,4 @@ Please feel free to contact [David Wölfle](https://www.fzi.de/en/about-us/organ
 
 ## Copyright and license
 
-Code is copyright to the FZI Research Center for Information Technology and released under the MIT license. This repository also contains copies of source code released by the [Bootsrap](https://github.com/twbs/bootstrap) and [JQuery](https://github.com/jquery/jquery) projects, which are copyright to the respective authors and released under the licenses listed in these repositories. 
+Code is copyright to the FZI Research Center for Information Technology and released under the MIT license. This repository also contains copies of source code released by the [Bootsrap](https://github.com/twbs/bootstrap),  [JQuery](https://github.com/jquery/jquery) and [Popper JS](https://github.com/popperjs/popper-core) projects, which are copyright to the respective authors and released under the licenses listed in these repositories. 

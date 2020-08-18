@@ -1,0 +1,263 @@
+/*
+    Here the general layout of the EMP.
+*/
+.emp-top-navbar {
+    position: fixed;
+    top: 0;
+    height: 56px;
+    left: 0;
+    right: 0;
+}
+
+.emp-side-navbar {
+    position: fixed;
+    top: 56px;
+    bottom: 0;
+    left: 0;
+    width: 80%;
+    z-index:100;
+    padding-top: 10px;
+    transition: all 0.35s ease;
+    box-shadow: inset -1px 1px 0 rgba(0, 0, 0, .1);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.emp-content-container {
+    position: fixed;
+    top: 56px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+/*
+    Allows hiding elements in small/large viewports.
+*/
+@media (min-width: 768px) {
+    .only-sm {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    .only-lg {
+        display: none;
+    }
+}
+
+/*
+    Styles the Title bar
+*/
+
+.navbar-brand{
+    font-weight: bold;
+    font-size: 1.75em;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+#title-logo-container{
+    height: 70%;
+}
+
+/* @media (min-width: 768px) {
+    /
+       Effectively centers the "Energy Management Panel" relative to the
+       content container below.
+    /
+    #title-logo-container {
+        width: 14em;
+        padding-right: auto;
+    }
+} */
+
+/*
+    Make side-navbar always visible for larger screens and
+    and hideable on smaller screens. The content container
+    is covered by the sidebar in small screens but not on
+    larger ones. The breakpoint is bootstraps medium.
+*/
+
+@media (min-width: 768px) {
+
+    .emp-side-navbar {
+        width: 14em;
+    }
+
+    .emp-content-container {
+        margin-left: 14em;
+    }
+
+    #toggle-sidebar {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+
+    .emp-side-navbar:not(.hidden) {
+    }
+
+    .emp-side-navbar.hidden {
+        margin-left: -80%;
+    }
+
+}
+
+
+/* CSS for sidebar */
+
+.nav-link:hover{
+    background-color: #E5E5E5
+}
+
+.nav-link.active{
+    background-color: #C8C8C8;
+    font-weight: bold;
+}
+
+.emp-side-navbar a {
+    /* Removes the link color from navbar entries. */
+    color: inherit;
+    text-decoration: none;
+}
+
+.nav-link-no-icon{
+    padding-left: 2.5rem;
+}
+
+.nav-link-icon{
+    width: 1.0rem;
+    height: 1.0rem;
+    margin-right: 0.5rem;
+}
+
+.nav-link-separator{
+    border-top: 1px solid #dedfe0;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.nav-link > .nav-link-icon {
+    transform: rotate(0deg);
+    /* transition: transform 0.5s ease; */
+}
+
+.nav-link.collapsed > .nav-link-icon {
+    transform: rotate(-90deg);
+    /* transition: transform 0.5s ease; */
+}
+
+/* CSS for collapsible sidebar sections: resolves conflicts between the .nav CSS and the .collapse CSS */
+.emp-side-navbar .nav {
+    flex-wrap: nowrap;
+}
+
+.emp-side-navbar .nav.collapse {
+    display: none;
+}
+
+.emp-side-navbar .nav.collapse.show {
+    display: flex;
+}
+
+.emp-side-subnav{
+    padding-left: 2.5rem;
+}
+
+/* CSS for blinds and lights */
+button .on-active, button .on-non-active, button .on-transition, button .on-non-transition {
+    display: none;
+}
+
+button.active:not([disabled]) .on-active {
+    display: block;
+}
+
+button:not(.active):not([disabled]) .on-non-active {
+    display: block;
+}
+
+button:not([disabled]) .on-non-transition {
+    display: block;
+}
+
+button[disabled] .on-transition {
+    display: block;
+}
+
+/* Styles for widgets */
+.emp-card-deck {
+    /*
+      Makes the cards more responsive.
+      https://stackoverflow.com/questions/36487389/bootstrap-4-card-deck-table-cell-columns-responsive-based-on-viewport
+    */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    grid-gap: 1rem;
+}
+
+.emp-widget-card {
+}
+
+.emp-widget-card-center-body-vertically {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.emp-widget-card-body-icon {
+    width: 3rem;
+    height: 3rem;
+}
+
+.emp-widget-card .fc-toolbar {
+  display: none;
+}
+
+.emp-widget-card .fc-toolbar {
+  display: none;
+}
+
+/*
+  Style for the widget details aka. modals. Makes them wider.
+*/
+
+@media screen and (min-width: 767px) {
+    .modal-dialog {
+      max-width: 760px;
+    }
+}
+@media screen and (min-width: 992px) {
+    .modal-dialog {
+      max-width: 900px;
+  }
+}
+
+
+/*
+  Style for login screen. Adapted from:
+  https://getbootstrap.com/docs/4.0/examples/sign-in/signin.css
+ */
+
+ .login-main {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: flex;
+  -ms-flex-align: center;
+  -ms-flex-pack: center;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.form-signin {
+  width: 100%;
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}

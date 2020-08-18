@@ -16,6 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from .views import EMPBaseView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("", EMPBaseView.as_view(template_name="./emp_main/base.html"))
 ]

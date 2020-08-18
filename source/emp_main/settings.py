@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'emp_main.apps.EmpMainConfig',
 ]
 
 MIDDLEWARE = [
@@ -80,6 +81,41 @@ DATABASES = {
     }
 }
 
+# Logging as suggested by practical django book
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(asctime)s-%(name)s-%(levelname)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+    },
+    'loggers': {
+        'general_configuration': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'emp_main': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'emp_energy_flow': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -118,3 +154,24 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# ------------------------------------------------------------------------------
+# Here the EMP specific settings.
+# ------------------------------------------------------------------------------
+
+# The string for the <title> tag.
+PAGE_TITLE = "EMP Demo"
+
+# The path to the manifest.json file within the static files.
+MANIFEST_JSON_STATIC = "emp-main/manifest.json"
+
+# The path to the favicon.ico file within the static files.
+FAVICON_ICO_STATIC = "emp-main/icons/favicon.ico"
+
+# The path to the logo displayed in the left corner of the top nav bar,
+# as usual within static files.
+TOPBAR_LOGO_STATIC  = "emp-main/icons/title-logo.png"
+
+# Strings to display in the top navbar.
+TOPBAR_NAME_SHORT = "EMP"
+TOPBAR_NAME_LONG = "Energy Management Panel"

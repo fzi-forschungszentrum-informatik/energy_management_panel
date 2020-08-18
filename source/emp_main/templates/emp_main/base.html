@@ -1,0 +1,249 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>{{PAGE_TITLE}}</title>
+
+  <!-- Allows "installing" the EMP on mobile devies like an app. -->
+  <link rel="manifest" href={{MANIFEST_JSON_STATIC}}>
+
+  <link rel="shortcut icon"
+        type="image/x-icon"
+        href={{FAVICON_ICO_STATIC}}>
+
+  <link rel="stylesheet" href="{% static "emp-main/css/bootstrap.min.css" %}">
+  <link rel="stylesheet" href="{% static "emp-main/css/emp_main.css" %}">
+
+  <script src="{% static "emp-main/js/jquery.min.js" %}"></script>
+  <script src="{% static "emp-main/js/popper.min.js" %}"></script>
+  <script src="{% static "emp-main/js/bootstrap.min.js" %}"></script>
+
+  {% block head %}
+  {% endblock head %}
+
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-dark emp-top-navbar">
+    <div id="title-logo-container">
+      <img id="title-logo" src={{TOPBAR_LOGO_STATIC}} alt="FZI" height="100%">
+    </div>
+    <a class="navbar-brand only-sm" href="/">{{TOPBAR_NAME_SHORT}} </a>
+    <a class="navbar-brand only-lg mx-auto" href="/">{{TOPBAR_NAME_LONG}}</a>
+    <span class="navbar-brand only-lg current-time">--:--:--</span>
+    <button class="navbar-toggler" type="button" id="toggle-sidebar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </nav>
+
+
+  <nav class="bg-light hidden emp-side-navbar">
+    <ul class="nav flex-column">
+      {% if user.is_authenticated %}
+        <li class="nav-item">
+          <div class="nav-link">
+            {% if user.first_name %}
+              Welcome {{user.first_name}}!
+            {% else %}
+              Welcome {{user.username|title}}!
+            {% endif %}
+          </div>
+        </li>
+
+        <div><hr class="nav-link-separator"></div>
+
+        <li class="nav-item">
+          <a class="nav-link nav-link-no-icon" href="/permissions/logout/?next=/">
+            Logout
+          </a>
+        </li>
+      {% else %}
+        <li class="nav-item">
+          <a class="nav-link nav-link-no-icon" href="/permissions/login/">
+            Login
+          </a>
+        </li>
+      {% endif %}
+
+      <div><hr class="nav-link-separator"></div>
+
+      {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link nav-link-no-icon" href="/location/home/">
+              Home
+          </a>
+        </li>
+
+        <div><hr class="nav-link-separator"></div>
+      {% endif %}
+
+      <!-- # TODO Handle the user permissions object or what ever accordingly. -->
+      {% if locations %}
+        <li class="nav-item">
+          <a class="nav-link collapsed" href="#locations_nav" data-toggle="collapse">
+            <img class="nav-link-icon" src="{% static "emp-main/icons/submenu.svg" %}">Locations
+          </a>
+        </li>
+        <ul class="nav flex-column collapse emp-side-subnav" id="locations_nav">
+            {% for location in locations %}
+              <div><hr class="nav-link-separator"></div>
+
+              <li class="nav-item">
+                <a class="nav-link" href="/location/{{location}}/">
+                  {{location|title}}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+
+          <div><hr class="nav-link-separator"></div>
+        {% endif %}
+
+        {% if energyflows %}
+          <li class="nav-item">
+            <a class="nav-link collapsed" href="#energy_flow_nav" data-toggle="collapse" aria-expanded="true">
+              <img class="nav-link-icon" src="{% static "emp-main/icons/submenu.svg" %}">Energy Flows
+            </a>
+          </li>
+          <ul class="nav flex-column collapse emp-side-subnav" id="energy_flow_nav">
+            {% for energyflow in energyflows %}
+              <div><hr class="nav-link-separator"></div>
+
+              <li class="nav-item">
+                <a class="nav-link nav-link-no-item" href="/energyflow/{{energyflow}}/">
+                  {{energyflow}}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <div><hr class="nav-link-separator"></div>
+
+        <li class="nav-item">
+          <a class="nav-link collapsed" href="#devices_nav" data-toggle="collapse" aria-expanded="true">
+              <img class="nav-link-icon" src="{% static "emp-main/icons/submenu.svg" %}">Devices
+          </a>
+        </li>
+        <ul class="nav flex-column collapse emp-side-subnav" id="devices_nav">
+          <div><hr class="nav-link-separator"></div>
+          <li class="nav-item">
+            <a class="nav-link" href="/devices/holl1">
+              HoLL 1<sup>st</sup> Floor
+            </a>
+          </li>
+        </ul>
+
+        <div><hr class="nav-link-separator"></div>
+
+        <li class="nav-item">
+          <a class="nav-link nav-link-no-icon" href="/3D/">
+            HoLL 3D Model
+          </a>
+        </li>
+
+        <div><hr class="nav-link-separator"></div>
+
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link nav-link-no-icon" href="#">
+              Settings
+            </a>
+          </li>
+
+          <div><hr class="nav-link-separator"></div>
+        {% endif %}
+      </ul>
+  </nav>
+  <main class="emp-content-container p-3">
+      {% block body_html %}
+      {% endblock body_html %}
+  </main>
+</div>
+<script type="text/javascript">
+    // auto refresh if inactive for 15 min
+    var time = new Date().getTime()
+    $(document.body).bind("mousemove keypress touchmove", function (e) {
+        time = new Date().getTime()
+    })
+
+    function refresh() {
+        if (new Date().getTime() - time >= 900000) {
+            window.location.reload(true)
+        } else {
+            setTimeout(refresh, 60000)
+        }
+    }
+    setTimeout(refresh, 60000)
+
+    // Update current time displays
+    function update_time(){
+        let ct_elements = document.getElementsByClassName("current-time")
+        let d = new Date()
+        let d_hou = `0${d.getHours()}`.slice(-2)
+        let d_min = `0${d.getMinutes()}`.slice(-2)
+        let d_sec = `0${d.getSeconds()}`.slice(-2)
+        for (let ct_element of ct_elements){
+            ct_element.innerHTML = `${d_hou}:${d_min}:${d_sec}`
+        }
+        setTimeout(update_time, 200)
+    }
+    update_time()
+
+    // Toggles display of sidebar in small mode.
+    $('#toggle-sidebar').on('click', function (e) {
+        var sidebar = $('.emp-side-navbar')[0];
+        sidebar.classList.toggle('hidden');
+    })
+
+    // Stores the href ids of the navbar buttons that can collapse
+    // submenus. These ids are unique and allow us to restore the
+    // menu state after navigating to the next page.
+    window.onbeforeunload = function(){
+        let shown_submenus = []
+        let shown_submenu_nav_links = document.querySelectorAll(
+            '.nav-link[data-toggle="collapse"]:not(.collapsed)'
+        )
+        for (let nl of shown_submenu_nav_links){
+            shown_submenus.push(nl.attributes.href.value)
+        }
+        // Session storage can only store strings.
+        shown_submenus = JSON.stringify(shown_submenus)
+        sessionStorage.setItem("shown_submenus", shown_submenus)
+    }
+
+    // Restore the opened submenus on page load by clicking on the button
+    // which should expand the collapsed submenu.
+    function restore_subnavs() {
+        let shown_submenus = sessionStorage.getItem("shown_submenus") || "[]"
+        shown_submenus = JSON.parse(shown_submenus)
+        for (let sm_href_id of shown_submenus){
+            let nl = document.querySelector(`.nav-link[href="${sm_href_id}"]`)
+            nl.classList.remove("collapsed")
+            let nc = document.querySelector(`.nav.collapse${sm_href_id}`)
+            nc.classList.add("show")
+        }
+    }
+    restore_subnavs()
+
+    // Mark current page active in nav
+    function mark_current_page_active() {
+        let current_nav_link = document.querySelector(
+            `.nav-link[href="${window.location.pathname}"]`
+        )
+        if (current_nav_link != null) {
+            current_nav_link.classList.add("active")
+        }
+    }
+    mark_current_page_active()
+
+</script>
+
+{% block body_script %}
+{% endblock body_script %}
+
+</body>
+</html>
