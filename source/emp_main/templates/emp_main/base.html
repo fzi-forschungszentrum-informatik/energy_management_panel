@@ -39,7 +39,6 @@
     </button>
   </nav>
 
-
   <nav class="bg-light hidden emp-side-navbar">
     <ul class="nav flex-column">
       {% if user.is_authenticated %}
@@ -80,82 +79,36 @@
         <div><hr class="nav-link-separator"></div>
       {% endif %}
 
-      <!-- # TODO Handle the user permissions object or what ever accordingly. -->
-      {% if locations %}
-        <li class="nav-item">
-          <a class="nav-link collapsed" href="#locations_nav" data-toggle="collapse">
-            <img class="nav-link-icon" src="{% static "emp-main/icons/submenu.svg" %}">Locations
-          </a>
-        </li>
-        <ul class="nav flex-column collapse emp-side-subnav" id="locations_nav">
-            {% for location in locations %}
-              <div><hr class="nav-link-separator"></div>
+      {% for app_nav_name, app_nav_content in emp_apps_nav_content.items %}
+        {% if app_nav_content.app_nav_pages %}
+          <li class="nav-item">
+            <a class="nav-link collapsed"
+               href=#{{app_nav_content.app_nav_id}}
+               data-toggle="collapse">
+              <img class="nav-link-icon"
+                   src="{% static "emp-main/icons/submenu.svg" %}"
+              >{{app_nav_name}}
+            </a>
+          </li>
+          <ul class="nav flex-column collapse emp-side-subnav"
+              id={{app_nav_content.app_nav_id}}
+          >
 
-              <li class="nav-item">
-                <a class="nav-link" href="/location/{{location}}/">
-                  {{location|title}}
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
+            {% for page_name, page_url in app_nav_content.app_nav_pages.items %}
+                <div><hr class="nav-link-separator"></div>
+
+                <li class="nav-item">
+                  <a class="nav-link"
+                     href={{page_url}}
+                  >{{page_name}}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
 
           <div><hr class="nav-link-separator"></div>
         {% endif %}
-
-        {% if energyflows %}
-          <li class="nav-item">
-            <a class="nav-link collapsed" href="#energy_flow_nav" data-toggle="collapse" aria-expanded="true">
-              <img class="nav-link-icon" src="{% static "emp-main/icons/submenu.svg" %}">Energy Flows
-            </a>
-          </li>
-          <ul class="nav flex-column collapse emp-side-subnav" id="energy_flow_nav">
-            {% for energyflow in energyflows %}
-              <div><hr class="nav-link-separator"></div>
-
-              <li class="nav-item">
-                <a class="nav-link nav-link-no-item" href="/energyflow/{{energyflow}}/">
-                  {{energyflow}}
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-
-        <div><hr class="nav-link-separator"></div>
-
-        <li class="nav-item">
-          <a class="nav-link collapsed" href="#devices_nav" data-toggle="collapse" aria-expanded="true">
-              <img class="nav-link-icon" src="{% static "emp-main/icons/submenu.svg" %}">Devices
-          </a>
-        </li>
-        <ul class="nav flex-column collapse emp-side-subnav" id="devices_nav">
-          <div><hr class="nav-link-separator"></div>
-          <li class="nav-item">
-            <a class="nav-link" href="/devices/holl1">
-              HoLL 1<sup>st</sup> Floor
-            </a>
-          </li>
-        </ul>
-
-        <div><hr class="nav-link-separator"></div>
-
-        <li class="nav-item">
-          <a class="nav-link nav-link-no-icon" href="/3D/">
-            HoLL 3D Model
-          </a>
-        </li>
-
-        <div><hr class="nav-link-separator"></div>
-
-        {% if user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link nav-link-no-icon" href="#">
-              Settings
-            </a>
-          </li>
-
-          <div><hr class="nav-link-separator"></div>
-        {% endif %}
+      {% endfor %}
       </ul>
   </nav>
   <main class="emp-content-container p-3">

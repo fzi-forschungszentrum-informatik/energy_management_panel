@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'emp_main.apps.EmpMainConfig',
+    'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
 ]
 
 MIDDLEWARE = [
@@ -175,3 +176,8 @@ TOPBAR_LOGO_STATIC  = "emp-main/icons/title-logo.png"
 # Strings to display in the top navbar.
 TOPBAR_NAME_SHORT = "EMP"
 TOPBAR_NAME_LONG = "Energy Management Panel"
+
+# Define all installed apps which extend the EMP UI.
+EMP_UI_APPS = [
+    "emp_demo_ui_app.apps",
+]
