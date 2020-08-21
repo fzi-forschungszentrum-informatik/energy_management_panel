@@ -27,6 +27,11 @@ cd source
 
 You can now inspect a demo UI build with the EMP framwork by opening [http://localhost:8000](http://localhost:8000).
 
+##### Todo
+
+* [ ] Walk through the example with the demo UI app.
+* [ ] Add some hints about steps that must be done after starting with a new db --> makemigrations, migrate, createsuperuser
+
 ## Contact
 
 Please feel free to contact [David Wölfle](https://www.fzi.de/en/about-us/organisation/detail/address/david-woelfle/) for all inquiries.
