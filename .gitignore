@@ -1,4 +1,1 @@
 __pycache__
-
-# DB is good for developing but does not belong in the repo.
-source/db.sqlite3

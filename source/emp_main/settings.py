@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'guardian',
     'emp_main.apps.EmpMainConfig',
     'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
 ]
@@ -50,6 +51,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # this is django default.
+    'guardian.backends.ObjectPermissionBackend', # this is required for guardian.
+)
 
 ROOT_URLCONF = 'emp_main.urls'
 

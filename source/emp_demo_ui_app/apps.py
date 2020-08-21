@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from django.apps import AppConfig
+from django.contrib.auth import get_user_model
 
 
 class EmpDemoUiAppConfig(AppConfig):
@@ -35,6 +36,8 @@ def get_app_nav_content_for_user(user):
     OrderedDict
         as {"name of nav group": {"name of page 1": "url of page 1", ...}}
     """
+    # This import must be here as it cannot succeed until all apps are loaded.
+    from guardian.shortcuts import get_objects_for_user
 
     def mk_full_url(url):
         return "/" + EmpDemoUiAppConfig.app_url_prefix + "/" + url + "/"
@@ -43,14 +46,21 @@ def get_app_nav_content_for_user(user):
     # is important, then it can be defined here explictly.
     app_nav_content = OrderedDict()
 
+    # Get the anonymous user object.
+    anon = get_user_model().get_anonymous()
+
+    # Get the pages for the user and extend these with the pages the
+    # anonymous user has access to.
+    pages_user = get_objects_for_user(user, "emp_demo_ui_app.view_demoapppage")
+    pages_anon = get_objects_for_user(anon, "emp_demo_ui_app.view_demoapppage")
+    pages_all = pages_user.union(pages_anon)
+
     # Be sure to use slugs here for url components.
     # Also ensure that any user gets a copy of the pages the AU gets and
     # that inactive users get not more permissions then the AU.
     app_pages = OrderedDict()
-    app_pages["Demo Page 1"] = mk_full_url("page-1")
-    app_pages["Demo Page 2"] = mk_full_url("page-2")
-
+    for page_obj in pages_all:
+        app_pages[page_obj.page_name] = page_obj.page_slug
     app_nav_content["Demo UI App"] = app_pages
 
     return  app_nav_content
-

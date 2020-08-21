@@ -68,16 +68,7 @@
       {% endif %}
 
       <div><hr class="nav-link-separator"></div>
-
-      {% if user.is_authenticated %}
-        <li class="nav-item">
-          <a class="nav-link nav-link-no-icon" href="/location/home/">
-              Home
-          </a>
-        </li>
-
-        <div><hr class="nav-link-separator"></div>
-      {% endif %}
+      <div><hr class="nav-link-separator"></div>
 
       {% for app_nav_name, app_nav_content in emp_apps_nav_content.items %}
         {% if app_nav_content.app_nav_pages %}
