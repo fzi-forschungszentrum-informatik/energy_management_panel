@@ -1,5 +1,6 @@
 from django.db import models
 
+from .apps import EmpDemoUiAppConfig
 
 class DemoAppPage(models.Model):
     """
@@ -40,3 +41,7 @@ class DemoAppPage(models.Model):
             "Allows configuring the background color of the page."
         )
     )
+
+    def get_absolute_url(self):
+        u = "/" + EmpDemoUiAppConfig.app_url_prefix + "/" + self.page_slug + "/"
+        return u

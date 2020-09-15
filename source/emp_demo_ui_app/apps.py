@@ -39,9 +39,6 @@ def get_app_nav_content_for_user(user):
     # This import must be here as it cannot succeed until all apps are loaded.
     from guardian.shortcuts import get_objects_for_user
 
-    def mk_full_url(url):
-        return "/" + EmpDemoUiAppConfig.app_url_prefix + "/" + url + "/"
-
     # These are ordered dicts, in case the ordering of the nav items
     # is important, then it can be defined here explictly.
     app_nav_content = OrderedDict()
@@ -60,7 +57,7 @@ def get_app_nav_content_for_user(user):
     # that inactive users get not more permissions then the AU.
     app_pages = OrderedDict()
     for page_obj in pages_all:
-        app_pages[page_obj.page_name] = mk_full_url(page_obj.page_slug)
+        app_pages[page_obj.page_name] = page_obj.get_absolute_url()
     app_nav_content["Demo UI App"] = app_pages
 
     return  app_nav_content
