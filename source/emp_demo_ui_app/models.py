@@ -27,3 +27,16 @@ class DemoAppPage(models.Model):
             "configured dynamically, i.e. by using Django's admin."
         )
     )
+    PAGE_BACKGROUD_COLOR_CHOICES = [
+        ("transparent", "transparent"),
+        ("yellow", "yellow"),
+        ("red", "red"),
+    ]
+    page_background_color = models.CharField(
+        max_length=11,
+        choices=PAGE_BACKGROUD_COLOR_CHOICES,
+        default=PAGE_BACKGROUD_COLOR_CHOICES[0][0],
+        help_text=(
+            "Allows configuring the background color of the page."
+        )
+    )

@@ -1,1 +1,4 @@
- 
+* Pages of the UI apps will usually require a template to dynamically generate the html content. The templates of the Demo UI App page are located in the templates  [templates/emp_demo_ui_app](./templates/emp_demo_ui_app) folder. Be aware the the inner repetition of the app name ("emp_demo_ui_ap") is good convention to prevent name collisions between apps when loading templates in views.
+*  Static content (e.g. images, js files, css files, ...) are placed in the [static/emp-demo-ui-app](./static/emp-demo-ui-app) folder. Similar to templates the app name is also repeated here to prevent name collisions. However, all non alphanumeric characters, excluding dashes, must be removed as the the folder name will be part of the URL of the static content.
+* Test driven development is strongly suggested. See e.g. [here](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Testing) for a guide.
+

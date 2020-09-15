@@ -14,11 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 from .views import EMPBaseView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("", EMPBaseView.as_view(template_name="./emp_main/base.html"))
+    # TODO: Find some configurable default here.
+    path("", EMPBaseView.as_view(template_name="./emp_main/base.html")),
+    path("demo/", include('emp_demo_ui_app.urls'))
 ]

@@ -1,0 +1,30 @@
+<!-- All generic content like nav/title bar is provided by the base template -->
+{% extends "emp_main/base.html" %}
+{% load static %}
+
+{% block head %}
+  <!-- Load additional css files here, or whatever is needed in the header -->
+  <link rel="stylesheet" href="{% static 'emp-demo-ui-app/css/page.css' %}">
+{% endblock head %}
+
+{% block body_html %}
+  <!-- Place HTML content here, you can use Bootstrap's grid system for -->
+  <!-- faster content generation. The following also also uses page  -->
+  <!-- specific variables loaded from database. -->
+  <div class="container h-100" style="background-color: {{page_background_color}}">
+    <div class=" h-100">
+      <div class="row align-items-center justify-content-center h-100">
+        <div class="col-md-8 col-lg-6">
+          <!-- This uses a style from the css file loaded above. -->
+          <p class="demo-app-text-center">
+            {{page_content}}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock body_html %}
+
+{% block body_script %}
+  <!-- Place additional JS scripting here. -->
+{% endblock body_script %}

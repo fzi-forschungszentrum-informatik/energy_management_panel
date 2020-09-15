@@ -27,6 +27,5 @@ class EMPBaseView(TemplateView):
         apps_cache = EmpUiAppsCache.get_instance()
         nav_content = apps_cache.get_apps_nav_content_for_user(user)
         context["emp_apps_nav_content"] = nav_content
-        print(nav_content)
 
         return context

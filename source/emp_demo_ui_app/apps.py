@@ -14,7 +14,7 @@ class EmpDemoUiAppConfig(AppConfig):
     # The first part of the url, that is used to identify the pages
     # belongig to this app. No leading or trailing slashes, they will
     # be added where needed by the functions using this string.
-    app_url_prefix = "demoapp"
+    app_url_prefix = "demo"
 
 
 def get_app_nav_content_for_user(user):
@@ -60,7 +60,7 @@ def get_app_nav_content_for_user(user):
     # that inactive users get not more permissions then the AU.
     app_pages = OrderedDict()
     for page_obj in pages_all:
-        app_pages[page_obj.page_name] = page_obj.page_slug
+        app_pages[page_obj.page_name] = mk_full_url(page_obj.page_slug)
     app_nav_content["Demo UI App"] = app_pages
 
     return  app_nav_content
