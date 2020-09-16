@@ -187,3 +187,14 @@ TOPBAR_NAME_LONG = "Energy Management Panel"
 EMP_UI_APPS = [
     "emp_demo_ui_app.apps",
 ]
+
+# A list of URLS that are excluded from permission checking, i.e. that can be
+# accessed by any user at all times. This is required to allow access to pages
+# generic pages like login/logout or the home page, if those are not part of
+# an UI app.
+URLS_PERMISSION_WHITELIST = [
+    "/welcome/",
+]
+
+# Users will be redirected to this page if visiting the sites root.
+HOME_PAGE_URL = "/welcome/"

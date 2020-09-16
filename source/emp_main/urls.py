@@ -14,13 +14,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf import settings
 from django.urls import path, include
+from django.views.generic import RedirectView
 
 from .views import EMPBaseView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("", RedirectView.as_view(url=settings.HOME_PAGE_URL, permanent=False)),
+    path("welcome/", EMPBaseView.as_view(template_name="./emp_main/welcome.html")),
     # TODO: Find some configurable default here.
-    path("", EMPBaseView.as_view(template_name="./emp_main/base.html")),
     path("demo/", include('emp_demo_ui_app.urls'))
 ]
+
+handler403 = 'emp_main.views.emp_403_handler'
