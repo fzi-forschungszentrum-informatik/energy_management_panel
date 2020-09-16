@@ -4,7 +4,7 @@ from guardian.shortcuts import assign_perm
 
 
 from ..models import DemoAppPage
-from ..apps import EmpDemoUiAppConfig
+from ..apps import app_url_prefix
 
 class TestDemoUIPageView(TestCase):
 
@@ -21,7 +21,7 @@ class TestDemoUIPageView(TestCase):
         # This page should be visable to anybody.
         page_slug_1 = "test-page-1"
         cls.page_1_url = (
-            "/" + EmpDemoUiAppConfig.app_url_prefix + "/" + page_slug_1 + "/"
+            "/" + app_url_prefix + "/" + page_slug_1 + "/"
         )
         cls.expected_page_content_1 = "Content 1"
         cls.expected_page_background_color_1 = "red"
@@ -40,7 +40,7 @@ class TestDemoUIPageView(TestCase):
         # This page should be visable to anybody.
         page_slug_2 = "test-page-2"
         cls.page_2_url = (
-            "/" + EmpDemoUiAppConfig.app_url_prefix + "/" +page_slug_2 + "/"
+            "/" + app_url_prefix + "/" +page_slug_2 + "/"
         )
         cls.expected_page_content_2 = "Content 2"
         cls.expected_page_background_color_2 = "yellow"
@@ -59,7 +59,7 @@ class TestDemoUIPageView(TestCase):
         # This is an url to a page which does not exist.
         page_slug_na = "test-page-na"
         cls.page_na_url = (
-            "/" + EmpDemoUiAppConfig.app_url_prefix + "/" +page_slug_na + "/"
+            "/" + app_url_prefix + "/" +page_slug_na + "/"
         )
 
     def test_page_background_color_in_context(self):

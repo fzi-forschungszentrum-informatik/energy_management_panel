@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.templatetags.static import static
 from django.contrib.auth import get_user_model
 
-from emp_demo_ui_app.apps import EmpDemoUiAppConfig
+from emp_demo_ui_app.apps import app_url_prefix
 
 class TestEMPBaseView(TestCase):
     """
@@ -86,7 +86,7 @@ class TestEMP403View(TestCase):
         # This is an url to a page which does not exist.
         page_slug_na = "test-page-na"
         cls.page_na_url = (
-            "/" + EmpDemoUiAppConfig.app_url_prefix + "/" +page_slug_na + "/"
+            "/" + app_url_prefix + "/" +page_slug_na + "/"
         )
 
     def test_correct_template_used(self):

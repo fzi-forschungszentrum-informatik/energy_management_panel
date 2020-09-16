@@ -102,16 +102,16 @@ class EmpUiAppsCache():
         self.allowed_datapoints[user] = set()
 
         # Iterate over all UI apps of the EMP to compute all required data.
-        for emp_ui_app in settings.EMP_UI_APPS:
-            app_config = import_module(emp_ui_app)
+        for emp_app in settings.EMP_APPS:
+            app_config = import_module(emp_app + ".apps")
 
 
             # Compute the nav group name, pages and urls for this user.
             # Extend with an id that is used for collapsing the subnav.
             app_nav_content = app_config.get_app_nav_content_for_user(user)
             for app_nav_name, app_nav_pages in app_nav_content.items():
-                # Add the emp_ui_app string to ensure the id is unique.
-                app_nav_id = slugify(emp_ui_app + app_nav_name)
+                # Add the emp_app string to ensure the id is unique.
+                app_nav_id = slugify(emp_app + app_nav_name)
                 app_nav_content_new = {
                     "app_nav_id": app_nav_id,
                     "app_nav_pages": app_nav_pages,

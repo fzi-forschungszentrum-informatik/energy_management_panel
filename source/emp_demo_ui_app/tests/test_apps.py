@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from guardian.shortcuts import assign_perm
 
 from ..models import DemoAppPage
-from ..apps import EmpDemoUiAppConfig
+from ..apps import app_url_prefix
 from ..apps import get_app_nav_content_for_user
 
 
@@ -94,6 +94,6 @@ class TestGetAppNavContentForUser(TestCase):
         app_nav_content = get_app_nav_content_for_user(self.anon_user)
         page_url = app_nav_content["Demo UI App"][self.expected_page_name_1]
         expected_page_url = (
-            "/" + EmpDemoUiAppConfig.app_url_prefix + "/" + self.expected_page_slug_1 + "/"
+            "/" + app_url_prefix + "/" + self.expected_page_slug_1 + "/"
         )
         self.assertEqual(page_url, expected_page_url)

@@ -11,10 +11,11 @@ class EmpDemoUiAppConfig(AppConfig):
     """
     name = 'emp_demo_ui_app'
 
-    # The first part of the url, that is used to identify the pages
-    # belongig to this app. No leading or trailing slashes, they will
-    # be added where needed by the functions using this string.
-    app_url_prefix = "demo"
+
+# The first part of the url, that is used to identify the pages
+# belongig to this app. No leading or trailing slashes, they will
+# be added where needed by the functions using this string.
+app_url_prefix = "demo"
 
 
 def get_app_nav_content_for_user(user):

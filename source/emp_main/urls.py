@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from importlib import import_module
+
 from django.contrib import admin
 from django.conf import settings
 from django.urls import path, include
@@ -24,8 +26,23 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", RedirectView.as_view(url=settings.HOME_PAGE_URL, permanent=False)),
     path("welcome/", EMPBaseView.as_view(template_name="./emp_main/welcome.html")),
-    # TODO: Find some configurable default here.
-    path("demo/", include('emp_demo_ui_app.urls'))
 ]
+
+# Add url paths for the emp apps.
+for emp_app in settings.EMP_APPS:
+    # Compute the path for the urls of the module, but only if the
+    # app_url_prefix has been defined.
+    app_config = import_module(emp_app + ".apps")
+    if not hasattr(app_config, "app_url_prefix"):
+        continue
+    if not app_config.app_url_prefix:
+        continue
+    # Add a trailing slash if it isn't existing yet.
+    app_url_prefix = app_config.app_url_prefix
+    if app_url_prefix[-1] != "/":
+        app_url_prefix += "/"
+    # Add urls of the app to urlpatterns.
+    app_path = path(app_url_prefix, include(emp_app + ".urls"))
+    urlpatterns.append(app_path)
 
 handler403 = 'emp_main.views.emp_403_handler'

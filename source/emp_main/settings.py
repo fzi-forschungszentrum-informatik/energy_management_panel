@@ -183,9 +183,13 @@ TOPBAR_LOGO_STATIC  = "emp-main/icons/title-logo.png"
 TOPBAR_NAME_SHORT = "EMP"
 TOPBAR_NAME_LONG = "Energy Management Panel"
 
-# Define all installed apps which extend the EMP UI.
-EMP_UI_APPS = [
-    "emp_demo_ui_app.apps",
+# Define all installed apps which extend the EMP functionality.
+# This is used to automatically wire up the urls to these apps and to
+# automatically generate the user permissions for these apps.
+# This process expects that each app holds a apps.py and urls.py file following
+# the conventions shown in emp_demo_ui_app.
+EMP_APPS = [
+    "emp_demo_ui_app",
 ]
 
 # A list of URLS that are excluded from permission checking, i.e. that can be

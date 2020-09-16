@@ -1,6 +1,6 @@
 from django.db import models
 
-from .apps import EmpDemoUiAppConfig
+from .apps import app_url_prefix
 
 class DemoAppPage(models.Model):
     """
@@ -43,5 +43,5 @@ class DemoAppPage(models.Model):
     )
 
     def get_absolute_url(self):
-        u = "/" + EmpDemoUiAppConfig.app_url_prefix + "/" + self.page_slug + "/"
+        u = "/" + app_url_prefix + "/" + self.page_slug + "/"
         return u
