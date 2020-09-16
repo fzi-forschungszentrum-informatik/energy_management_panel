@@ -15,7 +15,7 @@ class TestGetAppNavContentForUser(TestCase):
         Create test users and two pages with appropriate permissions.
         """
         User = get_user_model()
-        cls.test_user_1 = User.objects.create(username="u1", password="p1")
+        cls.test_user_1 = User.objects.create_user(username="u1", password="p1")
         cls.anon_user = User.get_anonymous()
 
         # This page should be visable to anybody.

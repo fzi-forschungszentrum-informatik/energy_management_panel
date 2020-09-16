@@ -1,11 +1,18 @@
+import json
+import logging
 from collections import OrderedDict
 
 from django.conf import settings
 from django.utils.text import slugify
 from django.views.generic import TemplateView
 from django.templatetags.static import static
+from django.core.exceptions import PermissionDenied
 
 from emp_main.apps import EmpUiAppsCache
+
+
+logger = logging.getLogger(__name__)
+
 
 class EMPBaseView(TemplateView):
     """
@@ -25,6 +32,21 @@ class EMPBaseView(TemplateView):
 
         user = self.request.user
         apps_cache = EmpUiAppsCache.get_instance()
+
+        allowed_urls = apps_cache.get_allowed_urls_for_user(user)
+        requested_url = self.request.path_info
+        if requested_url not in allowed_urls:
+            logger.info(
+                "EMPBaseView blocked request by user %s to access page %s. "
+                "Allowed pages are:\n%s",
+                *(
+                    user,
+                    requested_url,
+                    json.dumps(sorted(allowed_urls), indent=2)
+                )
+            )
+            raise PermissionDenied
+
         nav_content = apps_cache.get_apps_nav_content_for_user(user)
         context["emp_apps_nav_content"] = nav_content
 

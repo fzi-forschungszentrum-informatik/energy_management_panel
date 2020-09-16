@@ -121,7 +121,7 @@ class EmpUiAppsCache():
                 # Also store all allowed urls for this user, by assuming he/she
                 # is only permitted to access those urls that are part of the
                 # navbar.
-                self.allowed_urls[user].update(app_nav_pages.keys())
+                self.allowed_urls[user].update(app_nav_pages.values())
 
             # Finally also update the permitted datapoints.
             # TODO.

@@ -1,6 +1,7 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import assign_perm
+
 
 from ..models import DemoAppPage
 from ..apps import EmpDemoUiAppConfig
@@ -13,8 +14,8 @@ class TestDemoUIPageView(TestCase):
         Create test users and two pages with appropriate permissions.
         """
         User = get_user_model()
-        cls.test_user_1 = User.objects.create(username="u1", password="p1")
-        cls.test_user_2 = User.objects.create(username="u2", password="p2")
+        cls.test_user_1 = User.objects.create_user(username="u1", password="p1")
+        cls.test_user_2 = User.objects.create_user(username="u2", password="p2")
         cls.anon_user = User.get_anonymous()
 
         # This page should be visable to anybody.
@@ -92,34 +93,47 @@ class TestDemoUIPageView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, './emp_demo_ui_app/demo_page.html')
 
-    def test_invalid_page_slug_returns_404(self):
+    def test_invalid_page_slug_returns_403(self):
+        """
+        The emp doesn't distinguish between pages that do not exist and those
+        for which the user has no permissions, for performance reasons, and
+        always returns 403 in such cases.
+        """
         response = self.client.get(self.page_na_url)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
 
-    def test_redirect_if_not_logged_in(self):
-        """
-        If a anon user tries to access a page which the anon user has no
-        permissions for, he/she should be redirected to the login page.
-        """
-        response = self.client.get(self.page_2_url)
-        self.assertRedirects(
-            response,
-            '/accounts/login/?next=' + self.page_2_url
-        )
+    # Redirecting to the login page is currently not installed, this could
+    # change later.
+    #
+    # def test_redirect_if_not_logged_in(self):
+    #     """
+    #     If a anon user tries to access a page which the anon user has no
+    #     permissions for, he/she should be redirected to the login page.
+    #     """
+    #     response = self.client.get(self.page_2_url)
+    #     self.assertRedirects(
+    #         response,
+    #         '/accounts/login/?next=' + self.page_2_url
+    #     )
 
     def test_page_loaded_for_logged_in_user_with_permissions(self):
         """
         This user has permissions, should thus be able to load the page.
         """
-        self.client.login(username='u1', password='p1')
-        response = self.client.get(self.page_2_url)
+        client = Client()
+        login_success = client.login(username='u1', password='p1')
+        self.assertTrue(login_success)
+
+        response = client.get(self.page_2_url)
         self.assertEqual(response.status_code, 200)
 
     def test_page_returns_403_for_logged_in_user_without_permissions(self):
         """
         This user is authenticated but has not permissions for the page.
         """
-        self.client.login(username='u2', password='p2')
-        response = self.client.get(self.page_2_url)
+        client = Client()
+        login_success = client.login(username='u2', password='p2')
+        self.assertTrue(login_success)
+
+        response = client.get(self.page_2_url)
         self.assertEqual(response.status_code, 403)
-        print(response)
