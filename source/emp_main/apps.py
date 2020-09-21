@@ -1,3 +1,4 @@
+import sys
 import logging
 from collections import OrderedDict
 from importlib import import_module
@@ -14,7 +15,9 @@ class EmpMainConfig(AppConfig):
     name = 'emp_main'
 
     def ready(self):
-        EmpUiAppsCache()
+        # Only if devel or prod server is started.
+        if 'runserver' in sys.argv or "daphne" in sys.argv[0]:
+            EmpUiAppsCache()
 
 
 class EmpUiAppsCache():

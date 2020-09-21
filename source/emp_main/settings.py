@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'guardian',
     'emp_main.apps.EmpMainConfig',
     'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
+    'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
 ]
 
 MIDDLEWARE = [
@@ -89,6 +90,7 @@ DATABASES = {
 }
 
 # Logging as suggested by practical django book
+# TODO: Automatically add logger for each module.
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -111,6 +113,11 @@ LOGGING = {
             'propagate': True,
         },
         'emp_main': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'emp_demo_dp_interface': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
