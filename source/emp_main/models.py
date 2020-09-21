@@ -24,6 +24,7 @@ class Datapoint(models.Model):
     external_id = models.PositiveIntegerField(
         null=True,
         unique=True,
+        blank=True,
         help_text=(
             "This id used if Datapoints data is pushed in from an external tool"
             " (e.g. BEMCom) that maintains it's own list datapoint metadata. "
@@ -95,8 +96,9 @@ class Datapoint(models.Model):
     ##########################################################################
     #
     last_value = models.TextField(
-        editable=True,
         null=True,
+        blank=True,
+        default=None,
         help_text=(
             "The last value received for the datapoint. We store all values "
             "including numeric as strings as this simplfies the logic "
@@ -106,48 +108,53 @@ class Datapoint(models.Model):
         )
     )
     last_value_timestamp = models.DateTimeField(
-        editable=True,
         null=True,
+        blank=True,
+        default=None,
         help_text=(
             "The timestamp of the last value received via MQTT."
         )
     )
-    last_setpoint = models.TextField(
-        editable=True,
+    last_setpoint = models.JSONField(
         null=True,
+        blank=True,
+        default=None,
         help_text=(
             "The last schedule received for the datapoint. "
             "Applicable to actuator datapoints."
         )
     )
     last_setpoint_timestamp = models.DateTimeField(
-        editable=True,
         null=True,
+        blank=True,
+        default=None,
         help_text=(
             "The timestamp of the last value received for the datapoint."
             "Applicable to actuator datapoints."
         )
     )
-    last_schedule = models.TextField(
-        editable=True,
+    last_schedule = models.JSONField(
         null=True,
+        blank=True,
+        default=None,
         help_text=(
             "The last schedule received for the datapoint."
             "Applicable to actuator datapoints."
         )
     )
     last_schedule_timestamp = models.DateTimeField(
-        editable=True,
         null=True,
+        blank=True,
+        default=None,
         help_text=(
             "The timestamp of the last value received for the datapoint."
             "Applicable to actuator datapoints."
         )
     )
-    allowed_values = models.TextField(
-        blank=False,
-        null=False,
-        default="[]",
+    allowed_values = models.JSONField(
+        null=True,
+        blank=True,
+        default=None,
         help_text=(
             "Allowed values. Applicable to discrete valued datapoints. "
             "Must be a valid JSON string."
@@ -183,13 +190,3 @@ class Datapoint(models.Model):
 
     def __str__(self):
         return (str(self.id) + " - " + self.description)
-
-    def clean(self):
-        """
-        """
-        try:
-            _ = json.loads(self.allowed_values)
-        except Exception:
-            raise ValidationError(
-                "Allowed values contains no valid JSON string."
-            )
