@@ -1,4 +1,3 @@
-import sys
 import logging
 from collections import OrderedDict
 from importlib import import_module
@@ -69,11 +68,11 @@ class EmpAppsCache():
         # These store the user specific objects. apps_nav_content stores the
         # data required to populate the user specific nav bar. allowed_urls is
         # used to check whether the user has the right to open a page.
-        # allowed_datapoints is used to check whether the user is allowed to
+        # allowed_datapoint_ids is used to check whether the user is allowed to
         # receive the values of a specific datapoint.
         self.apps_nav_content = {}
         self.allowed_urls = {}
-        self.allowed_datapoints = {}
+        self.allowed_datapoint_ids = {}
 
     def update_for_user(self, user=None):
         """
@@ -100,35 +99,36 @@ class EmpAppsCache():
         # Erase all previous user specific objects.
         self.apps_nav_content[user] = OrderedDict()
         self.allowed_urls[user] = set()
-        self.allowed_datapoints[user] = set()
+        self.allowed_datapoint_ids[user] = set()
 
         # Iterate over all UI apps of the EMP to compute all required data.
         for emp_app in settings.EMP_APPS:
             app_config = import_module(emp_app + ".apps")
 
             # Some apps may have no pages and thus no nav_content, skip these.
-            if not hasattr(app_config, "get_app_nav_content_for_user"):
-                continue
+            if hasattr(app_config, "get_app_nav_content_for_user"):
+                # Compute the nav group name, pages and urls for this user.
+                # Extend with an id that is used for collapsing the subnav.
+                app_nav_content = app_config.get_app_nav_content_for_user(user)
+                for app_nav_name, app_nav_pages in app_nav_content.items():
+                    # Add the emp_app string to ensure the id is unique.
+                    app_nav_id = slugify(emp_app + app_nav_name)
+                    user_app_nav = {
+                        "app_nav_id": app_nav_id,
+                        "app_nav_pages": app_nav_pages,
+                    }
+                    self.apps_nav_content[user][app_nav_name] = user_app_nav
 
-            # Compute the nav group name, pages and urls for this user.
-            # Extend with an id that is used for collapsing the subnav.
-            app_nav_content = app_config.get_app_nav_content_for_user(user)
-            for app_nav_name, app_nav_pages in app_nav_content.items():
-                # Add the emp_app string to ensure the id is unique.
-                app_nav_id = slugify(emp_app + app_nav_name)
-                app_nav_content_new = {
-                    "app_nav_id": app_nav_id,
-                    "app_nav_pages": app_nav_pages,
-                }
-                self.apps_nav_content[user][app_nav_name] = app_nav_content_new
+                    # Also store all allowed urls for this user, by assuming
+                    # he/she is only permitted to access those urls that are
+                    # part of the navbar.
+                    self.allowed_urls[user].update(app_nav_pages.values())
 
-                # Also store all allowed urls for this user, by assuming he/she
-                # is only permitted to access those urls that are part of the
-                # navbar.
-                self.allowed_urls[user].update(app_nav_pages.values())
+            # Similar to above, now collect the permitted datapoint ids.
+            if hasattr(app_config, "get_permitted_datapoint_ids_for_user"):
+                dp_ids = app_config.get_permitted_datapoint_ids_for_user(user)
+                self.allowed_datapoint_ids[user].update(dp_ids)
 
-            # Finally also update the permitted datapoints.
-            # TODO.
 
     def get_apps_nav_content_for_user(self, user):
         """
@@ -180,9 +180,9 @@ class EmpAppsCache():
             self.update_for_user(user)
         return self.allowed_urls[user]
 
-    def get_allowed_datapoints_for_user(self, user):
+    def get_allowed_datapoint_ids_for_user(self, user):
         """
-        Returns the allowed_datapoints for this user.
+        Returns the allowed_datapoint_ids for this user.
 
         Will take it from cache or trigger recomputation if not in cache.
 
@@ -197,6 +197,6 @@ class EmpAppsCache():
         Set
             Of all Datapoints the user has permissions to access.
         """
-        if not user in self.allowed_datapoints:
+        if not user in self.allowed_datapoint_ids:
             self.update_for_user(user)
-        return self.allowed_datapoints[user]
+        return self.allowed_datapoint_ids[user]
