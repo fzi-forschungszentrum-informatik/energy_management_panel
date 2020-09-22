@@ -29,7 +29,6 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,6 +41,17 @@ INSTALLED_APPS = [
     'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
     'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
+]
+
+# Define all installed apps which extend the EMP functionality.
+# This is used to automatically wire up the urls to these apps and to
+# automatically generate the user permissions for these apps.
+# This process expects that each app holds a apps.py and urls.py file following
+# the conventions shown in emp_demo_ui_app.
+EMP_APPS = [
+    "emp_demo_ui_app",
+    "emp_demo_dp_interface",
+    "emp_django_authenticator",
 ]
 
 MIDDLEWARE = [
@@ -82,7 +92,6 @@ WSGI_APPLICATION = 'emp_main.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -90,8 +99,22 @@ DATABASES = {
     }
 }
 
-# Logging as suggested by practical django book
-# TODO: Automatically add logger for each module.
+# Logging inspired by suggestions in practical django book.
+# This configures one explicit logger per app, as this allows us
+# to identify the source of a log message easily.
+log_level = 'INFO'
+if DEBUG:
+    log_level = 'DEBUG'
+
+loggers = {}
+# Explicitly add emp_main, as log messages from it won't be displayed else.
+for emp_app in EMP_APPS + ["emp_main", ]:
+    loggers[emp_app] = {
+        'handlers': ['console'],
+        'level': log_level,
+        'propagate': True,
+    }
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -107,33 +130,7 @@ LOGGING = {
             'formatter': 'simple'
         },
     },
-    'loggers': {
-        'general_configuration': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'emp_main': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'emp_demo_dp_interface': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'emp_energy_flow': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'emp_django_authenticator': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
+    'loggers': loggers
 }
 
 
@@ -195,17 +192,6 @@ TOPBAR_LOGO_STATIC  = "emp-main/icons/title-logo.png"
 # Strings to display in the top navbar.
 TOPBAR_NAME_SHORT = "EMP"
 TOPBAR_NAME_LONG = "Energy Management Panel"
-
-# Define all installed apps which extend the EMP functionality.
-# This is used to automatically wire up the urls to these apps and to
-# automatically generate the user permissions for these apps.
-# This process expects that each app holds a apps.py and urls.py file following
-# the conventions shown in emp_demo_ui_app.
-EMP_APPS = [
-    "emp_demo_ui_app",
-    "emp_demo_dp_interface",
-    "emp_django_authenticator",
-]
 
 # A list of URLS that are excluded from permission checking, i.e. that can be
 # accessed by any user at all times. This is required to allow access to pages
