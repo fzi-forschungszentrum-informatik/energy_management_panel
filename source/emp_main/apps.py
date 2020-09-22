@@ -15,9 +15,7 @@ class EmpMainConfig(AppConfig):
     name = 'emp_main'
 
     def ready(self):
-        # Only if devel or prod server is started.
-        if 'runserver' in sys.argv or "daphne" in sys.argv[0]:
-            EmpUiAppsCache()
+        EmpUiAppsCache()
 
 
 class EmpUiAppsCache():
@@ -108,6 +106,9 @@ class EmpUiAppsCache():
         for emp_app in settings.EMP_APPS:
             app_config = import_module(emp_app + ".apps")
 
+            # Some apps may have no pages and thus no nav_content, skip these.
+            if not hasattr(app_config, "get_app_nav_content_for_user"):
+                continue
 
             # Compute the nav group name, pages and urls for this user.
             # Extend with an id that is used for collapsing the subnav.

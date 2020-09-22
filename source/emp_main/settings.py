@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'emp_main.apps.EmpMainConfig',
     'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
     'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
+    'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
 ]
 
 MIDDLEWARE = [
@@ -127,6 +128,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'emp_django_authenticator': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
     },
 }
 
@@ -197,6 +203,8 @@ TOPBAR_NAME_LONG = "Energy Management Panel"
 # the conventions shown in emp_demo_ui_app.
 EMP_APPS = [
     "emp_demo_ui_app",
+    "emp_demo_dp_interface",
+    "emp_django_authenticator",
 ]
 
 # A list of URLS that are excluded from permission checking, i.e. that can be
@@ -205,7 +213,14 @@ EMP_APPS = [
 # an UI app.
 URLS_PERMISSION_WHITELIST = [
     "/welcome/",
+    "/auth/login/",
+    "/auth/logout/",
 ]
 
 # Users will be redirected to this page if visiting the sites root.
 HOME_PAGE_URL = "/welcome/"
+
+# Defines the URLS that are placed in the login/logout buttons in the
+# EMPBaseView. Use ?next= to redirect after login/logout.
+LOGIN_PAGE_URL = "/auth/login/?next=%s" % HOME_PAGE_URL
+LOGOUT_PAGE_URL = "/auth/logout/?next=%s" % HOME_PAGE_URL

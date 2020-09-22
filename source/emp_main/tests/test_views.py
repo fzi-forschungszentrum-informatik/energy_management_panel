@@ -55,6 +55,8 @@ class TestEMPBaseView(TestCase):
             "TOPBAR_LOGO_STATIC",
             "TOPBAR_NAME_SHORT",
             "TOPBAR_NAME_LONG",
+            "LOGIN_PAGE_URL",
+            "LOGOUT_PAGE_URL",
         ]
 
         with self.settings(URLS_PERMISSION_WHITELIST=self.urls_whitelist):
@@ -93,4 +95,3 @@ class TestEMP403View(TestCase):
         response = self.client.get(self.page_na_url)
         self.assertEqual(response.status_code, 403)
         self.assertTemplateUsed(response, 'emp_main/403.html')
-

@@ -1,0 +1,1 @@
+This is a simple authenticator app that uses [Django's default user management system](https://docs.djangoproject.com/en/3.1/topics/auth/default/) for authentication. It provides a login and logout view. It widely follows the tutorial implementation of login/logout provided in the docs linked before.

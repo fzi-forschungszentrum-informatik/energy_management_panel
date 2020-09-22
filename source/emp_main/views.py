@@ -58,12 +58,19 @@ class EMPBaseView(TemplateView):
         context["TOPBAR_LOGO_STATIC"] = static(settings.TOPBAR_LOGO_STATIC)
         context["TOPBAR_NAME_SHORT"] = settings.TOPBAR_NAME_SHORT
         context["TOPBAR_NAME_LONG"] = settings.TOPBAR_NAME_LONG
+        context["LOGIN_PAGE_URL"] = settings.LOGIN_PAGE_URL
+        context["LOGOUT_PAGE_URL"] = settings.LOGOUT_PAGE_URL
 
         # Load the user specific objects into context.
         user = self.request.user
         apps_cache = EmpUiAppsCache.get_instance()
         nav_content = apps_cache.get_apps_nav_content_for_user(user)
         context["emp_apps_nav_content"] = nav_content
+
+        logger.debug(
+            "EMPBaseView loaded for user=%s",
+            user
+        )
 
         return context
 
