@@ -6,9 +6,10 @@ from django.conf import settings
 from django.utils.text import slugify
 from django.views.generic import TemplateView
 from django.templatetags.static import static
+from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 
-from emp_main.apps import EmpUiAppsCache
+from emp_main.apps import EmpAppsCache
 
 
 logger = logging.getLogger(__name__)
@@ -19,17 +20,21 @@ class EMPBaseView(TemplateView):
     Like the normal TemplateView but automatically extends the context with
     all data required for all pages, that is, for the base.html template.
     """
-    def check_permissions_for_url(self):
+    def check_permissions_for_url(self, user):
         """
         Check if the user has permissions to access the requested url.
+
+        Arguments:
+        ----------
+        user: Django user object
+            The user for which permissions should be checked.
 
         Raises:
         -------
         PermissionDenied:
             If the user has no permissions to access the URL.
         """
-        user = self.request.user
-        apps_cache = EmpUiAppsCache.get_instance()
+        apps_cache = EmpAppsCache.get_instance()
 
         requested_url = self.request.path_info
         if requested_url not in settings.URLS_PERMISSION_WHITELIST:
@@ -47,8 +52,16 @@ class EMPBaseView(TemplateView):
                 raise PermissionDenied
 
     def get_context_data(self, **kwargs):
+
+        # Replace the django default anon user with the Guardian version,
+        # as these are not identical and we thus retrieve incorrect page
+        # permissions for the django anon user.
+        user = self.request.user
+        if user.is_anonymous:
+            user = get_user_model().get_anonymous()
+
         # Check permissions first.
-        self.check_permissions_for_url()
+        self.check_permissions_for_url(user=user)
 
         # Add page customization for template to context.
         context = super().get_context_data(**kwargs)
@@ -61,9 +74,8 @@ class EMPBaseView(TemplateView):
         context["LOGIN_PAGE_URL"] = settings.LOGIN_PAGE_URL
         context["LOGOUT_PAGE_URL"] = settings.LOGOUT_PAGE_URL
 
-        # Load the user specific objects into context.
-        user = self.request.user
-        apps_cache = EmpUiAppsCache.get_instance()
+        # Load the user specific objects into context
+        apps_cache = EmpAppsCache.get_instance()
         nav_content = apps_cache.get_apps_nav_content_for_user(user)
         context["emp_apps_nav_content"] = nav_content
 

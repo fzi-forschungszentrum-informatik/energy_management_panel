@@ -15,10 +15,12 @@ class EmpMainConfig(AppConfig):
     name = 'emp_main'
 
     def ready(self):
-        EmpUiAppsCache()
+        EmpAppsCache()
+
+        import emp_main.signals
 
 
-class EmpUiAppsCache():
+class EmpAppsCache():
     """
     A cache for the user specfic objects per EMP UI apps.
 
@@ -91,8 +93,6 @@ class EmpUiAppsCache():
         if user is None:
             user_model = auth.get_user_model()
             users = list(user_model.objects.all())
-            # Also update for the AnonymousUser (not returned by the query).
-            users += [auth.models.AnonymousUser()]
             for user in users:
                 self.update_for_user(user)
             return
