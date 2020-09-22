@@ -15,12 +15,12 @@ class TestDpFieldValue(TestCase):
         """
         Ensure that an error message is returned for not existing fields.
         """
-        expected_error = "Error! Datapoint has no field name \"na_bbbb\""
+        expected_error = "Error! Datapoint has no field name"
         actual_return = dp_field_value(self.dp, "na_bbbb")
         self.assertIn(expected_error, actual_return)
 
     def test_returned_html_with_span_tag_and_class_label(self):
-        expected_class_label = '"dp%s__type"' % self.dp.id
+        expected_class_label = 'dp%s__type' % self.dp.id
         expected_html = "<span class=%s>sensor</span>" % expected_class_label
         actual_html = dp_field_value(self.dp, "type")
         self.assertEqual(expected_html, actual_html)

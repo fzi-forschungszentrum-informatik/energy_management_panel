@@ -19,5 +19,6 @@ class DemoUIPageView(EMPBaseView):
 
         context["page_background_color"] = page_object.page_background_color
         context["page_content"] = page_object.page_content
+        context["demo_datapoint"] = page_object.demo_datapoint
 
         return context

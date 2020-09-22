@@ -2,6 +2,7 @@
 Template tags that support the handling of datapoints in pages.
 """
 from django import template
+from django.utils.html import format_html
 
 register = template.Library()
 
@@ -20,6 +21,10 @@ def dp_field_value(datapoint, field_name):
         emsg = "Datapoint %s has no id." % datapoint
         raise ValueError(emsg)
 
-    class_label = '"dp%s__%s"' % (datapoint.id, field_name)
-    field_html = "<span class=%s>%s</span>" % (class_label, field_value)
+    class_label = 'dp%s__%s' % (datapoint.id, field_name)
+    field_html = format_html(
+        "<span class={}>{}</span>",
+        class_label,
+        field_value
+    )
     return field_html

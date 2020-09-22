@@ -1,6 +1,7 @@
 <!-- All generic content like nav/title bar is provided by the base template -->
 {% extends "emp_main/base.html" %}
 {% load static %}
+{% load datapoint_helpers %}
 
 {% block head %}
   <!-- Load additional css files here, or whatever is needed in the header -->
@@ -12,14 +13,25 @@
   <!-- faster content generation. The following also also uses page  -->
   <!-- specific variables loaded from database. -->
   <div class="container h-100" style="background-color: {{page_background_color}}">
-    <div class="h-100">
-      <div class="row align-items-center justify-content-center h-100">
+    <div class="d-flex flex-column justify-content-center h-100">
+      <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
           <!-- This uses a style from the css file loaded above. -->
           <p class="demo-app-text-center">
             {{page_content}}
           </p>
         </div>
+      </div>
+      <div class="row justify-content-center">
+        {% if demo_datapoint %}
+          <div class="col-md-8 col-lg-6">
+            <p class="demo-app-text-center">
+            last_value of demo datapoint is:
+            {% dp_field_value demo_datapoint "last_value" %}
+            {% dp_field_value demo_datapoint "unit" %}
+            </p>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

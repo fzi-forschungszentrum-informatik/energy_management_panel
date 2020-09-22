@@ -1,6 +1,8 @@
 from django.db import models
 
+from emp_main.models import Datapoint
 from .apps import app_url_prefix
+
 
 class DemoAppPage(models.Model):
     """
@@ -40,6 +42,15 @@ class DemoAppPage(models.Model):
         help_text=(
             "Allows configuring the background color of the page."
         )
+    )
+    demo_datapoint = models.ForeignKey(
+        Datapoint,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        help_text=(
+            "A simple example how to use a Datapoint in a model."
+        ),
     )
 
     def get_absolute_url(self):
