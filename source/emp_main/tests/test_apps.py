@@ -28,5 +28,4 @@ class TestEmpAppsCache(TestCase):
         """
         self.assertFalse(self.apps_cache.apps_nav_content)
         self.assertFalse(self.apps_cache.allowed_urls)
-        self.assertFalse(self.apps_cache.allowed_datapoints)
-
+        self.assertFalse(self.apps_cache.allowed_datapoint_ids)

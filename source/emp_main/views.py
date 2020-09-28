@@ -94,7 +94,7 @@ class EMP403View(EMPBaseView):
     """
     template_name = "emp_main/403.html"
 
-    def check_permissions_for_url(self):
+    def check_permissions_for_url(self, *args, **kwargs):
         """
         Disable permission checking while delivering 403, as the page has
         already been identified as permission denied. Checking again would
