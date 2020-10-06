@@ -99,8 +99,19 @@ class DatapointUpdate(JsonWebsocketConsumer):
 
         TODO: Use a proper serializer.
         """
-        logger.debug("DatapointUpdate consumer got datapoint update %s", kwargs)
+        logger.debug(
+            "DatapointUpdate consumer got datapoint update %s",
+            kwargs
+        )
+
+        # Be aware that this datapoint is not the object from the
+        # database but the object that was created by the method that
+        # updated or created the datapoint. I.e. if the method wrote a
+        # number to a text field it will still be a number here. If that is an
+        # issue you can circumvent this by reloading the object from the DB.
+        # Only then the number will be converter to a text.
         datapoint = kwargs["instance"]
+
         if datapoint.id not in self.permitted_datapoint_ids:
             return
         dp_field_values = {}
