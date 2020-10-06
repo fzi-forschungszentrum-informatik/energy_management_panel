@@ -74,6 +74,11 @@ class EMPBaseView(TemplateView):
         context["LOGIN_PAGE_URL"] = settings.LOGIN_PAGE_URL
         context["LOGOUT_PAGE_URL"] = settings.LOGOUT_PAGE_URL
 
+        # This will be populated by the dp_field_value teblate tags.
+        # It allows storing which datapoints field exist on the page and
+        # can thus be updated automatically.
+        context["field_collector"] = {}
+
         # Load the user specific objects into context
         apps_cache = EmpAppsCache.get_instance()
         nav_content = apps_cache.get_apps_nav_content_for_user(user)

@@ -129,6 +129,14 @@ class DatapointUpdate(JsonWebsocketConsumer):
         """
         Disconnect from signal.
         """
+        # Apparently it is necessary to use the exact same arguments as for
+        # connect here to disconnect successfully.
         post_save.disconnect(
+            self.send_datapoint_update_to_client,
+            sender=Datapoint,
             dispatch_uid=self.post_save_uid
+        )
+        logger.debug(
+            "DatapointUpdate consumer disconnected for user=%s",
+            self.user
         )

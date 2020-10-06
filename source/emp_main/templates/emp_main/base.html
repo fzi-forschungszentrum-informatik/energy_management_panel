@@ -1,4 +1,5 @@
 {% load static %}
+{% load datapoint_helpers %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -146,7 +147,7 @@
     // Stores the href ids of the navbar buttons that can collapse
     // submenus. These ids are unique and allow us to restore the
     // menu state after navigating to the next page.
-    window.onbeforeunload = function(){
+    window.addEventListener("beforeunload", function(){
         let shown_submenus = []
         let shown_submenu_nav_links = document.querySelectorAll(
             '.nav-link[data-toggle="collapse"]:not(.collapsed)'
@@ -157,7 +158,7 @@
         // Session storage can only store strings.
         shown_submenus = JSON.stringify(shown_submenus)
         sessionStorage.setItem("shown_submenus", shown_submenus)
-    }
+    });
 
     // Restore the opened submenus on page load by clicking on the button
     // which should expand the collapsed submenu.
@@ -183,6 +184,34 @@
         }
     }
     mark_current_page_active()
+
+  {% if field_collector %}
+  // Add automatic updates of datapoint values if field_collector is populated.
+    // This creates a list of datapoint ids used on this page.
+    var requested_datapoints = "[{{field_collector.keys | join:","}}]"
+    // This creates a mapping of of datapoint ids to class labels on this page.
+    var datapoint_update_map = JSON.parse("{% dp_update_map field_collector %}")
+    // Connect to the websocket to get datapoint field updates.
+    var ws = new WebSocket(
+      "ws://" + window.location.host + "/ws/datapoint-update/?datapoint-ids=" +
+      requested_datapoints
+    );
+    ws.onmessage = function (msg) {
+      let datapoint = JSON.parse(msg.data);
+      // console.log(datapoint);
+      // Get all class labels used for this datapoint and iterate over them.
+      class_labels = datapoint_update_map[datapoint.id];
+      for ( let class_label of class_labels ){
+        let field_name = class_label.split("__").slice(1).join("__");
+        let field_value = datapoint[field_name];
+        // Get the elements in DOM using that class name and update them.
+        let elements = document.getElementsByClassName(class_label);
+        for ( let element of elements ) {
+            element.innerText = field_value;
+          };
+        };
+      };
+  {% endif %}
 
 </script>
 

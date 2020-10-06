@@ -81,6 +81,20 @@ class TestEMPBaseView(TestCase):
                         expected_context_value
                     )
 
+    def test_field_collector_in_context(self):
+        """
+        This must be an empty dict. It is populated by the dp_field_value
+        template tags.
+        """
+        response = self.client.get(self.welcome_page_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("field_collector", response.context)
+        test_content = response.context["field_collector"]
+        self.assertEqual(
+            test_content,
+            {}
+        )
+
 
 class TestEMP403View(TestCase):
     @classmethod

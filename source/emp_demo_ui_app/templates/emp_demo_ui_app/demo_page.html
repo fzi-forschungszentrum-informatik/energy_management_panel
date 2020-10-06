@@ -27,8 +27,8 @@
           <div class="col-md-8 col-lg-6">
             <p class="demo-app-text-center">
             last_value of demo datapoint is:
-            {% dp_field_value demo_datapoint "last_value" %}
-            {% dp_field_value demo_datapoint "unit" %}
+            {% dp_field_value demo_datapoint "last_value" field_collector %}
+            {% dp_field_value demo_datapoint "unit" field_collector %}
             </p>
           </div>
         {% endif %}
