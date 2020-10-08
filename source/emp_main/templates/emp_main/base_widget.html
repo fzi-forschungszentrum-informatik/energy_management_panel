@@ -1,0 +1,28 @@
+{% load static %}
+{% comment %}
+This is the generic code for a widget (a card in bootstrap) that serves
+as a container for information pices in the EMP.
+{% endcomment %}
+<div class="card emp-widget-card">
+    <div class="card-header">
+        {% block widget-title %}
+            Example-title
+        {% endblock %}
+
+        {% if widget.has_detail %}
+          <button type="button"
+                  class="btn close"
+                  data-toggle="modal"
+                  data-target="#{{widget.detail_id}}"
+            >
+            <img src="{% static "emp-main/icons/fullscreen.svg" %}"
+                 alt="Maximize"
+            >
+          </button>
+        {% endif %}
+    </div>
+    <div class="card-body emp-widget-card-center-body-vertically">
+        {% block widget-content %}
+        {% endblock %}
+    </div>
+</div>

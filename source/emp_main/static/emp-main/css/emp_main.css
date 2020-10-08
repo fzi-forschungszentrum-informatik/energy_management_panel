@@ -216,10 +216,6 @@ button[disabled] .on-transition {
   display: none;
 }
 
-.emp-widget-card .fc-toolbar {
-  display: none;
-}
-
 /*
   Style for the widget details aka. modals. Makes them wider.
 */

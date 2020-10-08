@@ -1,0 +1,75 @@
+{% comment %}
+This is the generic code for a detail page (a modal in bootstrap) that
+serves as container that can be poped over the main EMP to provide
+detailed information.
+{% endcomment %}
+<div class="modal fade" id="{{widget.detail_id}}" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" >
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">
+          {% block widget_detail_title %}
+          {% endblock widget_detail_title %}
+        </h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+
+      <!-- TODO Dynamic setting what tabs are used. -->
+      <div class="modal-body">
+        <nav>
+          <div class="nav nav-tabs nav-fill">
+            {% if widget.has_detail_custom_tab %}
+              <a class="nav-item nav-link active"
+                 id="{{widget.detail_id}}_custom_nav"
+                 data-toggle="tab"
+                 href="#{{widget.detail_id}}_custom_tab">
+                   {% block widget_detail_custom_title %}
+                   {% endblock widget_detail_custom_title %}
+              </a>
+            {% endif %}
+            {% if widget.has_detail_plot_tab %}
+              <a class="nav-item nav-link {% if not widget.has_detail_custom_tab %}active{% endif %}"
+                 id="{{widget.detail_id}}_plot_nav"
+                 data-toggle="tab"
+                 href="#{{widget.detail_id}}_plot_tab">
+                    Plot
+              </a>
+            {% endif %}
+            {% if widget.has_detail_datapoints_tab %}
+              <a class="nav-item nav-link"
+                 id="{{widget.detail_id}}_datapoints_nav"
+                 data-toggle="tab"
+                 href="#{{widget.detail_id}}_datapoints_tab">
+                    Datapoints
+              </a>
+            {% endif %}
+          </div>
+        </nav>
+        <div class="tab-content mt-3">
+          {% if widget.has_detail_custom_tab %}
+            <div class="tab-pane fade show active info"
+                 id="{{widget.detail_id}}_custom_tab">
+             {% block widget_detail_custom_tab %}
+             {% endblock widget_detail_custom_tab %}
+            </div>
+          {% endif %}
+          {% if widget.has_detail_plot_tab %}
+            <div class="tab-pane fade {% if not widget.has_detail_custom_tab %}show active{% endif %}"
+                 id="{{widget.detail_id}}_plot_tab">
+              The plot page.
+            </div>
+          {% endif %}
+          {% if widget.has_detail_datapoints_tab %}
+            <div class="tab-pane fade {% if not widget.has_detail_custom_tab and not widget.has_detail_plot_tab %}show active{% endif %}"
+                 id="{{widget.detail_id}}_datapoints_tab">
+              The datapoints page.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
