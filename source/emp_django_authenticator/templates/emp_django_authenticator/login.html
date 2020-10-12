@@ -1,6 +1,10 @@
 {% extends "emp_main/base.html" %}
 {% load static %}
 
+{% block head %}
+  <link rel="stylesheet" href="{% static "emp-django-authenticator/css/emp-django-authenticator.css" %}">
+{% endblock head %}
+
 {% block body_html %}
   <div class="text-center login-main">
     <form method="POST" class="form-signin">
