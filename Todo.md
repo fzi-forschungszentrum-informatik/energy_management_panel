@@ -1,9 +1,18 @@
-* [ ] create a Fakebackend that pushes in periodically for emp_demo_ui_app.
-* [ ] Add Admin Page to datapoints.
-* [ ] Add Checker for value/schedule/setpoint format.
-* [ ] Add automatic import of database values in emp_demo_ui_app.apps
-* [ ] Add WS consumer that pushes Datapoint changes (by using a signal) to WS.
-* [ ] Add Backend integration that publishes a rest interface for BEMCom to push into.
-* [ ] Also add function to send data to backend in integration.
-* [ ] Add auth app that handles auth requests and provides the login page.
+* [ ] Implement REST DP Interface
+  * [ ] Interface for receiving values from BEMCom.
+  * [ ] Interface for retrieving DP history values.
+  * [ ] Add Checker for value/schedule/setpoint format.
+* [ ] Models
+  * [ ] Add support for historic values.
+* [ ] EMP Main
+  * [ ] Add functionality for historic values.
+  * [ ] Add support for widgets and detail pages.
+  * [ ] Add Readme
+* [ ] Demo UI App
+  * [ ] Extend example to historic values.
+  * [ ] Extend example with widgets and detail page.
+  * [ ] Finish Readme.
+* [ ] Docs
+  * [ ] Add notes how build a new app with the code.
+  * [ ] Contributions guide in main Readme.
 

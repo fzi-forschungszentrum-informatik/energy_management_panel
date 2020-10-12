@@ -7,8 +7,6 @@ class DemoUIPageView(EMPBaseView):
     """
     A simple example for a view that appends the context with page specific
     data used only by the demo UI app pages.
-
-    TODO: Add some datapoint data.
     """
 
     def get_context_data(self, **kwargs):

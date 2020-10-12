@@ -4,46 +4,15 @@ Building energy management (BEM) can be understood as the algorithmic optimizati
 
 The EMP is the outcome of the continuous research on algorithmic energy management at the FZI Research Center for Information Technology, in particular the devision Intelligent Information and Communication in Technical Systems (IIK).
 
-## Quick start
+## Documentation
 
-Clone the repository. Install the required dependencies, you might want to install those into an virutalenv or a conda environment.
+**First things first: All documentation assumes that you are familiar at least with the basics of the Django web development framework. If this is not the case for you, please work through the offical [docs of the project](https://docs.djangoproject.com/) (at least the tutorial) or consult the excellent [Practical Django 2 and Channels 2](https://www.springer.com/de/book/9781484240984) book by Federico Marani.**
 
-<span style="color:red">TODO: Add correct git url</span>
-
-```python
-git clone ...
-cd energy_management_panel
-pip install -r requirements.txt
-```
-
-It should now be possible to start the demo version of the EMP with:
-
-```
-cd source
-./manage.py runserver
-```
-
-You can now inspect a demo UI build with the EMP framwork by opening [http://localhost:8000](http://localhost:8000):
-
-![emp_demo_main](docs/imgs/emp_demo_main.png)
-
-The EMP consists of a title bar on the top, a nav bar on the left and white space that is used to display the page content. The title bar contains a place for a logo on the left, the title in the middle and the current time on the right. It is possible to configure logo and title in [emp_main/settings.py](source/emp_main/settings.py). The nav bar always contains the necessary items for authentication, i.e. the Login/Logout buttons of which only the Login button is shown as the user is not authenticated yet, and one collapsible Group per installed UI app. The demo contains only one UI  app with the name "Demo UI App". Each UI app may provide multiple pages, which can be accessed by clicking on the app name in the navbar:
-
-![emp_demo_demo_ui_app_pages](docs/imgs/emp_demo_demo_ui_app_pages.png)
-
-* [ ] Open Page
-* [ ] Login
-* [ ] Show restricted page.
-* [ ] Manage pages with the Admin
-* [ ] Show mobile view.
-* [ ] Hint that more implementation details are provided in  [emp_demo_ui_app/Readme.md](source/emp_demo_ui_app/Readme.md) 
-
-
-
-##### Todo
-
-* [ ] Walk through the example with the demo UI app.
-* [ ] Add some hints about steps that must be done after starting with a new db --> makemigrations, migrate, createsuperuser
+* An introduction to the EMP, including installation, can be found in [docs/Getting_started.md](./docs/Getting_started.md).
+* Additional documentation is provided in the [docs](./docs) folder.
+* The source code of the "Demo UI app" shown in the [docs/Getting_started.md](./docs/Getting_started.md) is provided in [source/emp_demo_ui_app](./source/emp_demo_ui_app). The source code is extensively commented and serves as a best practice for developing UI apps.
+* In order to retrieve measurements and send actuator signals to hardware devices in buildings it is necessary to implement a "Datapoint interface" that takes care of this communication. Source code of a dummy interface that pushes random data into the EMP is provided in [source/emp_demo_dp_interface](./source/emp_demo_dp_interface) as an example.
+* The EMP ships with an stand alone authenticator module that allows user management and authentication, that is used in the demo, and for which source code is placed in [source/emp_django_authenticator](./source/emp_django_authenticator/). Integration of the EMP into existing authentication infrastructure (e.g. LDAP) should be easily possible, see the source code of the provided authenticator as example. 
 
 ## Contact
 
