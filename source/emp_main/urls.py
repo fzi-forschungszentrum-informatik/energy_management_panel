@@ -18,6 +18,7 @@ from importlib import import_module
 from django.contrib import admin
 from django.conf import settings
 from django.urls import path, include
+from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
 from .views import EMPBaseView
@@ -26,7 +27,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", RedirectView.as_view(url=settings.HOME_PAGE_URL, permanent=False)),
     path("welcome/", EMPBaseView.as_view(template_name="./emp_main/welcome.html")),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Add url paths for the emp apps.
 for emp_app in settings.EMP_APPS:

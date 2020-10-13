@@ -174,6 +174,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Don't place media files in source folder but next to it.
+MEDIA_ROOT = BASE_DIR.parent / "media"
+MEDIA_URL ="/media/"
+
 # ------------------------------------------------------------------------------
 # Here the EMP specific settings.
 # ------------------------------------------------------------------------------
