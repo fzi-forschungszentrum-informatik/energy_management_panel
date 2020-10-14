@@ -21,7 +21,7 @@ class Datapoint(models.Model):
     TODO: Add consistency checks on save.
     """
 
-    external_id = models.PositiveIntegerField(
+    external_id = models.TextField(
         null=True,
         unique=True,
         blank=True,
@@ -32,6 +32,16 @@ class Datapoint(models.Model):
             "the database table of the EMP, effectively allowing the EMP "
             "to store Datapoints additionally to what is pushed from the "
             "external tool, e.g. for mock (fake) values."
+        )
+    )
+    short_name = models.SlugField(
+        max_length=30,
+        null=True,  # required to allow migrating tables without this filed.
+        default=None,
+        unique=True,
+        blank=False,  # New datappoints should not have an empty short_name
+        help_text=(
+            "A short name to identify the datapoint."
         )
     )
     TYPE_CHOICES = [
@@ -188,5 +198,19 @@ class Datapoint(models.Model):
         )
     )
 
+    def save(self, *args, **kwargs):
+        """
+        Replace an empty string in external id with None (which cannot be
+        entered directly in the admin), as every None is unique while
+        an empty string violates the unique constraint. However, we want
+        external id only to be unique if it is set.
+        """
+        if self.external_id == "":
+            self.external_id = None
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return (str(self.id) + " - " + self.description)
+        if self.short_name is not None:
+            return (str(self.id) + " - " + self.short_name)
+        else:
+            return str(self.id)

@@ -13,7 +13,7 @@ class DatapointAdmin(admin.ModelAdmin):
     Admin model instance for Datapoints.
     """
     list_display = (
-        "id",
+        "string_representation",
         "external_id",
         "type",
         "data_format",
@@ -22,7 +22,7 @@ class DatapointAdmin(admin.ModelAdmin):
         "last_value_timestamp_pretty",
     )
     list_display_links = (
-        "id",
+        "string_representation",
     )
     list_editable = (
         "description",
@@ -40,6 +40,10 @@ class DatapointAdmin(admin.ModelAdmin):
     readonly_fields = (
         "id",
     )
+
+    def string_representation(self, obj):
+        return obj
+    string_representation.short_description = "ID - Short Name"
 
     def last_value_timestamp_pretty(self, obj):
         """
@@ -119,6 +123,7 @@ class DatapointAdmin(admin.ModelAdmin):
             generic_metadata_fields = []
 
         generic_metadata_fields.extend([
+            "short_name",
             "external_id",
             "type",
             "data_format",
