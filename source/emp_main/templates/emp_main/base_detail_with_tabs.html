@@ -1,0 +1,64 @@
+{% extends "emp_main/base_detail.html" %}
+{% comment %}
+  This is an extension to the base detail template that provides three tabs as
+  detail body.
+    1) A custom tab that can be filled with arbitrary app_nav_content.
+    2) A tab that displays the meta data of datapoints.
+    3) A tab that for plotting the datapoint values (TBD).
+  All tabs are optional and can be enabled via the respective flags.
+{% endcomment %}
+
+{% block detail_body %}
+  <nav>
+    <div class="nav nav-tabs nav-fill">
+      {% if detail.has_custom_tab %}
+        <a class="nav-item nav-link active"
+           id="{{detail.html_id}}_custom_nav"
+           data-toggle="tab"
+           href="#{{detail.html_id}}_custom_tab">
+             {% block detail_custom_tab_title %}
+             {% endblock detail_custom_tab_title %}
+        </a>
+      {% endif %}
+      {% if detail.has_plot_tab %}
+        <a class="nav-item nav-link {% if not detail.has_custom_tab %}active{% endif %}"
+           id="{{detail.html_id}}_plot_nav"
+           data-toggle="tab"
+           href="#{{detail.html_id}}_plot_tab">
+          <!-- TODO -->
+          Plot
+        </a>
+      {% endif %}
+      {% if detail.has_datapoint_tab %}
+        <a class="nav-item nav-link {% if not detail.has_custom_tab and not detail.has_plot_tab %}active{% endif %}"
+           id="{{detail.html_id}}_datapoints_nav"
+           data-toggle="tab"
+           href="#{{detail.html_id}}_datapoints_tab">
+          <!-- TODO -->
+          Datapoints
+        </a>
+      {% endif %}
+    </div>
+  </nav>
+  <div class="tab-content mt-3">
+    {% if detail.has_custom_tab %}
+      <div class="tab-pane fade show active info"
+           id="{{detail.html_id}}_custom_tab">
+       {% block detail_custom_tab_body %}
+       {% endblock detail_custom_tab_body %}
+      </div>
+    {% endif %}
+    {% if detail.has_plot_tab %}
+      <div class="tab-pane fade {% if not detail.has_custom_tab %}show active{% endif %}"
+           id="{{detail.html_id}}_plot_tab">
+        The plot page.
+      </div>
+    {% endif %}
+    {% if detail.has_datapoint_tab %}
+      <div class="tab-pane fade {% if not detail.has_custom_tab and not detail.has_plot_tab %}show active{% endif %}"
+           id="{{detail.html_id}}_datapoints_tab">
+        The datapoints page.
+      </div>
+    {% endif %}
+  </div>
+{% endblock detail_body %}

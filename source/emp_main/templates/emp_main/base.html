@@ -23,6 +23,9 @@
   <script src="{% static "emp-main/js/popper.min.js" %}"></script>
   <script src="{% static "emp-main/js/bootstrap.min.js" %}"></script>
 
+  {% comment %}
+    Anything that must append head goes here, e.g. additional JS/CSS.
+  {% endcomment %}
   {% block head %}
   {% endblock head %}
 
@@ -104,9 +107,20 @@
       </ul>
   </nav>
   <main class="emp-content-container p-3">
+      {% comment %}
+        Page content goes in this block.
+      {% endcomment %}
       {% block body_html %}
       {% endblock body_html %}
   </main>
+
+  {% comment %}
+    All templates for detail pages (e.g. base_detail.html) should be placed
+    in this block, as details are implemented as bootstrap modals that must
+    be plaecd directly under the root of the DOM tree.
+  {% endcomment %}
+  {% block body_details %}
+  {% endblock body_details %}
 
   <script type="text/javascript">
     // auto refresh if inactive for 15 min
@@ -215,6 +229,10 @@
 
   </script>
 
+  {% comment %}
+    Any addition scripting goes here, like e.g. wireing up stuff to do on data
+    updates.
+  {% endcomment %}
   {% block body_script %}
   {% endblock body_script %}
 
