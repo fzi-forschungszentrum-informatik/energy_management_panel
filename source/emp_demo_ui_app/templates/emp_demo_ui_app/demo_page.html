@@ -29,6 +29,15 @@
             last_value of demo datapoint is:
             {% dp_field_value demo_datapoint "last_value" field_collector %}
             {% dp_field_value demo_datapoint "unit" field_collector %}
+            {% if detail %}
+              <button type="button"
+                      class="btn btn-primary ml-2"
+                      href="#{{detail.html_id}}"
+                      data-toggle="modal"
+              >
+                Info
+              </button>
+            {% endif %}
             </p>
           </div>
         {% endif %}
@@ -36,6 +45,12 @@
     </div>
   </div>
 {% endblock body_html %}
+
+{% block body_details %}
+  {% if detail %}
+    {% include "emp_demo_ui_app/demo_detail.html" with detail=detail %}
+  {% endif %}
+{% endblock body_details %}
 
 {% block body_script %}
   <!-- Place additional JS scripting here. -->

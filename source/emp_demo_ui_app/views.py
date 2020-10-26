@@ -19,4 +19,25 @@ class DemoUIPageView(EMPBaseView):
         context["page_content"] = page_object.page_content
         context["demo_datapoint"] = page_object.demo_datapoint
 
+        # This is a detail object for demo_datapoint, that is used to configure
+        # the default detail_with_tabs template.
+        if page_object.page_has_detail:
+            class Detail():
+                pass
+            detail = Detail()
+            # This must be a unique id, is used to wire up buttons and modal.
+            detail.html_id = "dp_{}_detail".format(
+                page_object.demo_datapoint.id
+            )
+
+            # The demo_detail.html template uses this attribute as title:
+            detail.title = "A demo detail"
+
+            # Activate the tabs with custom information and metadata details
+            # about the datapoints.
+            detail.has_custom_tab = True
+            detail.has_datapoint_tab = True
+            detail.datapoints_for_tab = [page_object.demo_datapoint]
+            context["detail"] = detail
+
         return context

@@ -52,6 +52,12 @@ class DemoAppPage(models.Model):
             "A simple example how to use a Datapoint in a model."
         ),
     )
+    page_has_detail = models.BooleanField(
+        default=False,
+        help_text=(
+            "Page displays datapoint detail page if True."
+        ),
+    )
 
     def get_absolute_url(self):
         u = "/" + app_url_prefix + "/" + self.page_slug + "/"
