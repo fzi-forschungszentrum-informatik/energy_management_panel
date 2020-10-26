@@ -4,7 +4,31 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 
-class Datapoint(models.Model):
+class ModelWithIterableFields(models.Model):
+    """
+    A model that supports iterating over fields.
+
+    This is usefull if you want to display a model with all fields/values on
+    a page, e.g. as a table.
+    """
+
+    class Meta:
+        abstract = True
+
+    def iter_fields(self):
+        """
+        Return fields and values to display in the device detail modal.
+        """
+        fields = self._meta.fields
+        field_names = []
+        field_values = []
+        for field in fields:
+            field_names.append(field.name)
+            field_values.append(getattr(self, field.name))
+        return zip(field_names, field_values)
+
+
+class Datapoint(ModelWithIterableFields):
     """
     Model for a datapoint.
 

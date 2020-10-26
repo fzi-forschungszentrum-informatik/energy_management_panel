@@ -1,4 +1,5 @@
 {% extends "emp_main/base_detail.html" %}
+{% load datapoint_helpers %}
 {% comment %}
   This is an extension to the base detail template that provides three tabs as
   detail body.
@@ -33,7 +34,8 @@
         <a class="nav-item nav-link {% if not detail.has_custom_tab and not detail.has_plot_tab %}active{% endif %}"
            id="{{detail.html_id}}_datapoints_nav"
            data-toggle="tab"
-           href="#{{detail.html_id}}_datapoints_tab">
+           href="#{{detail.html_id}}_datapoints_tab"
+        >
           <!-- TODO -->
           Datapoints
         </a>
@@ -50,14 +52,36 @@
     {% endif %}
     {% if detail.has_plot_tab %}
       <div class="tab-pane fade {% if not detail.has_custom_tab %}show active{% endif %}"
-           id="{{detail.html_id}}_plot_tab">
+           id="{{detail.html_id}}_plot_tab"
+      >
         The plot page.
       </div>
     {% endif %}
     {% if detail.has_datapoint_tab %}
       <div class="tab-pane fade {% if not detail.has_custom_tab and not detail.has_plot_tab %}show active{% endif %}"
-           id="{{detail.html_id}}_datapoints_tab">
-        The datapoints page.
+           id="{{detail.html_id}}_datapoints_tab"
+      >
+        {% for datapoint in detail.datapoints_for_tab %}
+          <h5>
+            {{datapoint}}
+          </h5>
+           <table class="table">
+             <thead>
+               <tr>
+                 <th scope="col">Field</th>
+                 <th scope="col">Value</th>
+               </tr>
+             </thead>
+             <tbody>
+               {% for field_name, field_value in datapoint.iter_fields %}
+                 <tr>
+                   <td>{{ field_name | title }}</td>
+                   <td>{% dp_field_value datapoint field_name field_collector %}</td>
+                 </tr>
+               {% endfor %}
+             </tbody>
+           </table>
+         {% endfor %}
       </div>
     {% endif %}
   </div>
