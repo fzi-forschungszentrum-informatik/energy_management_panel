@@ -218,6 +218,10 @@
         for ( let class_label of class_labels ){
           let field_name = class_label.split("__").slice(1).join("__");
           let field_value = datapoint[field_name];
+          if ( field_value === null ) {
+            // Makes dislay identical to the inital field value from ORM.
+            field_value = "None"
+          }
           // Get the elements in DOM using that class name and update them.
           let elements = document.getElementsByClassName(class_label);
           for ( let element of elements ) {
