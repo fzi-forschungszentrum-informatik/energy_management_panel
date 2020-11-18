@@ -2,15 +2,15 @@
 
 ## Installation
 
-Clone the repository. Install the required dependencies, you might want to install those into an virutalenv or a conda environment.
-
-<span style="color:red">TODO: Add correct git url</span>
+Clone the repository. Install the required dependencies, you might want to install those into an [virutalenv](https://docs.python.org/3/tutorial/venv.html) or a [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html) environment.
 
 ```python
-git clone ...
+git clone https://github.com/fzi-forschungszentrum-informatik/energy_management_panel.git
 cd energy_management_panel
 pip install -r requirements.txt
 ```
+
+## Startup
 
 It should now be possible to start the demo version of the EMP with:
 
