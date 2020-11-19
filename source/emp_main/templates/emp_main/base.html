@@ -205,10 +205,15 @@
       var requested_datapoints = "[{{field_collector.keys | join:","}}]"
       // This creates a mapping of of datapoint ids to class labels on this page.
       var datapoint_update_map = JSON.parse("{% dp_update_map field_collector %}")
+      // Use wss as normal ws will not work with https.
+      let ws_protocol = "ws://";
+      if ( window.location.protocol === "https:" ){
+        ws_protocol = "wss://";
+      }
       // Connect to the websocket to get datapoint field updates.
       var ws = new WebSocket(
-        "ws://" + window.location.host + "/ws/datapoint-update/?datapoint-ids=" +
-        requested_datapoints
+        ws_protocol + window.location.host +
+        "/ws/datapoint-update/?datapoint-ids=" + requested_datapoints
       );
       ws.onmessage = function (msg) {
         let datapoint = JSON.parse(msg.data);
