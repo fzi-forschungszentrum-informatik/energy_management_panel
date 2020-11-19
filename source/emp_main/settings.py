@@ -89,7 +89,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'emp_main.wsgi.application'
-ASGI_APPLICATION = 'emp_main.routing.application'
+ASGI_APPLICATION = 'emp_main.asgi.application'
 
 
 # Database
