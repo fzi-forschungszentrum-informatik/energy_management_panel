@@ -4,6 +4,7 @@ from rest_framework.schemas import get_schema_view
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from .views import DatapointViewSet, DatapointValueViewSet
+from .views import DatapointScheduleViewSet, DatapointSetpointViewSet
 
 router = routers.DefaultRouter()
 # We do this so the root page gets polulated.
@@ -38,7 +39,35 @@ urlpatterns = [
             "delete": "destroy",
         })
     ),
-
+    path(
+        "datapoint/<int:dp_id>/schedule/",
+        DatapointScheduleViewSet.as_view({
+            "get": "list",
+            "post": "create",
+        })
+    ),
+    path(
+        "datapoint/<int:dp_id>/schedule/<int:timestamp>/",
+        DatapointScheduleViewSet.as_view({
+            "get": "retrieve",
+            "put": "update",
+            "delete": "destroy",
+        })
+    ),
+    path(
+        "datapoint/<int:dp_id>/setpoint/",
+        DatapointSetpointViewSet.as_view({
+            "get": "list",
+            "post": "create",
+        })
+    ),
+    path(
+        "datapoint/<int:dp_id>/setpoint/<int:timestamp>/",
+        DatapointSetpointViewSet.as_view({
+            "get": "retrieve",
+            "put": "update",
+            "delete": "destroy",
+        })
+    ),
     path("", include(selected_urls))  # Add API root view.
 ]
-print(router.urls)

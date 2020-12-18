@@ -93,3 +93,66 @@ class DatapointValueSerializer(serializers.Serializer):
         else:
             fields_values["timestamp"] = None
         return fields_values
+
+
+class DatapointScheduleSerializer(serializers.Serializer):
+    """
+    TODO: Extend validation here.
+    TODO: Implement fields here.
+    """
+    value = serializers.CharField(
+        allow_null=True
+    )
+    timestamp = serializers.IntegerField(
+        allow_null=False
+    )
+
+    def to_representation(self, instance):
+        fields_values = {}
+        fields_values["value"] = instance.value
+        # Return datetime in ms.
+        if instance.timestamp is not None:
+            timestamp = datetime.timestamp(instance.timestamp)
+            timestamp_ms = round(timestamp * 1000)
+            fields_values["timestamp"] = timestamp_ms
+        else:
+            fields_values["timestamp"] = None
+        return fields_values
+
+
+class DatapointSetpointItemSerializer(serializers.Serializer):
+    from_timestamp = serializers.IntegerField(
+        allow_null=True
+    )
+    to_timestamp = serializers.IntegerField(
+        allow_null=True
+    )
+    value = serializers.CharField(
+        allow_null=True
+    )
+
+
+class DatapointSetpointSerializer(serializers.Serializer):
+    """
+    TODO: Extend validation here.
+    TODO: Check implementation.
+    """
+    setpoint = DatapointSetpointItemSerializer(
+        many=True,
+        read_only=False
+    )
+    timestamp = serializers.IntegerField(
+        allow_null=False
+    )
+
+    def to_representation(self, instance):
+        fields_values = {}
+        fields_values["value"] = instance.value
+        # Return datetime in ms.
+        if instance.timestamp is not None:
+            timestamp = datetime.timestamp(instance.timestamp)
+            timestamp_ms = round(timestamp * 1000)
+            fields_values["timestamp"] = timestamp_ms
+        else:
+            fields_values["timestamp"] = None
+        return fields_values

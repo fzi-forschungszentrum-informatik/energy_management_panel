@@ -2,12 +2,15 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
-from rest_framework.viewsets import ModelViewSet, ViewSet
+from rest_framework.viewsets import ViewSet
 
 from emp_main.models import Datapoint
 from utils.timestamp import datetime_from_timestamp
-from .models import DatapointValue
-from .serializers import DatapointSerializer, DatapointValueSerializer
+from .serializers import DatapointSerializer
+from .serializers import DatapointValueSerializer
+from .serializers import DatapointScheduleSerializer
+from .serializers import DatapointSetpointSerializer
+from .models import DatapointValue, DatapointSchedule, DatapointSetpoint
 
 
 class DatapointViewSet(ViewSet):
@@ -111,8 +114,22 @@ class ViewSetWithDatapointFK(ViewSet):
         object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class DatapointValueViewSet(ViewSetWithDatapointFK):
     """
     """
     model = DatapointValue
     serializer_class = DatapointValueSerializer
+
+
+class DatapointScheduleViewSet(ViewSetWithDatapointFK):
+    """
+    """
+    model = DatapointSchedule
+    serializer_class = DatapointScheduleSerializer
+
+class DatapointSetpointViewSet(ViewSetWithDatapointFK):
+    """
+    """
+    model = DatapointSetpoint
+    serializer_class = DatapointSetpointSerializer
