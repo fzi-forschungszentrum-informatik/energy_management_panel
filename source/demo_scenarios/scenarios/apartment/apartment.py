@@ -200,7 +200,7 @@ class Apartment():
                 {
                     "from_timestamp": dt_to_ts(sdt_full_hour.replace(hour=14)),
                     "to_timestamp": None,
-                    "preferred_value": "0",
+                    "value": "0",
                 },
             ],
         }
@@ -345,7 +345,7 @@ class Apartment():
                     break
             # Now that we have found our active schedule item, let's check
             # the value and see if the device should be operating.
-            if schedule_item["to_timestamp"] == "0":
+            if schedule_item["value"] == "0":
                 # Nope let's report the zeros and check the other devices.
                 values[power_id] = {
                     "timestamp": sim_ts,
@@ -362,16 +362,22 @@ class Apartment():
             # use these information to compute the runtime minute.
             if not hasattr(self, "device_start_times"):
                 # This must be the very first run of the first device.
-                runtime_minute = 0
-            elif self.device_start_times[active_id] is None:
-                # The last run has ended, see below.
-                runtime_minute = 0
-            else:
-                # Ok so the device should still be active. Let's compute
-                # minutes the device is on already.
-                start_time = self.device_start_times[active_id]
-                timedelta = simulation_dt - start_time
-                runtime_minute = round(timedelta.total_seconds() / 60)
+                self.device_start_times = {}
+            if active_id not in self.device_start_times:
+                # This device hasn't been run before.
+                self.device_start_times[active_id] = simulation_dt
+            elif (
+                self.device_start_times[active_id].date() !=
+                simulation_dt.date()
+            ):
+                # The last run was yesterday. Start a new one.
+                self.device_start_times[active_id] = simulation_dt
+
+            # Ok so the device should still be active. Let's compute
+            # minutes the device is on already.
+            start_time = self.device_start_times[active_id]
+            timedelta = simulation_dt - start_time
+            runtime_minute = round(timedelta.total_seconds() / 60)
 
             # So the device is operating, let's load the power profile (
             # the mapping between runtime minute and energy consumption)
@@ -387,8 +393,6 @@ class Apartment():
             if runtime_minute >= len(power_profile):
                 power_value = "0"
                 active_value = "0"
-                # Also reset the device_start_time for next day.
-                self.device_start_times[active_id] = None
             else:
                 active_value = "1"
                 power_value = str(power_profile[runtime_minute])

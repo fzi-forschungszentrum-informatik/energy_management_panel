@@ -42,8 +42,7 @@ class ScenarioRunner():
     emp_baseurl = "http://localhost:8000"
 
     simulation_timedelta = timedelta(seconds=60)
-    start_time = datetime.utcnow() - timedelta(seconds=300)
-
+    start_time = datetime.utcnow() - timedelta(days=1)
     def __init__(self):
         logger.info("Starting Scenario Runner")
 
@@ -82,6 +81,18 @@ class ScenarioRunner():
                 )
                 # TODO Push to EMP
                 # TODO Check values
+                logger.debug(
+                    "Simulated: %s\n\n"
+                    "Schedules:\n%s\n\n"
+                    "Setpoints:\n%s\n\n"
+                    "Values:\n%s",
+                    *(
+                        scenario.name,
+                        json.dumps(schedules, indent=4),
+                        json.dumps(setpoints, indent=4),
+                        json.dumps(values, indent=4)
+                    )
+                )
 
             simulation_dt += self.simulation_timedelta
             if simulation_dt > datetime.utcnow():
@@ -91,7 +102,7 @@ class ScenarioRunner():
                 await asyncio.sleep(sleep_s)
             else:
                 # Give the asyncio thread some time to do other stuff.
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
 
 
 scenario_runner = ScenarioRunner()
