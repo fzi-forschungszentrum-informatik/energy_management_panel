@@ -66,7 +66,7 @@ class DatapointSetpoint(models.Model):
             "The datapoint that the setpoint message belongs to."
         )
     )
-    schedule = models.JSONField(
+    setpoint = models.JSONField(
         null=True,
         blank=True,
         default=None,
