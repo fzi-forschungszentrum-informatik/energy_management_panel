@@ -29,6 +29,25 @@ class DatapointViewSet(ViewSet):
         serializer = self.serializer_class(datapoints, many=True)
         return Response(serializer.data)
 
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        print("Validation Finished")
+
+        # Check if a datapoint with matching external_id exists already
+        # and create one if not.
+        q = {"origin_id": validated_data["origin_id"]}
+        if not self.datapoint_model.objects.filter(**q).exists():
+            datapoint = Datapoint(**validated_data)
+        else:
+            datapoint = Datapoint.objects.get(**q)
+            for field in validated_data:
+                setattr(datapoint, field, validated_data[field])
+        datapoint.save()
+        serializer = self.serializer_class(datapoint)
+        # Return datapoint also with auto generated data like i.d.
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class ViewSetWithDatapointFK(ViewSet):
     """
@@ -95,8 +114,8 @@ class ViewSetWithDatapointFK(ViewSet):
 
         datapoint = get_object_or_404(self.datapoint_model, id=dp_id)
         dt = datetime_from_timestamp(validated_data["timestamp"])
-        object = get_object_or_404(
-            self.model, datapoint=datapoint, timestamp=dt
+        object, created = self.model.objects.get_or_create(
+            datapoint=datapoint, timestamp=dt
         )
         for field in validated_data:
             if field == "timestamp":

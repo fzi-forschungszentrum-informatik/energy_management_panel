@@ -11,10 +11,13 @@ from .utils import datetime_to_pretty_str
 class DatapointAdmin(admin.ModelAdmin):
     """
     Admin model instance for Datapoints.
+
+    TODO: Prevent changing stuff in Admin for external datapoints, like
+    e.g. type or data_format. In fact all the fields that are pushed in
+    externally.
     """
     list_display = (
         "string_representation",
-        "external_id",
         "type",
         "data_format",
         "description",
@@ -34,8 +37,9 @@ class DatapointAdmin(admin.ModelAdmin):
     )
     search_fields = (
         "id",
-        "external_id",
+        "origin_id",
         "description",
+        "origin_description",
     )
     readonly_fields = (
         "id",
@@ -124,7 +128,7 @@ class DatapointAdmin(admin.ModelAdmin):
 
         generic_metadata_fields.extend([
             "short_name",
-            "external_id",
+            "origin_id",
             "type",
             "data_format",
             "description",
