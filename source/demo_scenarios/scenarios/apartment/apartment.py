@@ -21,12 +21,9 @@ class Apartment():
     -----------
     name : string
         A friendly name of the class for logs and so on.
-    dt : number
-        Time in seconds between two consecutive simulation timesteps.
     """
 
     name = "Apartment"
-    dt = 60
 
     def __init__(self):
         # Load the datapoint json defintion.
@@ -492,3 +489,106 @@ class Apartment():
         self.last_schedules.update(schedules)
 
         return values, schedules, setpoints
+
+class ApartmentNoOpt(Apartment):
+    """
+    Simulates the operation of an apartment with a handful of smart devices,
+    but without any optimizer scheduling these devices.
+
+    Attributes:
+    -----------
+    name : string
+        A friendly name of the class for logs and so on.
+    """
+
+    name = "Apartment without optimizer."
+
+    def compute_schedules(self, simulation_dt):
+        """
+        Compute the schedule for the three flexibile devices.
+
+        Assume we have no optimization algorithm, hence we will start ASAP
+        according to the setpoints.
+
+        Parameters
+        ----------
+        simulation_dt : datetime object.
+            The current time of the simulation.
+
+        Returns:
+        --------
+        schedules : dict.
+            Datapoint schedules emited at the current simulation time, or
+            Empty if if no data would have been emitted. This is at most
+            one schedule msg per datapoint and simulation_dt. Format is:
+                {<origin_id_of_datapoint>: <value msg>}
+        """
+        sdt_full_hour = simulation_dt.replace(
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+
+        schedules = {}
+        schedules["apartment_dishwasher_active"] = {
+            "timestamp": dt_to_ts(simulation_dt),
+            "schedule": [
+                {
+                    "from_timestamp": None,
+                    "to_timestamp": dt_to_ts(sdt_full_hour.replace(hour=9)),
+                    "value": "0",
+                },
+                {
+                    "from_timestamp": dt_to_ts(sdt_full_hour.replace(hour=9)),
+                    "to_timestamp": dt_to_ts(sdt_full_hour.replace(hour=12)),
+                    "value": "1",
+                },
+                {
+                    "from_timestamp": dt_to_ts(sdt_full_hour.replace(hour=12)),
+                    "to_timestamp": None,
+                    "value": "0",
+                },
+            ],
+        }
+        schedules["apartment_washing_machine_active"] = {
+            "timestamp": dt_to_ts(simulation_dt),
+            "schedule": [
+                {
+                    "from_timestamp": None,
+                    "to_timestamp": dt_to_ts(sdt_full_hour.replace(hour=9)),
+                    "value": "0",
+                },
+                {
+                    "from_timestamp": dt_to_ts(sdt_full_hour.replace(hour=9)),
+                    "to_timestamp": dt_to_ts(sdt_full_hour.replace(hour=11)),
+                    "value": "1",
+                },
+                {
+                    "from_timestamp": dt_to_ts(sdt_full_hour.replace(hour=11)),
+                    "to_timestamp": None,
+                    "value": "0",
+                },
+            ],
+        }
+        schedules["apartment_dryer_active"] = {
+            "timestamp": dt_to_ts(simulation_dt),
+            "schedule": [
+                {
+                    "from_timestamp": None,
+                    "to_timestamp": dt_to_ts(sdt_full_hour.replace(hour=17)),
+                    "value": "0",
+                },
+                {
+                    "from_timestamp": dt_to_ts(sdt_full_hour.replace(hour=17)),
+                    "to_timestamp": dt_to_ts(sdt_full_hour.replace(hour=18)),
+                    "value": "1",
+                },
+                {
+                    "from_timestamp": dt_to_ts(sdt_full_hour.replace(hour=18)),
+                    "to_timestamp": None,
+                    "value": "0",
+                },
+            ],
+        }
+
+        return schedules
