@@ -1,0 +1,154 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /api/datapoint/value/:
+    get:
+      operationId: listDatapointValues
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DatapointValue'
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createDatapointValue
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatapointValue'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DatapointValue'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DatapointValue'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatapointValue'
+          description: ''
+      tags:
+      - api
+  /api/datapoint/value/{id}/:
+    get:
+      operationId: retrieveDatapointValue
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this datapoint value.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatapointValue'
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateDatapointValue
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this datapoint value.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatapointValue'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DatapointValue'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DatapointValue'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatapointValue'
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateDatapointValue
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this datapoint value.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatapointValue'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DatapointValue'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DatapointValue'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatapointValue'
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyDatapointValue
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this datapoint value.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+components:
+  schemas:
+    DatapointValue:
+      type: object
+      properties:
+        value:
+          type: string
+          nullable: true
+          description: The value field in datapoint value msg.
+        timestamp:
+          type: string
+          format: date-time
+          nullable: true
+          description: The timestamp field in datapoint value msg.
