@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'emp_main.apps.EmpMainConfig',
-    'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
+    #'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
     'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
     'emp_history_db.apps.EmpHistoryDbConfig',
@@ -60,7 +60,7 @@ REST_FRAMEWORK = {
 # This process expects that each app holds a apps.py and urls.py file following
 # the conventions shown in emp_demo_ui_app.
 EMP_APPS = [
-    "emp_demo_ui_app",
+   # "emp_demo_ui_app",
     "emp_demo_dp_interface",
     "emp_django_authenticator",
     "emp_history_db",

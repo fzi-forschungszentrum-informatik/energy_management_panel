@@ -43,8 +43,6 @@ def get_app_nav_content_for_user(user):
 
     # Get the pages for the user and extend these with the pages the
     # anonymous user has access to.
-    from .views import EvaluationSystemPageView
-    EvaluationSystemPageView.
     pages_user = get_objects_for_user(user, "emp_evaluation_system.view_evaluationsystempage")
     pages_anon = get_objects_for_user(anon, "emp_evaluation_system.view_evaluationsystempage")
     pages_all = pages_user.union(pages_anon)
