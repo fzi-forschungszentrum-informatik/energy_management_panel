@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
     'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
-    'emp_history_db.apps.EmpHistoryDbConfig'
+    'emp_history_db.apps.EmpHistoryDbConfig',
 ]
 
 REST_FRAMEWORK = {
