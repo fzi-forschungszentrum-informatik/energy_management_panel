@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
     'emp_history_db.apps.EmpHistoryDbConfig',
+    'emp_evaluation_system.apps.EmpEvaluationSystemConfig',
     
 ]
 
@@ -63,6 +64,7 @@ EMP_APPS = [
     "emp_demo_dp_interface",
     "emp_django_authenticator",
     "emp_history_db",
+    "emp_evaluation_system",
 ]
 
 MIDDLEWARE = [
