@@ -4,6 +4,7 @@ channels==3.0.*
 # service_identity  # is required by channels.
 django-guardian==2.3.*
 djangorestframework==3.12.*
+django-nested-admin==3.3.*
 drf-spectacular==0.11.*  # Online Swagger-UI for REST schema 
 
 # Other packages required for developing.
