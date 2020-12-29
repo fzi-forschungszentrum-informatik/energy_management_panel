@@ -1,6 +1,11 @@
 from django.db import models
 
+from django.contrib.contenttypes.fields import GenericForeignKey
+
 from .apps import app_url_prefix
+from django.contrib.contenttypes.models import ContentType
+
+
 
 class EvaluationSystemPage(models.Model):
 
@@ -40,7 +45,33 @@ class EvaluationSystemPage(models.Model):
         url = "/" + app_url_prefix + "/" + self.page_slug + "/"
         return url
 
+class PageElement(models.Model):
 
+    """
+    This class can be in two states: container or presentation.
+    If a UIElement is used as container it consists of other UIElements (with arbitrary recursion).
+    As presentation it is used to visualize data.s
+    """
+
+    ELEMENT_TYPE_CHOISES = [
+        ("container","container"),
+        ("element", "element")
+    ]
+
+    element_type = models.CharField(
+        max_length = 9,
+        choices = ELEMENT_TYPE_CHOISES,
+        default = ELEMENT_TYPE_CHOISES[0][0],
+        help_text = (
+            "Choose the element type."
+        )
+    )
+
+    page = models.ForeignKey(
+        EvaluationSystemPage,
+        default = None,
+        on_delete = models.CASCADE
+    )
 
 class UIElementContainer(models.Model):
 
@@ -50,21 +81,6 @@ class UIElementContainer(models.Model):
     Use different containers to present different data.
     Containers may have a dropdown to provide extra functionality.
     """
-
-    container_name = models.CharField(
-        max_lenght = 64,
-        help_text = (
-            "The name of the container as displayed in cross references"
-            "Max length is 64 characters due to comprehensibility of the name."
-        )
-    )
-
-    container_slug = models.SlugField(
-        unique = True,
-        help_text = (
-            "The name of the container used to cross reference it in pages. Must be unique."
-        )
-    )
 
     container_has_Title = models.BooleanField(
         default = False,
@@ -90,32 +106,70 @@ class UIElementContainer(models.Model):
         )
     )
 
+    page_element = models.ForeignKey(
+        PageElement,
+        default = None,
+        on_delete = models.CASCADE
+    )
+    
     #TODO Implement dropdown links choise
 
 class UIElement(models.Model):
+
     """
-    UIElements models are used to map data to a data presentation.
-    UIElements may be in- or outside a UIElementContainer.
+    UIElement model represents a ui element on a page. 
+    It consists of data that will be visualized with the help of a presentation object.
+    UIElements can be grouped in UIElementContainers or added alone to a page.
     """
-    element_name = models.CharField(
-        max_length = 64,
-        help_text = (
-            "The UIElements name as displayed in cross references." 
-        )
+    page_element = models.ForeignKey(
+        PageElement,
+        default = None,
+        on_delete = models.CASCADE,
     )
 
-    element_slug = models.SlugField(
-        unique = True,
-        help_text = (
-            "The name of the UI element used to cross reference it in containers or pages. Must be unique."
-        )
+    container_element = models.ForeignKey(
+        UIElementContainer,
+        default = None,
+        on_delete = models.CASCADE,
     )
+
 
 class Presentation(models.Model):
-    pass
 
-class Card(Presentation):
+    """
+    The Presentation model is used to link a presentation type (card, chart...) to a UIElement.
+    UIElements data will be visualized with Presentations help.
+    """
+    
+    PRESENTATION_TYPE_CHOISES = [
+        ("card","card"),
+        ("chart", "chart")
+    ]
 
+    presentation_type = models.CharField(
+        max_length = 5,
+        choices = PRESENTATION_TYPE_CHOISES,
+        default = PRESENTATION_TYPE_CHOISES[0][0],
+        help_text = (
+            "Choose the presentation type."
+        )
+    )
+
+    ui_element = models.ForeignKey(
+        UIElement,
+        default = None,
+        on_delete = models.CASCADE,
+    )
+
+class Card(models.Model):
+    """
+    The Card model is one of Presentation models types.
+    Its a rectangular card, containing an image, a data title, presented in  monochrome design.
+    As additional design elements a border on the left or at the bottom are available.
+    To add extra information use the tooltips. For additional fuctionality use the card as button.
+
+    Use this presentation type to visualize simple data. 
+    """
     CARD_COLOR_CHOICES = [
         ("primary", "primary"),
         ("secondary", "warning"),
@@ -174,9 +228,19 @@ class Card(Presentation):
         )
     )
 
+    presentation = models.ForeignKey(
+        Presentation,
+        default = None,
+        on_delete = models.CASCADE,
+    )
 
-class Chart(Presentation):
 
+class Chart(models.Model):
+
+    """
+    The Chart model is the second type of the presentation model.
+    It consists of its own title and one chart representing one or more set of data.
+    """
     chart_show_title = models.BooleanField(
         default = False,
         help_text = (
@@ -209,6 +273,13 @@ class Chart(Presentation):
 
     #TODO implement color set choce
     #TODO implement data set picker
+
+    presentation = models.ForeignKey(
+        Presentation,
+        default = None,
+        on_delete = models.CASCADE,
+    )
+
 
 class Image(models.Model):
     pass
