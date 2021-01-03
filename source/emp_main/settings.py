@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'nested_admin',
+    'jquery',
     'emp_main.apps.EmpMainConfig',
     #'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
     'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',

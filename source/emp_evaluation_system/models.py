@@ -54,8 +54,9 @@ class PageElement(models.Model):
     """
 
     ELEMENT_TYPE_CHOISES = [
-        ("container","container"),
-        ("element", "element")
+        ("none","Choose elements type"),
+        ("container","Container"),
+        ("element", "Element")
     ]
 
     element_type = models.CharField(

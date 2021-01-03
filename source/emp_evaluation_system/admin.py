@@ -72,3 +72,10 @@ class EvaluationSystemPageAdmin(nested_admin.NestedModelAdmin, GuardedModelAdmin
 
     inlines = [PageElementrInline]
 
+    class Media:
+        js = (
+            '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js', # jquery #TODO durch django jquery ersetzen
+            'emp_evaluation_system/js/page_admin.js',
+        )
+
+
