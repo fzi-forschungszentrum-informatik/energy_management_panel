@@ -1,8 +1,6 @@
 (function($) {
     $(function() {
 
-   
-
         function toggleInline(obj) {
             var value = obj.val();
             var count = parseInt(obj.attr('id').match(/\d+/)[0])
@@ -37,11 +35,101 @@
             toggleInline($(this));
         });
 
+
+        function initOnAddHandler() {
+            toggleInlineInAllSets();
+            container_has_title_toggle_all();
+            presentation_inline_toggle_all();
+            card_has_tooltip_toggle_all();
+        }
+
         $(".add-handler").click(function() {
-            setTimeout(() => {  toggleInlineInAllSets() }, 100);
-            
+            setTimeout(() => {  initOnAddHandler() }, 100);          
         });
 
-        
+        function container_has_title_toggle(obj) {
+            var checked = obj.is(":checked");
+            var titleField = $('#' + obj.attr('id').split("has_title")[0].concat("title"))
+            if (checked) {
+                titleField.parent().show();
+            }
+            else {
+                titleField.parent().hide();
+            }
+
+        }
+
+        // show/hide on change
+        $('[id^=id_pageelement_set][id$=container_has_title]').change(function() {
+            container_has_title_toggle($(this));
+        });
+
+        function container_has_title_toggle_all() {
+            $('[id^=id_pageelement_set][id$=container_has_title]').each( function(index, value){
+                if(index === $('[id^=id_pageelement_set][id$=container_has_title]').length-1) {
+                    return;
+                }
+                container_has_title_toggle($(value));
+            });
+        }
+
+        function presentation_inline_toggle(obj) {
+            var value = obj.val();
+            var elementStub = obj.attr('id').split("id_")[1].split("presentation_type")[0];
+            var cardElement = $('#' + elementStub + 'card_set-group');
+            var chartElement = $('#' + elementStub + 'chart_set-group');
+
+            if (value === 'card') {
+                cardElement.show();
+                chartElement.hide();
+            } else if (value === "chart") {
+                cardElement.hide();
+                chartElement.show();
+            }
+            else {
+                cardElement.hide();
+                chartElement.hide();
+            }
+        }
+
+        $('[id^=id_pageelement_set][id$=presentation_type]').change(function() {
+            presentation_inline_toggle($(this));
+        });
+
+        function presentation_inline_toggle_all() {
+            $('[id^=id_pageelement_set][id$=presentation_type]').each( function(index, value){
+                if(index === $('[id^=id_pageelement_set][id$=presentation_type]').length-1) {
+                    return;
+                }
+                presentation_inline_toggle($(value));
+            });
+        }
+
+        function card_has_tooltip_toggle(obj) {
+            var checked = obj.is(":checked");
+            var textField = $('#' + obj.attr('id').split("has_tooltip")[0].concat("tooltip_text"))
+            if (checked) {
+                textField.parent().show();
+            }
+            else {
+                textField.parent().hide();
+            }
+
+        }
+
+        // show/hide on change
+        $('[id^=id_pageelement_set][id$=card_has_tooltip]').change(function() {
+            card_has_tooltip_toggle($(this));
+        });
+
+        function card_has_tooltip_toggle_all() {
+            $('[id^=id_pageelement_set][id$=card_has_tooltip]').each( function(index, value){
+                if(index === $('[id^=id_pageelement_set][id$=card_has_tooltip]').length-1) {
+                    return;
+                }
+                card_has_tooltip_toggle($(value));
+            });
+        }
+
     });
 })(django.jQuery);
