@@ -11251,14 +11251,14 @@ body.sidebar-toggled footer.sticky-footer {
   color: var(--warning) !important;
 }
 
-.card[hoverable="true"]:hover .icon-warning {
+.card[hoverable="True"]:hover .icon-warning {
   color: var(--orange) !important;
 }
-.card[hoverable="true"]:hover .text-warning {
+.card[hoverable="True"]:hover .text-warning {
   color: var(--orange) !important;
 }
 
-.card[hoverable="true"]:hover.border-left-warning {
+.card[hoverable="True"]:hover.border-left-warning {
   border-left: 0.25rem solid var(--orange) !important;
 }
 
