@@ -41,10 +41,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'nested_admin',
-    'jquery',
     'emp_main.apps.EmpMainConfig',
     #'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
-    'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
+    #'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
     'emp_history_db.apps.EmpHistoryDbConfig',
     'emp_evaluation_system.apps.EmpEvaluationSystemConfig',
@@ -63,7 +62,7 @@ REST_FRAMEWORK = {
 # the conventions shown in emp_demo_ui_app.
 EMP_APPS = [
    # "emp_demo_ui_app",
-    "emp_demo_dp_interface",
+   # "emp_demo_dp_interface",
     "emp_django_authenticator",
     "emp_history_db",
     "emp_evaluation_system",
