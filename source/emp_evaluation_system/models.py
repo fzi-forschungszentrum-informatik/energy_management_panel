@@ -41,6 +41,14 @@ class EvaluationSystemPage(models.Model):
         )
     )
 
+    has_scroll_to_top_button = models.BooleanField(
+        default = True,
+         help_text = (
+            "If checked the 'scroll top' button in the bottom right corner of the page will be visible"
+            "providing the possibility scroll to the top of the page with one click."
+        )
+    )
+
     def get_absolute_url(self):
         url = "/" + app_url_prefix + "/" + self.page_slug + "/"
         return url
@@ -83,7 +91,7 @@ class UIElementContainer(models.Model):
     Containers may have a dropdown to provide extra functionality.
     """
 
-    container_has_Title = models.BooleanField(
+    container_has_title = models.BooleanField(
         default = False,
         help_text = (
             "If checked the containers title will be visible in its header."
@@ -107,13 +115,15 @@ class UIElementContainer(models.Model):
         )
     )
 
+    container_dropdown_links = models.ManyToManyField(EvaluationSystemPage)
+
     page_element = models.ForeignKey(
         PageElement,
         default = None,
         on_delete = models.CASCADE
     )
     
-    #TODO Implement dropdown links choise
+    
 
 class UIElement(models.Model):
 
@@ -126,12 +136,16 @@ class UIElement(models.Model):
         PageElement,
         default = None,
         on_delete = models.CASCADE,
+        blank=True,
+        null=True
     )
 
     container_element = models.ForeignKey(
         UIElementContainer,
         default = None,
         on_delete = models.CASCADE,
+        blank=True,
+        null=True
     )
 
 
@@ -173,7 +187,7 @@ class Card(models.Model):
     """
     CARD_COLOR_CHOICES = [
         ("primary", "primary"),
-        ("secondary", "warning"),
+        ("secondary", "secondary"),
         ("success", "success"),
         ("warning", "warning"),
         ("danger", "danger"),       
@@ -212,7 +226,10 @@ class Card(models.Model):
         )
     )
 
-    #TODO implement card button link choise
+    #TODO card_button_link = models.OneToOneField(
+     #   EvaluationSystemPage
+      #  on_delete = models.
+       # )
 
     card_has_tooltip = models.BooleanField(
         default = False,
@@ -223,6 +240,7 @@ class Card(models.Model):
     )
 
     card_tooltip_text = models.TextField(
+        blank = True,
         help_text = (
             "Provide the cards tooltip text here."
             "It can have any length but have in mind noone likes reading massive tooltips."

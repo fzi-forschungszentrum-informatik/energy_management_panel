@@ -35,21 +35,22 @@ class UIElementInContainerInline(nested_admin.NestedStackedInline):
     model = UIElement
     extra = 0
     inlines = [PresentationInline]
+    exclude = ['page_element'] 
 
 class UIElementInPageElementInline(nested_admin.NestedStackedInline):
     model = UIElement
-    extra = 0
+    extra = 1
     max_num = 1 #limited to one
-    inlines = [PresentationInline]
+    inlines = [PresentationInline]  
+    exclude = ['container_element']
 
 class UIElementContainerInline(nested_admin.NestedStackedInline):
     model = UIElementContainer
-    extra = 0
+    extra = 1
     max_num = 1
     inlines = [UIElementInContainerInline]
 
-
-class PageElementrInline(nested_admin.NestedStackedInline):
+class PageElementInline(nested_admin.NestedStackedInline):
     model = PageElement
     extra = 0
 
@@ -69,8 +70,8 @@ class EvaluationSystemPageAdmin(nested_admin.NestedModelAdmin, GuardedModelAdmin
     prepopulated_fields = {
         "page_slug": ("page_name",)
     }
-
-    inlines = [PageElementrInline]
+    site_header = "Wow amazing title"
+    inlines = [PageElementInline]
 
     class Media:
         js = (
@@ -78,4 +79,7 @@ class EvaluationSystemPageAdmin(nested_admin.NestedModelAdmin, GuardedModelAdmin
             'emp_evaluation_system/js/page_admin.js',
         )
 
+
+admin.site.site_header = 'EMP Evaluation System Admin'
+admin.site.site_title = 'EMP Evaluation System Admin'
 

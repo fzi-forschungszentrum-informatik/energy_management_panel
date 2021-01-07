@@ -12,7 +12,7 @@ urlpatterns = [
     path(
         "<slug:page_slug>/",
         EvaluationSystemPageView.as_view(
-            template_name="./emp_evaluation_system/demo_page.html"
+            template_name="./emp_evaluation_system/evaluationSystemPage.html"
         ),
     ),
 ]
