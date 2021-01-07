@@ -1,0 +1,16 @@
+ <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card {% if card.card_decoration != 'none' %} border-{{card.card_decoration}}-{{card.card_color}} {% endif %} shadow h-100 py-2" hoverable="{{card.card_is_button}}">
+        <div class="card-body">
+            <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                        Beispiel mit hover Effekt -> Mehr Infos</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">€400</div>
+                </div>
+                <div class="col-auto">
+                    <i class="fas fa-dollar-sign fa-2x icon-{{card.card_color}}"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

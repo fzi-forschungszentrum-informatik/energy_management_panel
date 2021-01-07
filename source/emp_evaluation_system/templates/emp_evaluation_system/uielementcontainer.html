@@ -1,0 +1,43 @@
+<!-- 
+    This templated provides a basic bootstrap card (we call it 'container' in this project).
+    Using the Container model fields to build a working container.
+    A Container consits of one or many other PageElemets, they can be a UIElement or a UIElementContainer as well.
+ -->
+
+<div class="col">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <!-- Including the containers title if the model has a title -->
+            {% if container.container_has_title %}
+                <h6 class="m-0 font-weight-bold text-primary">{{container.container_title}}</h6>
+            {% endif %}
+            <!-- Including a dropdown menu if the model has a dropdown -->
+            {% if container.container_has_dropdown %}
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </a>
+                    <!-- TODO Include dropdown links -->
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                        aria-labelledby="dropdownMenuLink">
+                        <div class="dropdown-header">THIS IS A FAKE DROPDOWN</div>
+                        <a class="dropdown-item" href="#">PLEASE</a>
+                        <a class="dropdown-item" href="#">IMPLEMENT</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">ME</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            <div class="row">
+                {% for element in container.uielement_set.all%}
+                    {% include "emp_evaluation_system/uielement.html" %}
+                {% endfor %}
+            </div>
+           
+        </div>
+    </div>
+</div>

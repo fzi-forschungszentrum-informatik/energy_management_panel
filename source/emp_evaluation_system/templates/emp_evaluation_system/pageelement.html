@@ -1,0 +1,14 @@
+<!--    
+    This template only distinguishes between UIContainerElement and UIElement PageElements.
+    The element types HTML template then will be included.
+-->
+
+{% if element.element_type == "container"%}
+    {% with element.uielementcontainer_set.all|first as container %}
+        {% include "emp_evaluation_system/uielementcontainer.html" %}
+    {% endwith %}   
+{% elif element.element_type == "element" %}
+    {% with element.uielement_set.all|first as element %}
+        {% include "emp_evaluation_system/uielement.html" %}
+    {% endwith %}
+{% endif%}

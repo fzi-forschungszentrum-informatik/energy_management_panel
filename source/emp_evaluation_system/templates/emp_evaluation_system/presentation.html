@@ -1,0 +1,14 @@
+<!--    
+    This template only distinguishes between Chart and Card (possibly more comming) Presentations.
+    The presentation types HTML template then will be included.
+-->
+
+{% if presentation.presentation_type == "chart"%}
+    {% with presentation.chart_set.all|first as chart %}
+        {% include "emp_evaluation_system/chart.html" %}
+    {% endwith %}   
+{% elif presentation.presentation_type == "card" %}
+    {% with presentation.card_set.all|first as card %}
+        {% include "emp_evaluation_system/card.html" %}
+    {% endwith %}
+{% endif%}
