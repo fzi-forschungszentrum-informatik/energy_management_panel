@@ -6,7 +6,7 @@ from django.db.utils import IntegrityError
 from ..models import Datapoint
 from ems_utils.timestamp import datetime_from_timestamp
 
-class TestDemoAppPage(TestCase):
+class TestDatapoint(TestCase):
 
     @classmethod
     def setUpTestData(cls):
