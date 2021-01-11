@@ -29,38 +29,38 @@ class TestDemoAppPage(TestCase):
             actual_value = getattr(datapoint, field)
             self.assertEqual(expected_value, actual_value)
 
-    def test_field_external_id_exists(self):
+    def test_field_origin_id_exists(self):
         """
         This field is required to match externally managed datapoint metadata.
         """
         field_values = self.default_field_values.copy()
 
-        field_values.update({"external_id": 1})
+        field_values.update({"origin_id": "1"})
 
         self.generic_field_value_test(field_values=field_values)
 
-    def test_field_external_id_is_unique(self):
+    def test_field_origin_id_is_unique(self):
         """
-        external_id must be unique as we use it to select a single datapoint
+        origin_id must be unique as we use it to select a single datapoint
         which is updated with the data from the external system.
         """
         field_values = self.default_field_values.copy()
 
-        field_values.update({"external_id": 1})
+        field_values.update({"origin_id": "1"})
 
         self.generic_field_value_test(field_values=field_values)
         with self.assertRaises(IntegrityError):
             self.generic_field_value_test(field_values=field_values)
 
-    def test_field_external_id_is_not_unique_when_null(self):
+    def test_field_origin_id_is_not_unique_when_null(self):
         """
-        Verify that we can have several datapoints with all null as external_id
+        Verify that we can have several datapoints with all null as origin_id
         as this will happen if we add additional datapoints locally while others
         exist that are pushed from the external system.
         """
         field_values = self.default_field_values.copy()
 
-        field_values.update({"external_id": None})
+        field_values.update({"origin_id": None})
 
         self.generic_field_value_test(field_values=field_values)
         self.generic_field_value_test(field_values=field_values)
