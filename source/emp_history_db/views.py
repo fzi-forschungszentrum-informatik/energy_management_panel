@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ViewSet
 
 from emp_main.models import Datapoint
-from utils.timestamp import datetime_from_timestamp
+from ems_utils.timestamp import datetime_from_timestamp
 from .serializers import DatapointSerializer
 from .serializers import DatapointValueSerializer
 from .serializers import DatapointScheduleSerializer

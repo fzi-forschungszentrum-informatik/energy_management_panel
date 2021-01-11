@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.db.utils import IntegrityError
 
 from ..models import Datapoint
-from ..utils import datetime_from_timestamp
+from ems_utils.timestamp import datetime_from_timestamp
 
 class TestDemoAppPage(TestCase):
 
