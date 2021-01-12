@@ -1,34 +1,40 @@
-<!-- 
+{% comment %}
     This templated provides a basic bootstrap card (we call it 'container' in this project).
     Using the Container model fields to build a working container.
     A Container consits of one or many other PageElemets, they can be a UIElement or a UIElementContainer as well.
- -->
+
+    Using the Container model fields following container attributes are configureable:
+        - Container title
+        - Container dropdown and its dropdown links to other EvaluationSystemPages.
+        - The pagelements the container consists of.
+{% endcomment %}
 
 <div class="col">
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <!-- Including the containers title if the model has a title -->
+            {% comment %} Including the containers title if the model has a title {% endcomment %}
             {% if container.container_has_title %}
                 <h6 class="m-0 font-weight-bold text-primary">{{container.container_title}}</h6>
             {% endif %}
-            <!-- Including a dropdown menu if the model has a dropdown -->
+            {% comment %} Including a dropdown menu and its links if the model has a dropdown {% endcomment %}
             {% if container.container_has_dropdown %}
                 <div class="dropdown no-arrow">
                     <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
                     </a>
-                    <!-- TODO Include dropdown links -->
                     <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
                         aria-labelledby="dropdownMenuLink">
                         {% for link in container.container_dropdown_links.all %}
-                        <a class="dropdown-item" href="{{link.get_absolute_url}}"> {{link.page_name}} </a>
+                            <a class="dropdown-item" href="{{link.get_absolute_url}}"> {{link.page_name}} </a>
                         {% endfor %}
                     </div>
                 </div>
             {% endif %}
         </div>
-        <!-- Card Body -->
+        {% comment %}
+            Here all elements included in the container are included.
+        {% endcomment %}
         <div class="card-body">
             <div class="row">
                 {% for element in container.uielement_set.all%}

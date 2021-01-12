@@ -1,4 +1,17 @@
- <div class="col-xl-3 col-md-6 mb-4">
+{% comment %}
+    This is the html template for a card model.
+    As base construct a bootstrap card is used. 
+    Cusomizable elements: 
+        - Card decoration (left, bottom, none)
+        - Card icon (Choose out of a selection of fontawesome icons)
+        - Card color (Font, icon, decoration)
+        - Card tooltip
+        - Card as button -> Link to another EvaluationSystemPage
+    The in the parent Presentation element linked Datapoint values will be shown as card text.
+    The text will be updated every update interval (defined in emp_main.settings.py)
+{% endcomment %} 
+ 
+<div class="col-xl-3 col-md-6 mb-4">
     <div class="card {% if card.card_decoration != 'none' %} border-{{card.card_decoration}}-{{card.card_color}} {% endif %} 
     shadow h-100 py-2" hoverable="{{card.card_is_button}}"
     {% if card.card_is_button%} onclick="window.location='{{card.card_button_link.get_absolute_url}}'" {% endif %} 
@@ -17,20 +30,21 @@
         </div>
     </div>
 </div>
-<script> 
-    $( document ).ready(function() {   
-        window.setInterval(function(){
-            getDatapointValues({{datapoint.id}}).then((data) => $(".dp_id{{datapoint.id}}_value").each((i, obj)=> $(obj).html(getLastDatapointValueOfSet(data))))         
-        }, {{update_interval}}); 
+{% comment %}
+    Define updateCard function for this card and the linked datapoint.
+    If multiple cards for one datapoint exist the funtion is a duplicate.
+    Call this function once to setup card and set a call interval to cyclic update the card.
+{% endcomment %} 
+<script>  
+    $( document ).ready(function() { 
+        //Init card value  
+        updateCard();
+        //Cyclic card update
+        window.setInterval(updateCard(), {{update_interval}}); 
     });
 
-    function getLastFullHour() {
-        var nowTimestamp = Date.now();
-        var nowDate = new Date(nowTimestamp);
-        var minutes = nowDate.getMinutes();
-        var seconds = nowDate.getSeconds();
-        var milliseconds = nowDate.getMilliseconds();
-        var lastFullHour = nowTimestamp - milliseconds - seconds * 1000 - minutes * 60000;
-        console.log(new Date(lastFullHour));
+    //Get values for card datapoint and set them to each card with this datapoint
+    function updateCard() {
+        getDatapointValues({{datapoint.id}}).then((data) => $(".dp_id{{datapoint.id}}_value").each((i, obj)=> $(obj).html(getLastDatapointValueOfSet(data))));
     }
 </script>

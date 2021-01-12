@@ -1,43 +1,70 @@
-<!-- All generic content like nav/title bar is provided by the base template -->
+{% comment %} 
+    All generic content like nav/title bar is provided by the base template
+{% endcomment %}
 {% extends "emp_main/base.html" %}
 {% load static %}
 {% load datapoint_helpers %}
 
 {% block head %}
-  <!-- Load additional css files here, or whatever is needed in the header -->
-  <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/page.css' %}">
-  <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/sb-admin-2.css' %}">
-  <link rel="stylesheet" href="{% static 'emp_evaluation_system/vendor/fontawesome-free/css/all.min.css' %}">
+    {% comment %} 
+        Load additional css files here, or whatever is needed in the header.
+        sb-admin-2.css is the base css file for the admin template we used.
+        fontawesome-free/css/all.min.css file provides all fontawesome icons etc.
+    {% endcomment %}
+    <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/page.css' %}">
+    <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/sb-admin-2.css' %}">
+    <link rel="stylesheet" href="{% static 'emp_evaluation_system/vendor/fontawesome-free/css/all.min.css' %}">
 {% endblock head %}
 
 {% block body_html %}
   
     <!-- Begin Page Content -->
     <div class="container-fluid">
-
        <!-- Report Generation Button-->
+        {% comment %} 
+            Including the report generation button.
+            TODO add functionality
+        {% endcomment %}
         {%if has_report_generation %}
             <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <!-- TODO add functionality-->
                 <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
                     class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
             </div>
         {% endif %}
-        
+        {% comment %} 
+            Core functionality of EvaluationSystemPage.
+            For every Pageelement linked to the EvaluationSystemPage a template will be included.
+            Every template recursively includes additional templates e.g. UIContainer->UIElement->Presentaion->Card
+        {% endcomment %}
         {% for element in pagelements %}
             {% include 'emp_evaluation_system/pageelement.html' %}
         {% endfor %} 
     </div>
     <!-- End Page Content-->
     <!-- /.container-fluid -->
+
+    {% comment %} 
+        Including the scroll top button. 
+        Press this button will scroll the opend page back to the page top (HTML element with 'page-top' id)
+    {% endcomment %}
     {% if has_scroll_to_top_button %}
-        <!-- Scroll to Top Button-->
         <a class="scroll-to-top rounded" href="#page-top">
             <i class="fas fa-angle-up"></i>
         </a>
     {% endif %}
 {% endblock body_html %}
 
+
+{% comment %} 
+    Including all required JavaScript files that are not included in emp_main/base.html.
+    jquery.easing.min.js provides easing in canvas elements (in our case the charts).
+    sb-admin-2.min.js is the base JavaScript file for the bootstrap admin template we are using.
+    Chart.min.js provides the framework responsible for printing the charts on canvases.
+    TODO exclude chart-*-demo files.
+    charts.js includes all functions on charts defined by us.
+    apiCalls.js includes all api calls to our EMP API.
+    datapointHelpers.js defines all functions used to handle datapoints and api call results.
+{% endcomment %}
 {% block body_script %}
   <!-- Core plugin JavaScript-->
   <script src="{% static 'emp_evaluation_system/vendor/jquery-easing/jquery.easing.min.js' %}"></script>

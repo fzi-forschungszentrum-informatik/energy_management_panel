@@ -1,7 +1,7 @@
-<!--    
+{% comment %}   
     This template only distinguishes between UIContainerElement and UIElement PageElements.
     The element types HTML template then will be included.
--->
+{% endcomment %}
 
 {% if element.element_type == "container"%}
     {% with element.uielementcontainer_set.all|first as container %}

@@ -1,7 +1,7 @@
-<!--    
+{% comment %}    
     This template only distinguishes between Chart and Card (possibly more comming) Presentations.
     The presentation types HTML template then will be included.
--->
+{% endcomment %}
 
 {% if presentation.presentation_type == "chart"%}
     {% with chart=presentation.chart_set.all|first datapoint=presentation.datapoint  %}
