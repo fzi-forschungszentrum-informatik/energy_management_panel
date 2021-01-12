@@ -29,7 +29,7 @@ class DatapointTemplate(models.Model):
             "which is handy for mocking UIs and stuff."
         )
     )
-    short_name = models.SlugField(
+    short_name = models.TextField(
         max_length=30,
         null=True,  # Auto generated datapoints will be stored as null...
         default=None,
