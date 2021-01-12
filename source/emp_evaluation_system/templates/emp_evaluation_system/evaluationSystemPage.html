@@ -30,6 +30,12 @@
     </div>
     <!-- End Page Content-->
     <!-- /.container-fluid -->
+    {% if has_scroll_to_top_button %}
+        <!-- Scroll to Top Button-->
+        <a class="scroll-to-top rounded" href="#page-top">
+            <i class="fas fa-angle-up"></i>
+        </a>
+    {% endif %}
 {% endblock body_html %}
 
 {% block body_script %}
@@ -46,4 +52,7 @@
   <script src="{% static 'emp_evaluation_system/js/demo/chart-area-demo.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/demo/chart-pie-demo.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/demo/chart-bar-demo.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/demo/charts.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/apiCalls.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/datapointHelpers.js' %}"></script>
 {% endblock body_script %}

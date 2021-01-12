@@ -1,16 +1,36 @@
  <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card {% if card.card_decoration != 'none' %} border-{{card.card_decoration}}-{{card.card_color}} {% endif %} shadow h-100 py-2" hoverable="{{card.card_is_button}}">
+    <div class="card {% if card.card_decoration != 'none' %} border-{{card.card_decoration}}-{{card.card_color}} {% endif %} 
+    shadow h-100 py-2" hoverable="{{card.card_is_button}}"
+    {% if card.card_is_button%} onclick="window.location='{{card.card_button_link.get_absolute_url}}'" {% endif %} 
+    {% if card.card_has_tooltip %}title="{{card.card_tooltip_text}}"{% endif %} >
         <div class="card-body">
             <div class="row no-gutters align-items-center">
                 <div class="col mr-2">
                     <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
-                        Beispiel mit hover Effekt -> Mehr Infos</div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">€400</div>
+                        {{datapoint.short_name}}</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{datapoint.unit}} <span class="dp_id{{datapoint.id}}_value">400</span></div>
                 </div>
                 <div class="col-auto">
-                    <i class="fas fa-dollar-sign fa-2x icon-{{card.card_color}}"></i>
+                    <i class="fas fa-{{card.card_icon}} fa-2x icon-{{card.card_color}}"></i>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script> 
+    $( document ).ready(function() {   
+        window.setInterval(function(){
+            getDatapointValues({{datapoint.id}}).then((data) => $(".dp_id{{datapoint.id}}_value").each((i, obj)=> $(obj).html(getLastDatapointValueOfSet(data))))         
+        }, {{update_interval}}); 
+    });
+
+    function getLastFullHour() {
+        var nowTimestamp = Date.now();
+        var nowDate = new Date(nowTimestamp);
+        var minutes = nowDate.getMinutes();
+        var seconds = nowDate.getSeconds();
+        var milliseconds = nowDate.getMilliseconds();
+        var lastFullHour = nowTimestamp - milliseconds - seconds * 1000 - minutes * 60000;
+        console.log(new Date(lastFullHour));
+    }
+</script>

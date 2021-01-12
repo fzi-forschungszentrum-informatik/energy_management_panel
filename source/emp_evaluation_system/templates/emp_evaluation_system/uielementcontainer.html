@@ -21,11 +21,9 @@
                     <!-- TODO Include dropdown links -->
                     <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
                         aria-labelledby="dropdownMenuLink">
-                        <div class="dropdown-header">THIS IS A FAKE DROPDOWN</div>
-                        <a class="dropdown-item" href="#">PLEASE</a>
-                        <a class="dropdown-item" href="#">IMPLEMENT</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">ME</a>
+                        {% for link in container.container_dropdown_links.all %}
+                        <a class="dropdown-item" href="{{link.get_absolute_url}}"> {{link.page_name}} </a>
+                        {% endfor %}
                     </div>
                 </div>
             {% endif %}

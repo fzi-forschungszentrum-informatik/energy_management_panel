@@ -41,6 +41,9 @@
             container_has_title_toggle_all();
             presentation_inline_toggle_all();
             card_has_tooltip_toggle_all();
+            card_is_button_toggle_all();
+            chart_has_title_toggle_all();
+            container_has_dropdown_toggle_all();
         }
 
         $(".add-handler").click(function() {
@@ -51,10 +54,10 @@
             var checked = obj.is(":checked");
             var titleField = $('#' + obj.attr('id').split("has_title")[0].concat("title"))
             if (checked) {
-                titleField.parent().show();
+                titleField.parent().parent().show();
             }
             else {
-                titleField.parent().hide();
+                titleField.parent().parent().hide();
             }
 
         }
@@ -70,6 +73,32 @@
                     return;
                 }
                 container_has_title_toggle($(value));
+            });
+        }
+
+        function container_has_dropdown_toggle(obj) {
+            var checked = obj.is(":checked");
+            var titleField = $('#' + obj.attr('id').split("container_has_dropdown")[0].concat("container_dropdown_links"))
+            if (checked) {
+                titleField.parent().parent().show();
+            }
+            else {
+                titleField.parent().parent().hide();
+            }
+
+        }
+
+        // show/hide on change
+        $('[id^=id_pageelement_set][id$=container_has_dropdown]').change(function() {
+            container_has_dropdown_toggle($(this));
+        });
+
+        function container_has_dropdown_toggle_all() {
+            $('[id^=id_pageelement_set][id$=container_has_dropdown]').each( function(index, value){
+                if(index === $('[id^=id_pageelement_set][id$=container_has_dropdown]').length-1) {
+                    return;
+                }
+                container_has_dropdown_toggle($(value));
             });
         }
 
@@ -109,10 +138,10 @@
             var checked = obj.is(":checked");
             var textField = $('#' + obj.attr('id').split("has_tooltip")[0].concat("tooltip_text"))
             if (checked) {
-                textField.parent().show();
+                textField.parent().parent().show();
             }
             else {
-                textField.parent().hide();
+                textField.parent().parent().hide();
             }
 
         }
@@ -131,5 +160,58 @@
             });
         }
 
+        function card_is_button_toggle(obj) {
+            var checked = obj.is(":checked");
+            var textField = $('#' + obj.attr('id').split("card_is_button")[0].concat("card_button_link"))
+            if (checked) {
+                textField.parent().parent().parent().show();
+            }
+            else {
+                textField.parent().parent().parent().hide();
+            }
+
+        }
+
+        // show/hide on change
+        $('[id^=id_pageelement_set][id$=card_is_button]').change(function() {
+            card_is_button_toggle($(this));
+        });
+
+        function card_is_button_toggle_all() {
+            $('[id^=id_pageelement_set][id$=card_is_button]').each( function(index, value){
+                if(index === $('[id^=id_pageelement_set][id$=card_is_button]').length-1) {
+                    return;
+                }
+                card_is_button_toggle($(value));
+            });
+        }
+
+        function chart_has_title_toggle(obj) {
+            var checked = obj.is(":checked");
+            var textField = $('#' + obj.attr('id').split("chart_has_title")[0].concat("chart_title"))
+            if (checked) {
+                textField.parent().parent().show();
+            }
+            else {
+                textField.parent().parent().hide();
+            }
+
+        }
+
+        // show/hide on change
+        $('[id^=id_pageelement_set][id$=chart_has_title]').change(function() {
+            chart_has_title_toggle($(this));
+        });
+
+        function chart_has_title_toggle_all() {
+            $('[id^=id_pageelement_set][id$=chart_has_title]').each( function(index, value){
+                if(index === $('[id^=id_pageelement_set][id$=chart_has_title]').length-1) {
+                    return;
+                }
+                chart_has_title_toggle($(value));
+            });
+        }
+
+        initOnAddHandler()
     });
 })(django.jQuery);

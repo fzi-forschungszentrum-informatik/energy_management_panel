@@ -1,0 +1,83 @@
+<div class="col-xl-8 col-lg-7">
+    <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div
+            class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            {% if chart.chart_has_title %}
+                <h6 class="m-0 font-weight-bold text-primary">{{chart.chart_title}}</h6>
+            {% endif %}
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                    aria-labelledby="dropdownMenuLink">
+                    <div class="dropdown-header">Energy Consumption</div>
+                    <a class="dropdown-item" href="#">Configure</a>
+                    <a class="dropdown-item" href="#">Overview</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">Foo</a>
+                </div>
+            </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            <div class="chart-area">
+                <canvas id="myAreaChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+function setUpGraphs() {
+    var datasetsTypes = "{{chart.chart_data_sets}}".split(", ");
+    var datasets = [];
+    var datalables = [];
+    for (type in datasetsTypes) {     
+        switch(datasetsTypes[type]) {
+            case "actual":
+                var set;
+                getDatapointValues({{datapoint.id}}).then( (response) => {
+                        var setValues = getLastXDatapointValuesOfSet(response, 10);
+                        datasets.push(setValues);
+                        console.log(datasets);
+                        areaChart("myAreaChart", datasets, 
+                        ["1:00", "2:00", "3:00", "4:00", "5:00", "6:00", "7:00", "8:00", "9:00", "10:00", "11:00", "12:00"],
+                        datalables);
+                    }
+                );   
+                datalables.push("Actaul Consumption");
+                break;
+            case "history":
+                datasets.push([40, 80, 100, 100, 200, 100, 70, 250, 190, 25, 0, 0])
+                datalables.push("Consumption History");
+            break;
+            case "forecast":
+                datasets.push([60, 100, 120, 170, 250, 110, 170, 150, 190, 25, 0, 90])
+                datalables.push("Consumption Forecast");
+            break;
+            case "schedule":
+                datasets.push([60, 150, 120, 170, 10, 10, 70, 250, 90, 250, 0, 90])
+                datalables.push("Consumption Schedule");
+            break;
+            case "setpoints":
+                datasets.push([60, 180, 120, 110, 100, 100, 150, 250, 95, 150, 0, 90])
+                datalables.push("Consumption Setpoints");
+            break;
+            default:
+            break;
+        }
+    }
+    
+}
+
+
+$( document ).ready(function() {   
+
+    setUpGraphs()     
+});
+
+</script>

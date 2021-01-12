@@ -1,10 +1,16 @@
+import os
+
 from django.db import models
-
 from django.contrib.contenttypes.fields import GenericForeignKey
-
-from .apps import app_url_prefix
 from django.contrib.contenttypes.models import ContentType
 
+from multiselectfield import MultiSelectField
+
+
+from emp_main import settings
+from emp_main.models import Datapoint
+
+from .apps import app_url_prefix
 
 
 class EvaluationSystemPage(models.Model):
@@ -36,7 +42,7 @@ class EvaluationSystemPage(models.Model):
     has_report_generation = models.BooleanField(
         default = False,
         help_text = (
-            "If checked the 'create report' button in the top right corner of the page will be visible"
+            "If checked the 'create report' button in the top right corner of the page will be visible "
             "providing the possibility to generate a report out of pages data."
         )
     )
@@ -44,14 +50,28 @@ class EvaluationSystemPage(models.Model):
     has_scroll_to_top_button = models.BooleanField(
         default = True,
          help_text = (
-            "If checked the 'scroll top' button in the bottom right corner of the page will be visible"
+            "If checked the 'scroll top' button in the bottom right corner of the page will be visible "
             "providing the possibility scroll to the top of the page with one click."
+        )
+    )
+
+    description = models.TextField(
+        blank = True,
+        default = "",
+        help_text = (
+            "Provide a description for this page to help other admin users to understand its purpose."
         )
     )
 
     def get_absolute_url(self):
         url = "/" + app_url_prefix + "/" + self.page_slug + "/"
         return url
+
+    def __str__(self):
+        if self.page_name is not None:
+            return (str(self.id) + " - " + self.page_name)
+        else:
+            return str(self.id)
 
 class PageElement(models.Model):
 
@@ -94,35 +114,40 @@ class UIElementContainer(models.Model):
     container_has_title = models.BooleanField(
         default = False,
         help_text = (
-            "If checked the containers title will be visible in its header."
-            "Use short and describing titles to guide the user."
+            "If checked the containers title will be visible in its header. "
+            "Use short and describing titles to guide the user. "
         )
     )
 
     container_title = models.CharField(
         max_length = 64,
         help_text = (
-            "The containers title as displaied in the containers header."
-            "Only visible if 'has_title' is checked."
+            "The containers title as displaied in the containers header. "
+            "Only visible if 'has_title' is checked. "
         )
     )
 
     container_has_dropdown = models.BooleanField(
         default = False,
         help_text = ( 
-            "If checked the referenced dropdown linkes will be shown as a dropdown menu in the top right corner of the containers header."
+            "If checked the referenced dropdown linkes will be shown as a dropdown menu in the top right corner of the containers header. "
             "Use the dropdown menu to provide less important functionality in relation to containers data."
         )
     )
 
-    container_dropdown_links = models.ManyToManyField(EvaluationSystemPage)
+    container_dropdown_links = models.ManyToManyField(
+        EvaluationSystemPage,
+        blank = True,
+        help_text = (
+            "Choose the pages linked in the dropdown here."
+        )
+    )
 
     page_element = models.ForeignKey(
         PageElement,
         default = None,
-        on_delete = models.CASCADE
+        on_delete = models.CASCADE,
     )
-    
     
 
 class UIElement(models.Model):
@@ -176,6 +201,16 @@ class Presentation(models.Model):
         on_delete = models.CASCADE,
     )
 
+    datapoint = models.ForeignKey(
+        Datapoint,
+        on_delete = models.SET_NULL,
+        default = None,
+        null = True,
+        help_text = (
+            "Choose the data point represented by this."
+        )
+    )
+
 class Card(models.Model):
     """
     The Card model is one of Presentation models types.
@@ -198,7 +233,7 @@ class Card(models.Model):
         choices = CARD_COLOR_CHOICES,
         default = CARD_COLOR_CHOICES[0][0],
         help_text = (
-            "Allows configuring the color scheme of the card."
+            "Allows configuring the color scheme of the card. "
         )
     )
 
@@ -213,28 +248,34 @@ class Card(models.Model):
         choices = CARD_DECORATION_CHOICES,
         default = CARD_DECORATION_CHOICES[0][0],
         help_text = (
-            "Allows configuring the decoration of the card."
+            "Allows configuring the decoration of the card. "
         )
     )
 
     card_is_button = models.BooleanField(
         default = False,
         help_text = (
-            "If checkt the card can be used as button using the referenced link."
-            "With hover effects the card is made recognizable as button."
+            "If checkt the card can be used as button using the referenced link. "
+            "With hover effects the card is made recognizable as button. "
             "Use cards as button to link additional information pages or function."
         )
     )
 
-    #TODO card_button_link = models.OneToOneField(
-     #   EvaluationSystemPage
-      #  on_delete = models.
-       # )
+    card_button_link = models.ForeignKey(
+        EvaluationSystemPage,
+        on_delete = models.SET_NULL,
+        null = True,
+        default = None,
+        blank = True,
+        help_text = (
+        "On button click the page set here will be called."
+        )
+    )
 
     card_has_tooltip = models.BooleanField(
         default = False,
         help_text = (
-            "If checkt the card shows a tooltip providing your custom tooltip text."
+            "If checkt the card shows a tooltip providing your custom tooltip text. "
             "Use the tooltips to provide additional information."
         )
     )
@@ -242,7 +283,7 @@ class Card(models.Model):
     card_tooltip_text = models.TextField(
         blank = True,
         help_text = (
-            "Provide the cards tooltip text here."
+            "Provide the cards tooltip text here. "
             "It can have any length but have in mind noone likes reading massive tooltips."
         )
     )
@@ -252,6 +293,33 @@ class Card(models.Model):
         default = None,
         on_delete = models.CASCADE,
     )
+    
+    CARD_ICON_CHOICES = [
+        ("none", "none"),
+        ("cog", "cog"),
+        ("clock", "clock"),  
+        ("dollar-sign", "dollar-sign"),   
+        ("sun", "sun"),
+        ("bolt", "bolt"),
+        ("chart-line", "chart-line"),
+        ("battery-full", "battery-full"),
+        ("battery-empty", "battery-empty"),
+        ("clipboard-list", "clipboard-list"),
+        ("tachometer-alt ", " tachometer-alt "),
+        ("couch", "couch"),
+        ("plug", "plug"),
+        ("charging-station", "charging-station"),
+        ("server", "server")  ,  
+    ]
+
+    card_icon = models.CharField(
+        max_length = 64,
+        choices = CARD_ICON_CHOICES,
+        default = CARD_ICON_CHOICES[0][0],
+        help_text = (
+            "Allows configuring the icon of the card."
+        )
+    )
 
 
 class Chart(models.Model):
@@ -260,7 +328,7 @@ class Chart(models.Model):
     The Chart model is the second type of the presentation model.
     It consists of its own title and one chart representing one or more set of data.
     """
-    chart_show_title = models.BooleanField(
+    chart_has_title = models.BooleanField(
         default = False,
         help_text = (
             "If checked the chart will show a customizable title in its header."
@@ -271,7 +339,8 @@ class Chart(models.Model):
         max_length = 64,
         help_text = (
             "Provide a short and describing chart title here."
-        )
+        ),
+        blank = True
     )
 
     CHART_TYPE_CHOICES = [
@@ -290,7 +359,48 @@ class Chart(models.Model):
         )
     )
 
-    #TODO implement color set choce
+
+    CHART_DATA_SET_CHOISES = (
+        ("actual", "actual"),
+        ("history", "history"),
+        ("forecast", "forecast"),
+        ("schedule", "schedule"),
+        ("setpoints", "setpoints")
+    )
+
+    chart_data_sets = MultiSelectField(
+        choices=CHART_DATA_SET_CHOISES,
+        max_choices=3,
+        max_length=64,
+        default = None,
+        null = True,
+        help_text = (
+            "Select one to three of these options to select which data sets will be shown in the chart."
+        )
+    )
+
+    CHART_DATA_INTERVAL_CHOISES = (
+        ("hourly", "hourly"),
+        ("daily", "daily"),
+        ("weekly", "weekly"),
+        ("monthly", "monthly"),
+        ("yearly", "yearly")
+    )
+
+    chart_data_interval = MultiSelectField(
+        choices=CHART_DATA_INTERVAL_CHOISES,
+        max_choices=5,
+        max_length=128,
+        default = None,
+        null = True,
+        help_text = (
+            "Select one to five of these options to select which data intervals will be available in the chart."
+        )
+    )
+
+
+
+
     #TODO implement data set picker
 
     presentation = models.ForeignKey(
@@ -298,8 +408,3 @@ class Chart(models.Model):
         default = None,
         on_delete = models.CASCADE,
     )
-
-
-class Image(models.Model):
-    pass
-    #TODO Think about a image picker posibility for fa icons

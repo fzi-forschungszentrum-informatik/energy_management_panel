@@ -40,13 +40,15 @@ INSTALLED_APPS = [
     'guardian',
     'rest_framework',
     'drf_spectacular',
-    'nested_admin',
     'emp_main.apps.EmpMainConfig',
     #'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
     #'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
     'emp_history_db.apps.EmpHistoryDbConfig',
     'emp_evaluation_system.apps.EmpEvaluationSystemConfig',
+
+    'nested_admin',
+    'multiselectfield',
     
 ]
 
@@ -229,3 +231,9 @@ HOME_PAGE_URL = "/welcome/"
 # EMPBaseView. Use ?next= to redirect after login/logout.
 LOGIN_PAGE_URL = "/auth/login/?next=%s" % HOME_PAGE_URL
 LOGOUT_PAGE_URL = "/auth/logout/?next=%s" % HOME_PAGE_URL
+
+#EPM evaluation page update interval in milliseconds
+EMP_EVALUATION_PAGE_UPDATE_INTERVAL = 5000
+
+#Increase this if admin cant post model changes anymore.
+DATA_UPLOAD_MAX_NUMBER_FIELDS=8192
