@@ -8,6 +8,7 @@ from .models import EvaluationSystemPage, PageElement, UIElementContainer, UIEle
 Configure the admin pages here.
 Nested_admin classes are used to generated multiple layers of nested inlines.
 This way the EvaluationSystemPageAdmin can be used as a content management system for the whole page
+The Inines are defined in the "wrong" order so the parent Inline can use its children inlines.
 """
 
 class ChartInline(nested_admin.NestedStackedInline):
@@ -84,7 +85,7 @@ class PageElementInline(nested_admin.NestedStackedInline):
     model = PageElement
     extra = 0
 
-    #Only one of the inlines is visible. PageElement type is choosen via dropdown.
+    #Only one of the inlines is visible (visibility set via page_admin.js). PageElement type is choosen via dropdown.
     inlines = [UIElementContainerInline, UIElementInPageElementInline] 
 
 @admin.register(EvaluationSystemPage)
@@ -95,19 +96,21 @@ class EvaluationSystemPageAdmin(nested_admin.NestedModelAdmin, GuardedModelAdmin
     NestedModelAdmin instance allows to nest multiple layers of inlines.
     This admin configuration allows to build a whole page from scretch with only this admin.
     """
+
+    #Include js files that manipulate admin
     class Media:
         js = (
             '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js', # jquery #TODO durch django jquery ersetzen
             'emp_evaluation_system/js/page_admin.js',
         )
 
-    site_header = "Wow amazing title"
-
+    #configure how objects are displayed in tabular 
     list_display = (
         "string_representation",
         "description"
     )
 
+    #Start of the inline recursion
     inlines = [PageElementInline]
 
     #  Just convenience. Automatically fill the page_slug field.
@@ -118,6 +121,7 @@ class EvaluationSystemPageAdmin(nested_admin.NestedModelAdmin, GuardedModelAdmin
     def string_representation(self, obj):
         return obj
 
+#Set site header and title
 admin.site.site_header = 'EMP Evaluation System Admin'
 admin.site.site_title = 'EMP Evaluation System Admin'
 

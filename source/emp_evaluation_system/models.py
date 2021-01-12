@@ -74,11 +74,10 @@ class EvaluationSystemPage(models.Model):
             return str(self.id)
 
 class PageElement(models.Model):
-
     """
-    This class can be in two states: container or presentation.
-    If a UIElement is used as container it consists of other UIElements (with arbitrary recursion).
-    As presentation it is used to visualize data.s
+    This class can used be in two states: container or presentation.
+    If a UIElementContainer is used as container it consists of other UIElements (with arbitrary recursion).
+    As UIElement it is used to visualize data.
     """
 
     ELEMENT_TYPE_CHOISES = [
@@ -105,7 +104,7 @@ class PageElement(models.Model):
 class UIElementContainer(models.Model):
 
     """
-    Container used to model and structure the UI.
+    Container used to structure the UI.
     Consists of one to many UIElements that are rendered inside a bootstrap card as container.
     Use different containers to present different data.
     Containers may have a dropdown to provide extra functionality.
@@ -214,9 +213,10 @@ class Presentation(models.Model):
 class Card(models.Model):
     """
     The Card model is one of Presentation models types.
-    Its a rectangular card, containing an image, a data title, presented in  monochrome design.
-    As additional design elements a border on the left or at the bottom are available.
-    To add extra information use the tooltips. For additional fuctionality use the card as button.
+    Its a rectangular bootstrap card, containing an image, a data title, presented in monochrome design.
+    As additional decoration elements a border on the left or at the bottom are available.
+    To add extra information use the tooltips. 
+    For additional fuctionality use the card as button.
 
     Use this presentation type to visualize simple data. 
     """
@@ -268,7 +268,7 @@ class Card(models.Model):
         default = None,
         blank = True,
         help_text = (
-        "On button click the page set here will be called."
+            "On button click the page set here will be called."
         )
     )
 
@@ -397,11 +397,6 @@ class Chart(models.Model):
             "Select one to five of these options to select which data intervals will be available in the chart."
         )
     )
-
-
-
-
-    #TODO implement data set picker
 
     presentation = models.ForeignKey(
         Presentation,

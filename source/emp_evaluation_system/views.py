@@ -5,8 +5,8 @@ from emp_main.settings import EMP_EVALUATION_PAGE_UPDATE_INTERVAL
 from .models import EvaluationSystemPage
 class EvaluationSystemPageView(EMPBaseView):
     """
-    A simple example for a view that appends the context with page specific
-    data used only by the demo UI app pages.
+    View for EvaluationSystemPages.
+    Setting up the context.
     """
 
     def get_context_data(self, **kwargs):
@@ -18,8 +18,7 @@ class EvaluationSystemPageView(EMPBaseView):
         context["page_name"] = page_object.page_name
         context["has_report_generation"] = page_object.has_report_generation
         context["pagelements"] = page_object.pageelement_set.all
-        context["has_scroll_to_top_button"] = page_object.has_scroll_to_top_button
-        
+        context["has_scroll_to_top_button"] = page_object.has_scroll_to_top_button      
         context["update_interval"] = EMP_EVALUATION_PAGE_UPDATE_INTERVAL
 
 
