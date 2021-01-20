@@ -1,7 +1,7 @@
+{% extends "emp_main/base.html" %}
 {% comment %} 
     All generic content like nav/title bar is provided by the base template
 {% endcomment %}
-{% extends "emp_main/base.html" %}
 {% load static %}
 {% load datapoint_helpers %}
 
@@ -32,13 +32,45 @@
             </div>
         {% endif %}
         {% comment %} 
-            Core functionality of EvaluationSystemPage.
+            Core functionality of a simple EvaluationSystemPage.
             For every Pageelement linked to the EvaluationSystemPage a template will be included.
             Every template recursively includes additional templates e.g. UIContainer->UIElement->Presentaion->Card
         {% endcomment %}
-        {% for element in pagelements %}
-            {% include 'emp_evaluation_system/pageelement.html' %}
-        {% endfor %} 
+        {% if not is_comparison_page %}
+
+            {% for element in pagelements %}
+                {% include 'emp_evaluation_system/pageelement.html' %}
+            {% endfor %}
+
+        {% comment %} 
+            Core functionality of a comparison EvaluationSystemPage.
+            For every Pageelement linked to the EvaluationSystemPage two templates will be included.
+            Also a algorithm selection at the top and a comparison graph at the bottom will be included
+        {% endcomment %}
+        {% else %}
+            <div class="col">
+                <div class="row">
+                    {% include 'emp_evaluation_system/algorithm_selection_form.html' %}
+                </div>
+                <div class="row">
+                    <div class="col-md-6 col-12">
+                        {% for element in pagelements %}
+                            {% include 'emp_evaluation_system/pageelement.html' %}
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6 col-12">
+                        {% for element in pagelements %}
+                            {% include 'emp_evaluation_system/pageelement.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row">
+                    {% include 'emp_evaluation_system/comparison_graph.html' %}
+                </div>
+            </div>
+        {% endif %}
+
+       
     </div>
     <!-- End Page Content-->
     <!-- /.container-fluid -->
@@ -78,7 +110,7 @@
   <!-- Page level custom scripts -->
   <script src="{% static 'emp_evaluation_system/js/demo/chart-area-demo.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/demo/chart-pie-demo.js' %}"></script>
-  <script src="{% static 'emp_evaluation_system/js/demo/chart-bar-demo.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/demo/chart-bar-demo2.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/demo/charts.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/apiCalls.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/datapointHelpers.js' %}"></script>

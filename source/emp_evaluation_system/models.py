@@ -39,6 +39,15 @@ class EvaluationSystemPage(models.Model):
         )
     ) 
 
+    page_is_comparison_page = models.BooleanField(
+        default = False,
+        help_text = (
+            "If this is checked, the page will transform into a optimization comparison page. "
+            "Therefore the page consists of two algorithm select boxes and an additional comparison graph. "
+            "Also the configured page will be rendered twice. Once for the first, once for the second selected algorithm."
+        )
+    )
+
     has_report_generation = models.BooleanField(
         default = False,
         help_text = (
@@ -361,7 +370,6 @@ class Chart(models.Model):
 
 
     CHART_DATA_SET_CHOISES = (
-        ("actual", "actual"),
         ("history", "history"),
         ("forecast", "forecast"),
         ("schedule", "schedule"),

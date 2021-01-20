@@ -11,7 +11,7 @@
     The text will be updated every update interval (defined in emp_main.settings.py)
 {% endcomment %} 
  
-<div class="col-xl-3 col-md-6 mb-4">
+<div class="{% if is_comparison_page %}col-sm-12{% else %}col-xl-3 col-md-6{% endif %} mb-4">
     <div class="card {% if card.card_decoration != 'none' %} border-{{card.card_decoration}}-{{card.card_color}} {% endif %} 
     shadow h-100 py-2" hoverable="{{card.card_is_button}}"
     {% if card.card_is_button%} onclick="window.location='{{card.card_button_link.get_absolute_url}}'" {% endif %} 

@@ -9,3 +9,7 @@ function getDataPointSetpoints(datapointId) {
 function getDataPointSchedules(datapointId) {
     return $.getJSON("http://localhost:8000/api/datapoint/"+datapointId+"/schedule/");
 }
+
+function getDatapointValueOf(datapointId, timestamp) {
+    return $.getJSON("http://localhost:8000/api/datapoint/"+datapointId+"/value/"+timestamp+"/");
+}

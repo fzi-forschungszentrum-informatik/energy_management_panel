@@ -233,7 +233,7 @@ LOGIN_PAGE_URL = "/auth/login/?next=%s" % HOME_PAGE_URL
 LOGOUT_PAGE_URL = "/auth/logout/?next=%s" % HOME_PAGE_URL
 
 #EPM evaluation page update interval in milliseconds
-EMP_EVALUATION_PAGE_UPDATE_INTERVAL = 5000
+EMP_EVALUATION_PAGE_UPDATE_INTERVAL = 60000
 
 #Increase this if admin cant post model changes anymore.
 DATA_UPLOAD_MAX_NUMBER_FIELDS=8192

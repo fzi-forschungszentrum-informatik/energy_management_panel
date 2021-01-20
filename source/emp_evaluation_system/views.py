@@ -16,10 +16,13 @@ class EvaluationSystemPageView(EMPBaseView):
         page_object = get_object_or_404(EvaluationSystemPage, page_slug=page_slug)
 
         context["page_name"] = page_object.page_name
+        context["is_comparison_page"] = page_object.page_is_comparison_page
         context["has_report_generation"] = page_object.has_report_generation
         context["pagelements"] = page_object.pageelement_set.all
         context["has_scroll_to_top_button"] = page_object.has_scroll_to_top_button      
         context["update_interval"] = EMP_EVALUATION_PAGE_UPDATE_INTERVAL
-
+        #TODO Laden von Algortihmen für comparison page. Anpassen Code
+        #if page_object.page_is_comparison_page:
+         #   context["settings"] = EvaluationSystemPage.objects.values_list('page_name', flat=True)
 
         return context

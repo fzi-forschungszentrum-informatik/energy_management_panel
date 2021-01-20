@@ -5,7 +5,7 @@ var lables = ["1:00", "1:30", "2:00","2:30", "3:00","3:30", "4:00","4:30", "5:00
 var datasetLabel = "Actual Consumption"
 
 
-function areaChart(elementId, datasets,  lables_x, lables_datasets, unit="$", maxTicksLimit=6) {
+function areaChart(elementId, datasets,  lables_x, lables_datasets, unit="$", maxTicksLimit=7) {
     var ctx = document.getElementById(elementId);
     
     data = []
