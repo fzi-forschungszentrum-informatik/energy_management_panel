@@ -26,10 +26,10 @@ class TestDatapointValueSerializer(TransactionTestCase):
         # on the fly for testing.
         class Datapoint(DatapointTemplate):
             class Meta:
-                app_label="test_message_format_models_2"
+                app_label="test_message_format_models_5"
         class DatapointValue(DatapointValueTemplate):
             class Meta:
-                app_label="test_message_format_models_2"
+                app_label="test_message_format_models_5"
             # The datapoint foreign key must be overwritten as it points
             # to the abstract datapoint model by default.
             datapoint = models.ForeignKey(
@@ -403,10 +403,10 @@ class TestDatapointScheduleSerializer(TransactionTestCase):
         # on the fly for testing.
         class Datapoint(DatapointTemplate):
             class Meta:
-                app_label="test_message_format_models_3"
+                app_label="test_message_format_models_6"
         class DatapointSchedule(DatapointScheduleTemplate):
             class Meta:
-                app_label="test_message_format_models_3"
+                app_label="test_message_format_models_6"
             # The datapoint foreign key must be overwritten as it points
             # to the abstract datapoint model by default.
             datapoint = models.ForeignKey(
@@ -1201,10 +1201,10 @@ class TestDatapointSetpointSerializer(TransactionTestCase):
         # on the fly for testing.
         class Datapoint(DatapointTemplate):
             class Meta:
-                app_label="test_message_format_models_4"
+                app_label="test_message_format_models_7"
         class DatapointSetpoint(DatapointSetpointTemplate):
             class Meta:
-                app_label="test_message_format_models_4"
+                app_label="test_message_format_models_7"
             # The datapoint foreign key must be overwritten as it points
             # to the abstract datapoint model by default.
             datapoint = models.ForeignKey(
