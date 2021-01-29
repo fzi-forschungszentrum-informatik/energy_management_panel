@@ -11242,31 +11242,3 @@ footer.sticky-footer .copyright {
 body.sidebar-toggled footer.sticky-footer {
   width: 100%;
 }
-
-.icon-good {
-  color: var(--success) !important;
-}
-
-.icon-warning {
-  color: var(--warning) !important;
-}
-
-.card[hoverable="True"]:hover .icon-warning {
-  color: var(--orange) !important;
-}
-.card[hoverable="True"]:hover .text-warning {
-  color: var(--orange) !important;
-}
-
-.card[hoverable="True"]:hover.border-left-warning {
-  border-left: 0.25rem solid var(--orange) !important;
-}
-
-
-.icon-danger {
-  color: var(--danger) !important;
-}
-
-.icon-yellow {
-  color: var(--yellow) !important;
-}

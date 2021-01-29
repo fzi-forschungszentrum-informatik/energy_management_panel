@@ -1,7 +1,99 @@
 /*
-  Here an example for styles that are specific for the pages of the Demo UI App.
+  This css file contains all css adjustments needed for the EMP Evaluation System Application
 */
-
-.demo-app-text-center{
-  text-align: center;
+:root {
+  --primary-darken: #2e4792;
+  --secondary-darken: #45464e;
+  --success-darken: #159466;
+  --warning-darken: #e9a700;
+  --danger-darken: #bd3c30;
 }
+
+.icon-primary {
+  color: var(--primary) !important
+}
+
+.icon-secondary {
+  color: var(--secondary) !important
+}
+
+.icon-success {
+  color: var(--success) !important;
+}
+
+.icon-warning {
+  color: var(--warning) !important;
+}
+
+.icon-danger {
+  color: var(--danger) !important;
+}
+
+.card[hoverable="True"]:hover .icon-primary {
+  color: var(--primary-darken) !important;
+}
+.card[hoverable="True"]:hover .text-primary {
+  color: var(--primary-darken) !important;
+}
+.card[hoverable="True"]:hover.border-bottom-primary {
+  border-bottom: 0.25rem solid var(--primary-darken) !important;
+}
+.card[hoverable="True"]:hover.border-left-primary {
+  border-left: 0.25rem solid var(--primary-darken) !important;
+}
+
+
+.card[hoverable="True"]:hover .icon-secondary {
+  color: var(--secondary-darken) !important;
+}
+.card[hoverable="True"]:hover .text-secondary {
+  color: var(--secondary-darken) !important;
+}
+.card[hoverable="True"]:hover.border-bottom-secondary {
+  border-bottom: 0.25rem solid var(--secondary-darken) !important;
+}
+.card[hoverable="True"]:hover.border-left-secondary {
+  border-left: 0.25rem solid var(--secondary-darken) !important;
+}
+
+
+.card[hoverable="True"]:hover .icon-success {
+  color: var(--success-darken) !important;
+}
+.card[hoverable="True"]:hover .text-success {
+  color: var(--success-darken) !important;
+}
+.card[hoverable="True"]:hover.border-bottom-success {
+  border-bottom: 0.25rem solid var(--success-darken) !important;
+}
+.card[hoverable="True"]:hover.border-left-success {
+  border-left: 0.25rem solid var(--success-darken) !important;
+}
+
+
+.card[hoverable="True"]:hover .icon-warning {
+  color: var(--warning-darken) !important;
+}
+.card[hoverable="True"]:hover .text-warning {
+  color: var(--warning-darken) !important;
+}
+.card[hoverable="True"]:hover.border-bottom-warning {
+  border-bottom: 0.25rem solid var(--warning-darken) !important;
+}
+.card[hoverable="True"]:hover.border-left-warning {
+  border-left: 0.25rem solid var(--warning-darken) !important;
+}
+
+.card[hoverable="True"]:hover .icon-danger {
+  color: var(--danger-darken) !important;
+}
+.card[hoverable="True"]:hover .text-danger {
+  color: var(--danger-darken) !important;
+}
+.card[hoverable="True"]:hover.border-bottom-danger {
+  border-bottom: 0.25rem solid var(--danger-darken) !important;
+}
+.card[hoverable="True"]:hover.border-left-danger {
+  border-left: 0.25rem solid var(--danger-darken) !important;
+}
+

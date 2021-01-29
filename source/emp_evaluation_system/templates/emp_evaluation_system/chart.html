@@ -1,7 +1,20 @@
+{% comment %}
+    This is the html template for a Chart model object.
+    As base consturct a bootstrap card with header is used to contain the canvas where the chart is printed.
+    The chart is printed by the vendor/chart.js/Chart.js library and our own code in  js/charts.js.
+    Costomizable elements are:
+        - Chart title in the card header.
+        - The dropdown menu's links. These will change the chart's data set intervals.
+        - Chart type (area, bar, doughnut)
+        - Chart data sets.
+    The in the parent Presentation element linked Datapoint values will be shown as chart datasets. 
+{% endcomment %}
 <div class="col-xl-12 col-lg-12">
     <div class="card shadow mb-4">
-        <!-- Card Header - Dropdown -->
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            {% comment%} 
+                Charts header is included here
+            {% endcomment %}
             {% if chart.chart_has_title %}
                 <h6 class="m-0 font-weight-bold text-primary">{{chart.chart_title}}</h6>
             {% endif %}
@@ -13,16 +26,28 @@
                 <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
                     aria-labelledby="dropdownMenuLink">
                     <div class="dropdown-header">Change Interval</div>
-                        {% for label in chart.chart_data_interval %}
-                            <a class="dropdown-item" href=""> {{label}} </a>
-                        {% endfor %} 
+                    {% comment %} 
+                        For every data interval chosen, when configuring the chart in the admin panel,
+                        a links is included.
+                        TODO Include change data interval funcitonality
+                    {% endcomment %}
+                    {% for label in chart.chart_data_interval %}
+                        <a class="dropdown-item" onclick='changeDataIntervalTo(this, "{{label}}")'> {{label}} </a>
+                    {% endfor %} 
                 </div>
             </div>
         </div>
         <!-- Card Body -->
         <div class="card-body">
             <div class="chart-area">
-                <canvas id="myAreaChart"></canvas>
+                {% comment %}
+                    A canvas with all important data is created.
+                    This data needs to be set as HTML element attributes, therefore data can be read from other files as well.
+                    The chart will be build on the document ready event.
+                {% endcomment %}
+                <canvas id="{{chart.chart_type}}-chart-{% now 'Uu'%}" datapointId="{{datapoint.id}}" datapointUnit="{{datapoint.unit}}"
+                datapointName="{{datapoint.short_name}}" dataTypes="{{chart.chart_data_sets}}" 
+                dataIntervals="{{chart.chart_data_interval}}"></canvas>
             </div>
         </div>
     </div>
@@ -30,64 +55,39 @@
 
 <script>
 
-function setUpGraphs() {
-    var datasetsTypes = "{{chart.chart_data_sets}}".split(", ");
-    var datasets = [];
-    var datalables = [];
-    for (type in datasetsTypes) {     
-        switch(datasetsTypes[type]) {
-            case "history":
-                var datapointSet = [];
-                var timestampset = getLast24Hours(getTimestampOfLastFullHour())
-                $.each(timestampset, (index, timestamp) => {
-                    getDatapointValueOf({{datapoint.id}}, timestamp).then((data) => {
-                            datapointSet.push(data.value);
-                            if (index == timestampset.length - 1) {
-                                datasets.push(datapointSet);
-                                datalables.push("Consumption History"); 
-                                areaChart("myAreaChart", datasets, 
-                                    ["00:00", "1:00", "2:00", "3:00", "4:00", "5:00", "6:00", "7:00", "8:00", "9:00", "10:00", "11:00", "12:00", "13:00", 
-                                    "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"],
-                                    datalables);
-                                    console.log(datapointSet)
-                            }
-                        }
-                    );
-                });                     
-                /*getDatapointValues({{datapoint.id}}).then( (response) => {
-                        var setValues = getLastXDatapointValuesOfSet(response, 24);
-                        datasets.push(setValues);
-                        console.log(datasets);
-                        areaChart("myAreaChart", datasets, 
-                        ["00:00", "1:00", "2:00", "3:00", "4:00", "5:00", "6:00", "7:00", "8:00", "9:00", "10:00", "11:00", "12:00", "13:00", 
-                        "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"],
-                        datalables);
-                    }
-                );   */
-            break;
-            case "forecast":
-                datasets.push([60, 100, 120, 170, 250, 110, 170, 150, 190, 25, 0, 90])
-                datalables.push("Consumption Forecast");
-            break;
-            case "schedule":
-                datasets.push([60, 150, 120, 170, 10, 10, 70, 250, 90, 250, 0, 90])
-                datalables.push("Consumption Schedule");
-            break;
-            case "setpoints":
-                datasets.push([60, 180, 120, 110, 100, 100, 150, 250, 95, 150, 0, 90])
-                datalables.push("Consumption Setpoints");
-            break;
-            default:
-            break;
+//TODO refactor, comment and replace
+async function setUpCharts() {
+    var allCharts = $("[id*=-chart]");
+    for (var chart of allCharts) {
+        var datapointId = chart.getAttribute("datapointId");
+        var dataTypes = chart.getAttribute("dataTypes").split(", ");
+        var dataIntervals = chart.getAttribute("dataIntervals").split(", ");
+        var unit = chart.getAttribute("datapointUnit");
+        var actualInterval = dataIntervals[0];
+        var graphLabels = dataTypes.map((type) => chart.getAttribute("datapointName").concat(" " + type.charAt(0).toUpperCase() + type.slice(1)));   
+        //TODO change initialTimestamp when database is filled with more data
+        chartDataSet = await getChartDataset(datapointId, 1611217839554 , dataTypes, dataIntervals); 
+        var data = [];
+        //Reverse Data so that the newest data value comes last in graph.
+        dataTypes.forEach((type)=> {
+            var reversedData = chartDataSet.get(type).get(actualInterval).data.reverse();
+            data.push(reversedData);  
+        });
+        var labels = chartDataSet.get(dataTypes[0]).get(actualInterval).labels;
+        //TODO Chart steps dynmaisch
+        if(chart.id.startsWith("area")) {
+            createChart(chart.id, "line", data, labels.reverse() , graphLabels, unit, 6);
+        }
+        else if (chart.id.startsWith("bar")) {
+            createChart(chart.id, "bar", data, labels.reverse() , graphLabels, unit, 24);
         }
     }
-    
 }
 
-
-$( document ).ready(function() {   
-
-    setUpGraphs()     
-});
+function changeDataIntervalTo(element, intervalType) {
+    console.log(intervalType);
+    //TODO Change this super hard codeded Search
+    console.log(element.parentElement.parentElement.parentElement.parentElement.getElementsByClassName("card-body")[0].getElementsByClassName("chart-area")[0].getElementsByTagName("canvas")[0])
+}
 
 </script>

@@ -84,8 +84,13 @@
             <i class="fas fa-angle-up"></i>
         </a>
     {% endif %}
+    <script>
+        $( document ).ready(function() {
+            console.log("Hier")
+            setUpCharts();
+        });
+    </script>
 {% endblock body_html %}
-
 
 {% comment %} 
     Including all required JavaScript files that are not included in emp_main/base.html.

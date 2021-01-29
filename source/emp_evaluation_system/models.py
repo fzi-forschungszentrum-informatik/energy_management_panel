@@ -272,7 +272,7 @@ class Card(models.Model):
 
     card_button_link = models.ForeignKey(
         EvaluationSystemPage,
-        on_delete = models.SET_NULL,
+        on_delete = models.CASCADE,
         null = True,
         default = None,
         blank = True,
@@ -411,3 +411,23 @@ class Chart(models.Model):
         default = None,
         on_delete = models.CASCADE,
     )
+
+class Metric(models.Model):
+
+    datapoint = models.ForeignKey(
+        Datapoint,
+        on_delete = models.CASCADE,
+        help_text = (
+            "Links the Datapoint the metric is working on."
+        )
+    )
+
+    unit = models.CharField(
+        max_length = 64,
+        blank = False,
+        default = "$",
+        help_text = (
+            "The unit of the metrics result."
+        )
+    )
+
