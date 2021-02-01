@@ -29,6 +29,24 @@ class DatapointValue(models.Model):
         )
     )
 
+    def save(self, *args, **kwargs):
+        """
+        Update the last_value/last_value_timestamp fields in datapoint too.
+        """
+        # But check first that the save for this object goes trough.
+        super().save(*args, **kwargs)
+
+        # A message without a timestamp cannot be latest.
+        if self.timestamp is None:
+            return
+
+        self.datapoint.refresh_from_db()
+        existing_ts = self.datapoint.last_value_timestamp
+
+        if existing_ts is None or existing_ts <= self.timestamp:
+            self.datapoint.last_value = self.value
+            self.datapoint.last_value_timestamp = self.timestamp
+            self.datapoint.save()
 
 class DatapointSchedule(models.Model):
 
@@ -56,6 +74,25 @@ class DatapointSchedule(models.Model):
         )
     )
 
+    def save(self, *args, **kwargs):
+        """
+        Update the last_schedule/last_schedule_timestamp fields in datapoint
+        too.
+        """
+        # But check first that the save for this object goes trough.
+        super().save(*args, **kwargs)
+
+        # A message without a timestamp cannot be latest.
+        if self.timestamp is None:
+            return
+
+        self.datapoint.refresh_from_db()
+        existing_ts = self.datapoint.last_schedule_timestamp
+
+        if existing_ts is None or existing_ts <= self.timestamp:
+            self.datapoint.last_schedule = self.schedule
+            self.datapoint.last_schedule_timestamp = self.timestamp
+            self.datapoint.save()
 
 class DatapointSetpoint(models.Model):
 
@@ -82,3 +119,23 @@ class DatapointSetpoint(models.Model):
             "The field that stores the timestamp of setpoint msg as datetime."
         )
     )
+    
+    def save(self, *args, **kwargs):
+        """
+        Update the last_setpoint/last_setpoint_timestamp fields in datapoint
+        too.
+        """
+        # But check first that the save for this object goes trough.
+        super().save(*args, **kwargs)
+
+        # A message without a timestamp cannot be latest.
+        if self.timestamp is None:
+            return
+
+        self.datapoint.refresh_from_db()
+        existing_ts = self.datapoint.last_setpoint_timestamp
+
+        if existing_ts is None or existing_ts <= self.timestamp:
+            self.datapoint.last_setpoint = self.setpoint
+            self.datapoint.last_setpoint_timestamp = self.timestamp
+            self.datapoint.save()

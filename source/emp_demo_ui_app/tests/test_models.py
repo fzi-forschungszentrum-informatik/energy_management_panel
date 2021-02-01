@@ -28,7 +28,7 @@ class TestDemoAppPage(TestCase):
         """
         This field is required as entry in the nav bar.
         """
-        self.assertEquals(self.test_app_page.page_name, self.expected_page_name)
+        self.assertEqual(self.test_app_page.page_name, self.expected_page_name)
 
     def test_field_page_name_not_too_long(self):
         """
@@ -41,7 +41,7 @@ class TestDemoAppPage(TestCase):
         """
         This field is required to generate the urls of the pages.
         """
-        self.assertEquals(self.test_app_page.page_slug, self.expected_page_slug)
+        self.assertEqual(self.test_app_page.page_slug, self.expected_page_slug)
 
     def test_field_page_slug_is_unique(self):
         """
@@ -58,7 +58,7 @@ class TestDemoAppPage(TestCase):
         """
         This field is required as it is expected by the DemoUIPageView.
         """
-        self.assertEquals(
+        self.assertEqual(
             self.test_app_page.page_content,
             self.expected_page_content
         )
@@ -67,7 +67,7 @@ class TestDemoAppPage(TestCase):
         """
         This field is required as it is expected by the DemoUIPageView.
         """
-        self.assertEquals(
+        self.assertEqual(
             self.test_app_page.page_background_color,
             self.expected_background_color
         )

@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 
 from .models import Datapoint
-from .utils import datetime_to_pretty_str
+from ems_utils.timestamp import datetime_to_pretty_str
 
 
 @admin.register(Datapoint)

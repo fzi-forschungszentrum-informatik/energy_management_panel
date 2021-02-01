@@ -91,7 +91,7 @@ class TestDpUpdateMap(TestCase):
             self.assertIn(expected_datapoint_id, parsed_update_map.keys())
 
         # Verify we got no extra datapoint ids.
-        self.assertEquals(
+        self.assertEqual(
             len(self.test_field_collector.keys()),
             len(parsed_update_map)
         )

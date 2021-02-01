@@ -2,7 +2,8 @@ from datetime import datetime, timezone
 
 from django.test import TestCase
 
-from ..utils import datetime_from_timestamp, datetime_to_pretty_str
+from ..timestamp import datetime_from_timestamp, datetime_to_pretty_str
+
 
 class TestDatetimeFromTimestamp(TestCase):
 
@@ -15,12 +16,12 @@ class TestDatetimeFromTimestamp(TestCase):
 
     def test_datetime_value_with_tz_correct(self):
         timestamp = 1596240000000
-        expected_datetime = datetime(2020, 8, 1)
-        expected_datetime = expected_datetime.astimezone(timezone.utc)
+        expected_datetime = datetime(2020, 8, 1, tzinfo=timezone.utc)
 
         actual_datetime = datetime_from_timestamp(timestamp, tz_aware=True)
 
         self.assertEqual(expected_datetime, actual_datetime)
+
 
 class TestDatetimeToPrettyStr(TestCase):
 
