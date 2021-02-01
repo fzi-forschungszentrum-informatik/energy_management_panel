@@ -45,7 +45,7 @@ class Datapoint(ModelWithIterableFields):
     TODO: Add consistency checks on save.
     """
 
-    external_id = models.TextField(
+    origin_id = models.TextField(
         null=True,
         unique=True,
         blank=True,
@@ -119,6 +119,15 @@ class Datapoint(ModelWithIterableFields):
         help_text=(
             "A human readable description of the datapoint targeted on "
             "users of the API wihtout knowledge about connector details."
+        )
+    )
+    origin_description = models.TextField(
+        editable=True,
+        blank=True,
+        help_text=(
+            "A human readable description of the datapoint targeted on "
+            "users of the API wihtout knowledge about connector details."
+            "This is the description provided by the extenral tool."
         )
     )
     #
@@ -229,8 +238,8 @@ class Datapoint(ModelWithIterableFields):
         an empty string violates the unique constraint. However, we want
         external id only to be unique if it is set.
         """
-        if self.external_id == "":
-            self.external_id = None
+        if self.origin_id == "":
+            self.origin_id = None
         super().save(*args, **kwargs)
 
     def __str__(self):

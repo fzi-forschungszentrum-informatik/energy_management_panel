@@ -16,12 +16,12 @@
         type="image/x-icon"
         href={{FAVICON_ICO_STATIC}}>
 
-  <link rel="stylesheet" href="{% static "emp-main/css/bootstrap.min.css" %}">
-  <link rel="stylesheet" href="{% static "emp-main/css/emp_main.css" %}">
+  <link rel="stylesheet" href="{% static 'emp-main/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'emp-main/css/emp_main.css' %}">
 
-  <script src="{% static "emp-main/js/jquery.min.js" %}"></script>
-  <script src="{% static "emp-main/js/popper.min.js" %}"></script>
-  <script src="{% static "emp-main/js/bootstrap.min.js" %}"></script>
+  <script src="{% static 'emp-main/js/jquery.min.js' %}"></script>
+  <script src="{% static 'emp-main/js/popper.min.js' %}"></script>
+  <script src="{% static 'emp-main/js/bootstrap.min.js' %}"></script>
 
   {% comment %}
     Anything that must append head goes here, e.g. additional JS/CSS.
@@ -106,7 +106,7 @@
       {% endfor %}
       </ul>
   </nav>
-  <main class="emp-content-container p-3">
+  <main class="emp-content-container p-3  overflow-auto">
       {% comment %}
         Page content goes in this block.
       {% endcomment %}
@@ -205,10 +205,15 @@
       var requested_datapoints = "[{{field_collector.keys | join:","}}]"
       // This creates a mapping of of datapoint ids to class labels on this page.
       var datapoint_update_map = JSON.parse("{% dp_update_map field_collector %}")
+      // Use wss as normal ws will not work with https.
+      let ws_protocol = "ws://";
+      if ( window.location.protocol === "https:" ){
+        ws_protocol = "wss://";
+      }
       // Connect to the websocket to get datapoint field updates.
       var ws = new WebSocket(
-        "ws://" + window.location.host + "/ws/datapoint-update/?datapoint-ids=" +
-        requested_datapoints
+        ws_protocol + window.location.host +
+        "/ws/datapoint-update/?datapoint-ids=" + requested_datapoints
       );
       ws.onmessage = function (msg) {
         let datapoint = JSON.parse(msg.data);

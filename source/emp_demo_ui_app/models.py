@@ -30,6 +30,11 @@ class DemoAppPage(models.Model):
             "configured dynamically, i.e. by using Django's admin."
         )
     )
+    page_LukasTestField = models.TextField(
+        help_text=(
+            "Wow this is an amazing test text field"
+        )
+    )
     PAGE_BACKGROUD_COLOR_CHOICES = [
         ("transparent", "transparent"),
         ("yellow", "yellow"),

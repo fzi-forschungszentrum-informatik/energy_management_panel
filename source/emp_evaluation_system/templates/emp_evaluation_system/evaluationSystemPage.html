@@ -1,0 +1,122 @@
+{% extends "emp_main/base.html" %}
+{% comment %} 
+    All generic content like nav/title bar is provided by the base template
+{% endcomment %}
+{% load static %}
+{% load datapoint_helpers %}
+
+{% block head %}
+    {% comment %} 
+        Load additional css files here, or whatever is needed in the header.
+        sb-admin-2.css is the base css file for the admin template we used.
+        fontawesome-free/css/all.min.css file provides all fontawesome icons etc.
+    {% endcomment %}
+    <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/page.css' %}">
+    <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/sb-admin-2.css' %}">
+    <link rel="stylesheet" href="{% static 'emp_evaluation_system/vendor/fontawesome-free/css/all.min.css' %}">
+{% endblock head %}
+
+{% block body_html %}
+  
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+       <!-- Report Generation Button-->
+        {% comment %} 
+            Including the report generation button.
+            TODO add functionality
+        {% endcomment %}
+        {%if has_report_generation %}
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                    class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+            </div>
+        {% endif %}
+        {% comment %} 
+            Core functionality of a simple EvaluationSystemPage.
+            For every Pageelement linked to the EvaluationSystemPage a template will be included.
+            Every template recursively includes additional templates e.g. UIContainer->UIElement->Presentaion->Card
+        {% endcomment %}
+        {% if not is_comparison_page %}
+
+            {% for element in pagelements %}
+                {% include 'emp_evaluation_system/pageelement.html' %}
+            {% endfor %}
+
+        {% comment %} 
+            Core functionality of a comparison EvaluationSystemPage.
+            For every Pageelement linked to the EvaluationSystemPage two templates will be included.
+            Also a algorithm selection at the top and a comparison graph at the bottom will be included
+        {% endcomment %}
+        {% else %}
+            <div class="col">
+                <div class="row">
+                    {% include 'emp_evaluation_system/algorithm_selection_form.html' %}
+                </div>
+                <div class="row">
+                    <div class="col-md-6 col-12">
+                        {% for element in pagelements %}
+                            {% include 'emp_evaluation_system/pageelement.html' %}
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6 col-12">
+                        {% for element in pagelements %}
+                            {% include 'emp_evaluation_system/pageelement.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row">
+                    {% include 'emp_evaluation_system/comparison_graph.html' %}
+                </div>
+            </div>
+        {% endif %}
+
+       
+    </div>
+    <!-- End Page Content-->
+    <!-- /.container-fluid -->
+
+    {% comment %} 
+        Including the scroll top button. 
+        Press this button will scroll the opend page back to the page top (HTML element with 'page-top' id)
+    {% endcomment %}
+    {% if has_scroll_to_top_button %}
+        <a class="scroll-to-top rounded" href="#page-top">
+            <i class="fas fa-angle-up"></i>
+        </a>
+    {% endif %}
+    <script>
+        $( document ).ready(function() {
+            console.log("Hier")
+            setUpCharts();
+        });
+    </script>
+{% endblock body_html %}
+
+{% comment %} 
+    Including all required JavaScript files that are not included in emp_main/base.html.
+    jquery.easing.min.js provides easing in canvas elements (in our case the charts).
+    sb-admin-2.min.js is the base JavaScript file for the bootstrap admin template we are using.
+    Chart.min.js provides the framework responsible for printing the charts on canvases.
+    TODO exclude chart-*-demo files.
+    charts.js includes all functions on charts defined by us.
+    apiCalls.js includes all api calls to our EMP API.
+    datapointHelpers.js defines all functions used to handle datapoints and api call results.
+{% endcomment %}
+{% block body_script %}
+  <!-- Core plugin JavaScript-->
+  <script src="{% static 'emp_evaluation_system/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+
+  <!-- Custom scripts for all pages-->
+  <script src="{% static 'emp_evaluation_system/js/sb-admin-2.min.js' %}"></script>
+
+  <!-- Page level plugins -->
+  <script src="{% static 'emp_evaluation_system/vendor/chart.js/Chart.min.js' %}"></script>
+
+  <!-- Page level custom scripts -->
+  <script src="{% static 'emp_evaluation_system/js/demo/chart-area-demo.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/demo/chart-pie-demo.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/demo/chart-bar-demo2.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/demo/charts.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/apiCalls.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/datapointHelpers.js' %}"></script>
+{% endblock body_script %}

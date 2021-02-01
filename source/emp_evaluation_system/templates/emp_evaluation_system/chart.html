@@ -1,0 +1,93 @@
+{% comment %}
+    This is the html template for a Chart model object.
+    As base consturct a bootstrap card with header is used to contain the canvas where the chart is printed.
+    The chart is printed by the vendor/chart.js/Chart.js library and our own code in  js/charts.js.
+    Costomizable elements are:
+        - Chart title in the card header.
+        - The dropdown menu's links. These will change the chart's data set intervals.
+        - Chart type (area, bar, doughnut)
+        - Chart data sets.
+    The in the parent Presentation element linked Datapoint values will be shown as chart datasets. 
+{% endcomment %}
+<div class="col-xl-12 col-lg-12">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            {% comment%} 
+                Charts header is included here
+            {% endcomment %}
+            {% if chart.chart_has_title %}
+                <h6 class="m-0 font-weight-bold text-primary">{{chart.chart_title}}</h6>
+            {% endif %}
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                    aria-labelledby="dropdownMenuLink">
+                    <div class="dropdown-header">Change Interval</div>
+                    {% comment %} 
+                        For every data interval chosen, when configuring the chart in the admin panel,
+                        a links is included.
+                        TODO Include change data interval funcitonality
+                    {% endcomment %}
+                    {% for label in chart.chart_data_interval %}
+                        <a class="dropdown-item" onclick='changeDataIntervalTo(this, "{{label}}")'> {{label}} </a>
+                    {% endfor %} 
+                </div>
+            </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            <div class="chart-area">
+                {% comment %}
+                    A canvas with all important data is created.
+                    This data needs to be set as HTML element attributes, therefore data can be read from other files as well.
+                    The chart will be build on the document ready event.
+                {% endcomment %}
+                <canvas id="{{chart.chart_type}}-chart-{% now 'Uu'%}" datapointId="{{datapoint.id}}" datapointUnit="{{datapoint.unit}}"
+                datapointName="{{datapoint.short_name}}" dataTypes="{{chart.chart_data_sets}}" 
+                dataIntervals="{{chart.chart_data_interval}}"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+//TODO refactor, comment and replace
+async function setUpCharts() {
+    var allCharts = $("[id*=-chart]");
+    for (var chart of allCharts) {
+        var datapointId = chart.getAttribute("datapointId");
+        var dataTypes = chart.getAttribute("dataTypes").split(", ");
+        var dataIntervals = chart.getAttribute("dataIntervals").split(", ");
+        var unit = chart.getAttribute("datapointUnit");
+        var actualInterval = dataIntervals[0];
+        var graphLabels = dataTypes.map((type) => chart.getAttribute("datapointName").concat(" " + type.charAt(0).toUpperCase() + type.slice(1)));   
+        //TODO change initialTimestamp when database is filled with more data
+        chartDataSet = await getChartDataset(datapointId, 1611217839554 , dataTypes, dataIntervals); 
+        var data = [];
+        //Reverse Data so that the newest data value comes last in graph.
+        dataTypes.forEach((type)=> {
+            var reversedData = chartDataSet.get(type).get(actualInterval).data.reverse();
+            data.push(reversedData);  
+        });
+        var labels = chartDataSet.get(dataTypes[0]).get(actualInterval).labels;
+        //TODO Chart steps dynmaisch
+        if(chart.id.startsWith("area")) {
+            createChart(chart.id, "line", data, labels.reverse() , graphLabels, unit, 6);
+        }
+        else if (chart.id.startsWith("bar")) {
+            createChart(chart.id, "bar", data, labels.reverse() , graphLabels, unit, 24);
+        }
+    }
+}
+
+function changeDataIntervalTo(element, intervalType) {
+    console.log(intervalType);
+    //TODO Change this super hard codeded Search
+    console.log(element.parentElement.parentElement.parentElement.parentElement.getElementsByClassName("card-body")[0].getElementsByClassName("chart-area")[0].getElementsByTagName("canvas")[0])
+}
+
+</script>

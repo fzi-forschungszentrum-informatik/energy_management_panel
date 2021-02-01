@@ -38,11 +38,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'guardian',
+    'rest_framework',
+    'drf_spectacular',
     'emp_main.apps.EmpMainConfig',
-    'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
-    'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
+    #'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
+    #'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
+    'emp_history_db.apps.EmpHistoryDbConfig',
+    'emp_evaluation_system.apps.EmpEvaluationSystemConfig',
+
+    'nested_admin',
+    'multiselectfield',
+    
 ]
+
+REST_FRAMEWORK = {
+    # YOUR SETTINGS
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
 
 # Define all installed apps which extend the EMP functionality.
 # This is used to automatically wire up the urls to these apps and to
@@ -50,9 +63,11 @@ INSTALLED_APPS = [
 # This process expects that each app holds a apps.py and urls.py file following
 # the conventions shown in emp_demo_ui_app.
 EMP_APPS = [
-    "emp_demo_ui_app",
-    "emp_demo_dp_interface",
+   # "emp_demo_ui_app",
+   # "emp_demo_dp_interface",
     "emp_django_authenticator",
+    "emp_history_db",
+    "emp_evaluation_system",
 ]
 
 MIDDLEWARE = [
@@ -89,7 +104,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'emp_main.wsgi.application'
-ASGI_APPLICATION = 'emp_main.routing.application'
+ASGI_APPLICATION = 'emp_main.asgi.application'
 
 
 # Database
@@ -216,3 +231,9 @@ HOME_PAGE_URL = "/welcome/"
 # EMPBaseView. Use ?next= to redirect after login/logout.
 LOGIN_PAGE_URL = "/auth/login/?next=%s" % HOME_PAGE_URL
 LOGOUT_PAGE_URL = "/auth/logout/?next=%s" % HOME_PAGE_URL
+
+#EPM evaluation page update interval in milliseconds
+EMP_EVALUATION_PAGE_UPDATE_INTERVAL = 60000
+
+#Increase this if admin cant post model changes anymore.
+DATA_UPLOAD_MAX_NUMBER_FIELDS=8192
