@@ -9,9 +9,12 @@ from time import monotonic
 from datetime import datetime, timedelta
 
 import uvicorn
-from fastapi import FastAPI
+from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
 
 from scenarios.apartment.apartment import Apartment, ApartmentNoOpt
+from scenarios.apartment.apartment import dt_to_ts
+from timestamp import datetime_from_timestamp, timestamp_utc_now
 
 # Setup a logger for the scenario runner to use.
 logger = logging.getLogger(__name__)
@@ -68,6 +71,9 @@ class ScenarioRunner():
     start_time = (datetime.utcnow() - timedelta(days=1)).replace(
         hour=8, minute=50
     )
+
+    run_passive_cache = {k: {} for k in passive_scenario_classes}
+    run_passive_tasks = []
 
     def __init__(self):
         logger.info("Starting Scenario Runner")
@@ -228,18 +234,19 @@ class ScenarioRunner():
 
 
         simulation_dt = start_dt.replace(second=0, microsecond=0)
-        while simulation_dt < end_dt:
+        while simulation_dt <= end_dt:
             # Compute the value, schedule nad setpoint messages that
             # belong to this simulation_dt.
             values, schedules, setpoints = scenario.simulate_timestep(
                simulation_dt=simulation_dt
             )
+            # TODO: Write to cache here instead of returning values.
             for origin_id in values:
-                all_values[origin_id].append(values)
+                all_values[origin_id].append(values[origin_id])
             for origin_id in setpoints:
-                all_setpoints[origin_id].append(setpoints)
+                all_setpoints[origin_id].append(setpoints[origin_id])
             for origin_id in schedules:
-                all_schedules[origin_id].append(schedules)
+                all_schedules[origin_id].append(schedules[origin_id])
 
             # This is nice for checking the values computed above.
             logger.debug(
@@ -265,14 +272,150 @@ scenario_runner = ScenarioRunner()
 app = FastAPI()
 
 
-@app.on_event("startup")
-async def run_scenarios_in_bg():
-    asyncio.create_task(scenario_runner.run_active())
+#@app.on_event("startup")
+#async def run_scenarios_in_bg():
+#    asyncio.create_task(scenario_runner.run_active())
 
-# TODO: Add API for requesting stuff from optimizer here.
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+def validate_and_parse_ts(from_ts, to_ts):
+    now = timestamp_utc_now()
+    if from_ts >= to_ts:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "from_must be smaller then to_ts."
+            )
+        )
+    for timestamp in [from_ts, to_ts]:
+        if timestamp is None:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Timestamps must be provided."
+                )
+            )
+        if timestamp > now + 1e11:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Timestamp (%s) seems unreasonably high. Check if it is "
+                    "in milliseconds and contact your adminstrator if this is the "
+                    "case." %
+                    str(timestamp)
+                )
+            )
+
+        if timestamp < now - 1e11:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Timestamp (%s) seems unreasonably low. Check if it is "
+                    "in milliseconds and contact your adminstrator if this is the "
+                    "case." %
+                    str(timestamp)
+                )
+            )
+    from_dt = datetime_from_timestamp(from_ts)
+    to_dt = datetime_from_timestamp(to_ts)
+    return from_dt, to_dt
+
+@app.get("/{scenario_name}/simulation/status/")
+async def status(scenario_name, from_ts: int = None, to_ts: int = None):
+
+    # Evaluate parameters.
+    if scenario_name not in scenario_runner.passive_scenario_classes:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Unknown scenario: %s." % scenario_name
+            )
+        )
+    from_dt, to_dt = validate_and_parse_ts(from_ts, to_ts)
+
+    requested_dts = set()
+    simulation_dt = from_dt.replace(second=0, microsecond=0)
+    while simulation_dt < to_dt:
+        requested_dts.add(simulation_dt)
+        simulation_dt += scenario_runner.simulation_timedelta
+
+    existing_dts = set(scenario_runner.run_passive_cache[scenario_name].keys())
+    already_computed = existing_dts.intersection(requested_dts)
+    percent_complete = 100 * len(already_computed) / len(requested_dts)
+    eta_seconds = (len(requested_dts) - len(already_computed)) * 0.015
+
+    return {
+        "percent complete": percent_complete,
+        "ETA seconds": eta_seconds,
+    }
+
+@app.get("/{scenario_name}/simulation/result/")
+async def result(scenario_name, from_ts: int = None, to_ts: int = None):
+
+    # Evaluate parameters.
+    if scenario_name not in scenario_runner.passive_scenario_classes:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Unknown scenario: %s." % scenario_name
+            )
+        )
+    from_dt, to_dt = validate_and_parse_ts(from_ts, to_ts)
+
+    requested_dts = set()
+    simulation_dt = from_dt.replace(second=0, microsecond=0)
+    while simulation_dt < to_dt:
+        requested_dts.add(simulation_dt)
+        simulation_dt += scenario_runner.simulation_timedelta
+    existing_dts = set(scenario_runner.run_passive_cache[scenario_name].keys())
+
+    # Check that computation of all requested dts is completed.
+    if requested_dts.difference(existing_dts):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Simulation has not completed for the requested period. "
+                "use /simulation/status/ to verify that the request is "
+                "complete before attempting to fetch results."
+            )
+        )
+
+    # TODO: Build the return message.
+
+@app.post("/simulation/request/")
+async def request(scenario_name, from_ts: int = None, to_ts: int = None):
+    """
+    Start simulation in background and return the appropriate timestamps
+    the client needs to request status and fetch results.
+    """
+
+    # Evaluate parameters.
+    if scenario_name not in scenario_runner.passive_scenario_classes:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Unknown scenario: %s." % scenario_name
+            )
+        )
+    from_dt, to_dt = validate_and_parse_ts(from_ts, to_ts)
+
+    requested_dts = set()
+    simulation_dt = from_dt.replace(second=0, microsecond=0)
+    while simulation_dt < to_dt:
+        requested_dts.add(simulation_dt)
+        simulation_dt += scenario_runner.simulation_timedelta
+    to_dt_simulated = max(requested_dts)
+
+    coro = asyncio.create_task(
+        scenario_runner.run_passive(
+            scenario_name,
+            from_dt,
+            to_dt_simulated,
+        )
+    )
+
+    return {
+        "from_ts": dt_to_ts(from_dt),
+        "to_ts": dt_to_ts(to_dt_simulated),
+    }
 
 # Triggering a passive run from api could look something like this:
 # scenario_runner.run_passive("apt-no", datetime(2020, 12, 22, 8, 50), datetime(2020, 12, 22, 9, 15))
