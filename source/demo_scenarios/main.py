@@ -240,14 +240,6 @@ class ScenarioRunner():
             values, schedules, setpoints = scenario.simulate_timestep(
                simulation_dt=simulation_dt
             )
-            # TODO: Write to cache here instead of returning values.
-            for origin_id in values:
-                all_values[origin_id].append(values[origin_id])
-            for origin_id in setpoints:
-                all_setpoints[origin_id].append(setpoints[origin_id])
-            for origin_id in schedules:
-                all_schedules[origin_id].append(schedules[origin_id])
-
             # This is nice for checking the values computed above.
             logger.debug(
                 "Simulated: %s\n\n"
@@ -261,16 +253,25 @@ class ScenarioRunner():
                     json.dumps(values, indent=4)
                 )
             )
-
+            # TODO: Write to cache here instead of returning values.
+            cache_content = {
+                "values": values,
+                "schedules": schedules,
+                "setpoints": setpoints,
+            }
+            self.run_passive_cache[scenario_name][simulation_dt] = cache_content
             simulation_dt += self.simulation_timedelta
-            # Give the asyncio thread some time to do other stuff.
-            await asyncio.sleep(0.01)
 
-        return all_values, all_setpoints, all_schedules
+            # Give the thread some time to do other stuff.
+            await asyncio.sleep(0.001)
+
+        logger.info(
+            "Finished passive run for scenario %s between %s and %s.",
+            *(scenario_name, start_dt, end_dt)
+        )
 
 scenario_runner = ScenarioRunner()
 app = FastAPI()
-
 
 #@app.on_event("startup")
 #async def run_scenarios_in_bg():
@@ -332,15 +333,28 @@ async def status(scenario_name, from_ts: int = None, to_ts: int = None):
     from_dt, to_dt = validate_and_parse_ts(from_ts, to_ts)
 
     requested_dts = set()
-    simulation_dt = from_dt.replace(second=0, microsecond=0)
-    while simulation_dt < to_dt:
+    from_dt = from_dt.replace(second=0, microsecond=0)
+    simulation_dt = from_dt
+    while simulation_dt <= to_dt:
         requested_dts.add(simulation_dt)
         simulation_dt += scenario_runner.simulation_timedelta
+    existing_dts = set(scenario_runner.run_passive_cache[scenario_name].keys())
 
     existing_dts = set(scenario_runner.run_passive_cache[scenario_name].keys())
     already_computed = existing_dts.intersection(requested_dts)
-    percent_complete = 100 * len(already_computed) / len(requested_dts)
-    eta_seconds = (len(requested_dts) - len(already_computed)) * 0.015
+    percent_complete = round(100 * len(already_computed)/len(requested_dts), 1)
+    eta_seconds = round(((len(requested_dts)-len(already_computed)) * 0.002), 1)
+
+    logger.info(
+        "Status requested for scenario {} data between {} and {}, "
+        "is {:.1f}% with ETA {}s".format(
+            scenario_name,
+            from_dt,
+            to_dt,
+            percent_complete,
+            eta_seconds
+        )
+    )
 
     return {
         "percent complete": percent_complete,
@@ -361,8 +375,9 @@ async def result(scenario_name, from_ts: int = None, to_ts: int = None):
     from_dt, to_dt = validate_and_parse_ts(from_ts, to_ts)
 
     requested_dts = set()
-    simulation_dt = from_dt.replace(second=0, microsecond=0)
-    while simulation_dt < to_dt:
+    from_dt = from_dt.replace(second=0, microsecond=0)
+    simulation_dt = from_dt
+    while simulation_dt <= to_dt:
         requested_dts.add(simulation_dt)
         simulation_dt += scenario_runner.simulation_timedelta
     existing_dts = set(scenario_runner.run_passive_cache[scenario_name].keys())
@@ -378,7 +393,21 @@ async def result(scenario_name, from_ts: int = None, to_ts: int = None):
             )
         )
 
-    # TODO: Build the return message.
+    # Build the return message.
+    msg_types = ["values", "schedules", "setpoints"]
+    response = {k: {} for k in msg_types}
+    scenario_data = scenario_runner.run_passive_cache[scenario_name]
+    for requested_dt in sorted(requested_dts):
+        for msg_type in msg_types:
+            # This is the payload dict, with datapoint_ids as keys of
+            # the computed data.
+            data = scenario_data[requested_dt][msg_type]
+
+            for dp_id in data.keys():
+                dp_values = response[msg_type].setdefault(dp_id, list())
+                dp_values.append(data[dp_id])
+    return response
+
 
 @app.post("/simulation/request/")
 async def request(scenario_name, from_ts: int = None, to_ts: int = None):
@@ -398,10 +427,12 @@ async def request(scenario_name, from_ts: int = None, to_ts: int = None):
     from_dt, to_dt = validate_and_parse_ts(from_ts, to_ts)
 
     requested_dts = set()
-    simulation_dt = from_dt.replace(second=0, microsecond=0)
-    while simulation_dt < to_dt:
+    from_dt = from_dt.replace(second=0, microsecond=0)
+    simulation_dt = from_dt
+    while simulation_dt <= to_dt:
         requested_dts.add(simulation_dt)
         simulation_dt += scenario_runner.simulation_timedelta
+    existing_dts = set(scenario_runner.run_passive_cache[scenario_name].keys())
     to_dt_simulated = max(requested_dts)
 
     coro = asyncio.create_task(
@@ -416,9 +447,6 @@ async def request(scenario_name, from_ts: int = None, to_ts: int = None):
         "from_ts": dt_to_ts(from_dt),
         "to_ts": dt_to_ts(to_dt_simulated),
     }
-
-# Triggering a passive run from api could look something like this:
-# scenario_runner.run_passive("apt-no", datetime(2020, 12, 22, 8, 50), datetime(2020, 12, 22, 9, 15))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8018)
