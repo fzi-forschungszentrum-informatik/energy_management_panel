@@ -53,20 +53,30 @@
                     {% include 'emp_evaluation_system/algorithm_selection_form.html' %}
                 </div>
                 <div class="row">
-                    <div class="col-md-6 col-12">
+                    <div class="col-md-6 col-12" id="leftDataColumn">
                         {% for element in pagelements %}
                             {% include 'emp_evaluation_system/pageelement.html' %}
                         {% endfor %}
                     </div>
-                    <div class="col-md-6 col-12">
+                    <div class="col-md-6 col-12" id="waitingScreenLeft" style="display:none">
+                        Loading
+                        <button type="button" class="btn btn-danger" id="btnCancleLeft">Cancle Request</button>
+                    </div>
+                    <div class="col-md-6 col-12" id="rightDataColumn">
                         {% for element in pagelements %}
                             {% include 'emp_evaluation_system/pageelement.html' %}
                         {% endfor %}
                     </div>
+                     <div class="col-md-6 col-12" id="waitingScreenRight" style="display:none">
+                        Loading
+                        <button type="button" class="btn btn-danger" id="btnCancleRight">Cancle Request</button>
+                    </div>
                 </div>
-                <div class="row">
-                    {% include 'emp_evaluation_system/comparison_graph.html' %}
-                </div>
+                {% for graph in comparison_graphs  %}
+                    <div class="row">
+                        {% include 'emp_evaluation_system/comparison_graph.html' %}
+                    </div>
+                {% endfor %}
             </div>
         {% endif %}
 
@@ -85,10 +95,16 @@
         </a>
     {% endif %}
     <script>
+        //TODO Setup funktionen rausziehen
         $( document ).ready(function() {
-            console.log("Hier")
+            var allMetrics = $("[class*=metric]");
+            for (var metric of allMetrics) {
+                var formula = metric.getAttribute("formula");
+                calculate(formula, metric)
+            }
             setUpCharts();
         });
+
     </script>
 {% endblock body_html %}
 
@@ -114,6 +130,7 @@
 
   <!-- Page level custom scripts -->
   <script src="{% static 'emp_evaluation_system/js/charts.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/metrics.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/apiCalls.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/datapointHelpers.js' %}"></script>
 {% endblock body_script %}

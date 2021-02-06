@@ -1,23 +1,74 @@
+{% load evaluationpage_tags %}
 <div class="col-md-6 mb-4 px-4">
-    <select class="form-control">
-        {% comment %}
-            TODO: Auskommentieren wenn Logik implementiert ist.
-        {% endcomment %}
-        <option> Option 1 </option>
-        <!-- {% for setting in settings%} 
-            <option>{{setting}}</option>
-        {% endfor %}-->
+    <select class="form-control" onchange="onAlgorithmSelectChange(this, true)">
+        {% for algorithm in algorithms%} 
+            <option value="{{algorithm.backend_identifier}}" >{{algorithm.name}}</option>
+        {% endfor %}
     </select>
+    <div class="form-group">
+        <label for="start_time">Simulation Start Time:</label>
+        <input class="form-control" type="date" id="start_time" name="simulation_start_time"
+            value='{% now "Y-m-d" %}'
+                min="2000-1-1" max='{% now "Y-m-d" %}'>
+    </div>
 </div>
 <div class="col-md-6 mb-4 px-4">
-    <select class="form-control">
-        <option> Option 1 </option>
-        <!--{% for setting in settings%} 
-            <option>{{setting}}</option>
-        {% endfor %}-->
-    </select>
+        <select class="form-control" onchange="onAlgorithmSelectChange(this, false)">
+            {% for algorithm in algorithms%} 
+                <option value="{{algorithm.backend_identifier}}" >{{algorithm.name}}</option>
+            {% endfor %}
+        </select>
+        <div class="form-group">
+            <label for="end_time">Simulation End Time:</label>
+            <input class="form-control" type="date" id="end_time" name="simulation_end_time"
+                value='{% now "Y-m-d" %}'
+                min="2000-1-1" max='{% now "Y-m-d" %}'>
+        </div>
 </div>
 
+<script>
+    function onAlgorithmSelectChange(element, first) {
+        var section = first ? "first" : "second";
+        var algorithm = element[element.selectedIndex].getAttribute("value");
+        var start = $('#start_time').val();
+        var end = $('#end_time').val();
+        var startTimestamp = (new Date(start)).getTime();
+        var endTimestamp = (new Date(end)).getTime();
+        if(startTimestamp > endTimestamp) {
+            var temp = startTimestamp;
+            startTimestamp = endTimestamp;
+            endTimestamp = temp;
+        }
+        var request = $.ajax({
+            dataType: "json",
+            url: "http://localhost:8018/wait",
+            beforeSend: (req) => {
+                if (first) {
+                    $("#waitingScreenLeft").show();
+                    $("#btnCancleLeft").click(() => req.abort());
+                    $("#leftDataColumn").hide();
+                }
+                else {
+                    $("#waitingScreenRight").show(); 
+                    $("#btnCancleRight").click(() => req.abort());
+                    $("#rightDataColumn").hide();
+                }
+            },
+            complete: () => {
+                if (first) {
+                    $("#waitingScreenLeft").hide(); 
+                    $("#leftDataColumn").show();
+                }
+                else {
+                    $("#waitingScreenRight").hide(); 
+                    $("#rightDataColumn").show();
+                }
+            },
+        });
+        
+        console.log("Simulate: " + algorithm + " from " + startTimestamp + " to " + endTimestamp + " for the " + section + " section.");
+    }
+</script>
 {% comment %}
     TODO: Upade Seite bei Änderung des ausgewählten Algorithmuses
 {% endcomment %}

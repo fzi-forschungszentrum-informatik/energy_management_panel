@@ -9,6 +9,9 @@
 */
 
 var apiUrl = "http://localhost:8000/api/datapoint/";
+function getDatapoint(datapointId) {
+    return $.getJSON(apiUrl+datapointId);
+}
 function getDatapointValues(datapointId) {
     return $.getJSON(apiUrl+datapointId+"/value/");
 }

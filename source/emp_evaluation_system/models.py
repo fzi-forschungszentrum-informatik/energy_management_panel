@@ -3,6 +3,7 @@ import os
 from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
 from multiselectfield import MultiSelectField
 
@@ -12,6 +13,7 @@ from emp_main.models import Datapoint
 
 from .apps import app_url_prefix
 
+import re, datetime
 
 class EvaluationSystemPage(models.Model):
 
@@ -181,6 +183,69 @@ class UIElement(models.Model):
         null=True
     )
 
+class Metric(models.Model):
+
+    """
+        A Metric object represents a formula on one to may Datapoints.
+        The formula may be specified as a String. 
+        Later on the String will be parsed, the linked datapoint values requested, and a Metric result calculated.
+        At the frontend only results will be presented.
+    """
+    
+    name = models.CharField(
+        max_length = 128,
+        blank = False,
+        default = None,
+        null = True,
+        help_text = (
+            "The metric's name. It will appear as data description in the frontend."
+        )
+    )
+
+    unit = models.CharField(
+        max_length = 64,
+        blank = False,
+        default = "$",
+        help_text = (
+            "The unit of the metrics result."
+        )
+    )
+
+    formula = models.CharField(
+        max_length = 256,
+        blank = False,
+        null = True,
+        default = None,
+        help_text = (
+            "Describe the metrics formula as the following: use basic mathematic specail characters like '+', '-', '*', '/', '(' and ')'. "
+            "Aslo you may use numbers in integer or floating point format. " 
+            "As variable you can link a datapoint using dp_* with * as data point id."
+            "The last value of this datapoint will be used as value."
+        )
+    )
+
+    result = models.CharField(
+        max_length = 64,
+        null = True,
+        default = "",
+        help_text = (
+            "On save the metrics's result will be written here."
+        )
+    )
+
+    description = models.TextField(
+        default = None,
+        null = True,
+        help_text = (
+            "Provide a description for other users. This description will only be shwon in admin panel context."
+        )
+    )
+    
+    def __str__(self):
+        if self.name is not None:
+            return (str(self.id) + " - " + self.name)
+        else:
+            return str(self.id)
 
 class Presentation(models.Model):
 
@@ -209,15 +274,37 @@ class Presentation(models.Model):
         on_delete = models.CASCADE,
     )
 
+    use_metric = models.BooleanField(
+        default = False,
+        blank = False,
+        help_text = (
+            "Check this if you want to use a Metric object instead of a Datapoint object."
+        )
+    )
+
     datapoint = models.ForeignKey(
         Datapoint,
         on_delete = models.SET_NULL,
         default = None,
+        blank = True,
         null = True,
         help_text = (
-            "Choose the data point represented by this."
+            "Choose the Datapoint represented by this."
         )
     )
+
+    metric = models.ForeignKey(
+        Metric,
+        on_delete = models.SET_NULL,
+        default = None,
+        blank = True,
+        null = True,
+        help_text = (
+            "Choose the Metric represented by this."
+        )
+    )
+
+    
 
 class Card(models.Model):
     """
@@ -412,22 +499,103 @@ class Chart(models.Model):
         on_delete = models.CASCADE,
     )
 
-class Metric(models.Model):
+class Algorithm(models.Model):
+
+    """
+        The Algorithm model represents a building energy management optimization algorithm.
+        As a representation this model is only used to define user choises.
+        All Algorithm objects created will be shown the users at the comparion page. Users may choose two Algortihms to copmare.
+        To compare Algorithms, their data needs to be simulated. Therefore, a backend simulatin process needs to be started.
+        The backend_identifier represents the backend algorithm name. The start and end_time represent the time interval of the simulation.
+    """
+
+    name = models.CharField(
+        max_length = 128,
+        blank = False,
+        help_text = (
+            "The name of the algorithm. Shown in admin page overview and at the frontend algorithm coparison page."
+        )
+    )
+
+    backend_identifier = models.SlugField(
+        max_length = 64,
+        blank = False,
+        help_text = (
+            "The identifier is used to call the simulation API. Therefore, it has to be the exact same as the algorithm identifier at the backend!"
+        )
+    )
+
+    description = models.TextField(
+        blank = True,
+        null = True,
+        default = None,
+        help_text = (
+            "Give a description for other users. Will only be shown in admin context."
+        )
+    )
+    
+class ComparisonGraph(models.Model):
+    CHART_TYPE_CHOICES = [
+        ("area", "area"),
+        ("bar", "bar"), 
+    ]
+
+    type = models.CharField(
+        max_length = 6,
+        choices = CHART_TYPE_CHOICES,
+        default = CHART_TYPE_CHOICES[0][0],
+        help_text = (
+            "Allows configuring the chart type."
+        )
+    )
+
+    has_title = models.BooleanField(
+        help_text = (
+            "If checked the charts title will be shwon."
+        )
+    )
+
+    chart_title = models.CharField(
+        max_length = 64,
+        help_text = (
+            "Provide a short and describing chart title here."
+        ),
+        blank = True
+    )
+
+    use_metric = models.BooleanField(
+        default = False,
+        blank = False,
+        help_text = (
+            "Check this if you want to use a Metric object instead of a Datapoint object."
+        )
+    )
 
     datapoint = models.ForeignKey(
         Datapoint,
-        on_delete = models.CASCADE,
+        on_delete = models.SET_NULL,
+        default = None,
+        blank = True,
+        null = True,
         help_text = (
-            "Links the Datapoint the metric is working on."
+            "Choose the Datapoint represented by this."
         )
     )
 
-    unit = models.CharField(
-        max_length = 64,
-        blank = False,
-        default = "$",
+    metric = models.ForeignKey(
+        Metric,
+        on_delete = models.SET_NULL,
+        default = None,
+        blank = True,
+        null = True,
         help_text = (
-            "The unit of the metrics result."
+            "Choose the Metric represented by this."
         )
     )
 
+    page = models.ForeignKey(
+        EvaluationSystemPage,
+        default = None,
+        on_delete = models.CASCADE
+    )
+    

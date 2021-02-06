@@ -2,7 +2,7 @@ from django.contrib import admin
 import nested_admin
 from guardian.admin import GuardedModelAdmin
 
-from .models import EvaluationSystemPage, PageElement, UIElementContainer, UIElement, Presentation, Chart, Card
+from .models import EvaluationSystemPage, PageElement, UIElementContainer, UIElement, Presentation, Chart, Card, Metric, Algorithm, ComparisonGraph
 
 """
 Configure the admin pages here.
@@ -42,11 +42,13 @@ class PresentationInline(nested_admin.NestedStackedInline):
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         formfield = super(PresentationInline, self).formfield_for_dbfield(
             db_field, request, **kwargs)
-        if db_field.name == 'datapoint':
+        if db_field.name == 'datapoint' or db_field.name == 'metric':
             formfield.widget.can_add_related = False
             formfield.widget.can_change_related = False
             formfield.widget.can_delete_related = False  # default is already False
         return formfield
+
+
 
 # Distinguish between UIElementInContainerInline and UIElementInPageElementInline
 # UIElementInContainerInline is used in containers. Any number of UIElements can be added in containers
@@ -86,7 +88,22 @@ class PageElementInline(nested_admin.NestedStackedInline):
     extra = 0
 
     #Only one of the inlines is visible (visibility set via page_admin.js). PageElement type is choosen via dropdown.
-    inlines = [UIElementContainerInline, UIElementInPageElementInline] 
+    inlines = [UIElementContainerInline, UIElementInPageElementInline]
+
+class ComparisonGraphInline(nested_admin.NestedStackedInline):
+    model = ComparisonGraph
+    extra = 0
+
+     #Disables add/change/delete buttons in UIElementContainerInline
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        formfield = super(ComparisonGraphInline, self).formfield_for_dbfield(
+            db_field, request, **kwargs)
+        if db_field.name == 'datapoint' or db_field.name == 'metric':
+            formfield.widget.can_add_related = False
+            formfield.widget.can_change_related = False
+            formfield.widget.can_delete_related = False
+        return formfield
+ 
 
 @admin.register(EvaluationSystemPage)
 class EvaluationSystemPageAdmin(nested_admin.NestedModelAdmin, GuardedModelAdmin):
@@ -106,22 +123,45 @@ class EvaluationSystemPageAdmin(nested_admin.NestedModelAdmin, GuardedModelAdmin
 
     #configure how objects are displayed in tabular 
     list_display = (
-        "string_representation",
+        "evaluation_system_page_name",
         "description"
     )
 
     #Start of the inline recursion
-    inlines = [PageElementInline]
+    inlines = [PageElementInline, ComparisonGraphInline]
 
     #  Just convenience. Automatically fill the page_slug field.
     prepopulated_fields = {
         "page_slug": ("page_name",)
     }
 
-    def string_representation(self, obj):
+    def evaluation_system_page_name(self, obj):
         return obj
 
 #Set site header and title
 admin.site.site_header = 'EMP Evaluation System Admin'
 admin.site.site_title = 'EMP Evaluation System Admin'
 
+
+@admin.register(Metric)
+class MetricAdmin(admin.ModelAdmin):
+    readonly_fields=('result',)
+    list_display = (
+        "metric_name",
+        "description"
+    )
+
+    def metric_name(self, obj):
+        return obj
+
+@admin.register(Algorithm)
+class AlgorithmAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "description"
+    )
+
+    #  Automatically fill the backend_identifier field.
+    prepopulated_fields = {
+        "backend_identifier": ("name",)
+    }

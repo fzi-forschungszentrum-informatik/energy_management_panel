@@ -5,6 +5,7 @@ import json
 import asyncio
 import logging
 import requests
+import time
 from time import monotonic
 from datetime import datetime, timedelta
 
@@ -26,12 +27,10 @@ logger.setLevel(logging.INFO)
 class ScenarioRunner():
     """
     This executes the scenario simulation.
-
     It will start with a simulated wall clock time of start_time and
     trys to catchup with presence as fast as possible. This way we can
     generate some fake history that might look good on UIs. Once presence
     is reached the runner will couple simulation time to real time.
-
     Attributes:
     -----------
     active_scenario_classes : list of classes.
@@ -196,7 +195,6 @@ class ScenarioRunner():
     async def run_passive(self, scenario_name, start_dt, end_dt):
         """
         Simulate that an optimizer would be querried for a hind- or forecast.
-
         Parameters
         ----------
         scenario_name: string
@@ -207,13 +205,11 @@ class ScenarioRunner():
         end_dt : TYPE
             The datetime after which this function returns once the
             simulation times reaches or exceeds this value.
-
         Returns
         -------
         all_values, all_setpoints, all_schedules : lists
             A list of all objects computed during the simulation time.
             Sorted by datapoint.
-
         """
         logger.info(
             "Triggering passive run for scenario %s between %s and %s.",
@@ -267,13 +263,26 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def run_scenarios_in_bg():
-    asyncio.create_task(scenario_runner.run_active())
+    #asyncio.create_task(scenario_runner.run_active())
+    pass
 
 # TODO: Add API for requesting stuff from optimizer here.
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
+@app.get("/data/{algorithm}/{start}/{end}")
+async def data(algorithm, start: int, end: int):
+    start_date = datetime.fromtimestamp(start)
+    end_date = datetime.fromtimestamp(end)
+    asyncio.create_task(scenario_runner.run_passive(algorithm, start_date, end_date))
+    return {"data": "Wow amazing Data"}
+    
+
+@app.get("/wait")
+async def wait():
+    time.sleep(5)
+    return {"data" : "Finished"}
 # Triggering a passive run from api could look something like this:
 # scenario_runner.run_passive("apt-no", datetime(2020, 12, 22, 8, 50), datetime(2020, 12, 22, 9, 15))
 

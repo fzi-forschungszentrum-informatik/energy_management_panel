@@ -8,9 +8,8 @@
         - Card tooltip
         - Card as button -> Link to another EvaluationSystemPage
     The in the parent Presentation element linked Datapoint values will be shown as card text.
-    The text will be updated every update interval (defined in emp_main.settings.py)
 {% endcomment %} 
- 
+{% load datapoint_helpers %}
 <div class="{% if is_comparison_page %}col-sm-12{% else %}col-xl-3 col-md-6{% endif %} mb-4">
     <div class="card {% if card.card_decoration != 'none' %} border-{{card.card_decoration}}-{{card.card_color}} {% endif %} 
     shadow h-100 py-2" hoverable="{{card.card_is_button}}"
@@ -19,9 +18,17 @@
         <div class="card-body">
             <div class="row no-gutters align-items-center">
                 <div class="col mr-2">
-                    <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
-                        {{datapoint.short_name}}</div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800"><span class="dp_id{{datapoint.id}}_value">N/A</span> {{datapoint.unit}} </div>
+                    
+                    {% if presentation.use_metric %}
+                        <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                            {{presentation.metric.name}}</div>
+                        {% comment %} TODO change value to N/A when metric actualisation is implemented{% endcomment %}
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><span class="metric_{{presentation.metric.id}}_value" formula={{presentation.metric.formula}}>N/A</span> {{presentation.metric.unit}} </div>
+                    {% else %}
+                        <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                            {{datapoint.short_name}}</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{% dp_field_value presentation.datapoint "last_value" field_collector %} {% dp_field_value presentation.datapoint "unit" field_collector %} </div>
+                    {% endif %}
                 </div>
                 <div class="col-auto">
                     <i class="fas fa-{{card.card_icon}} fa-2x icon-{{card.card_color}}"></i>
@@ -30,21 +37,3 @@
         </div>
     </div>
 </div>
-{% comment %}
-    Define updateCard function for this card and the linked datapoint.
-    If multiple cards for one datapoint exist the funtion is a duplicate.
-    Call this function once to setup card and set a call interval to cyclic update the card.
-{% endcomment %} 
-<script>  
-    $( document ).ready(function() { 
-        //Init card value  
-        updateCard();
-        //Cyclic card update
-        window.setInterval(updateCard(), {{update_interval}}); 
-    });
-
-    //Get values for card datapoint and set them to each card with this datapoint
-    function updateCard() {
-        getDatapointValues({{datapoint.id}}).then((data) => $(".dp_id{{datapoint.id}}_value").each((i, obj)=> $(obj).html(getLastDatapointValueOfSet(data))));
-    }
-</script>

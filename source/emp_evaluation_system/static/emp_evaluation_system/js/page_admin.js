@@ -36,20 +36,6 @@
         });
 
 
-        function initOnAddHandler() {
-            toggleInlineInAllSets();
-            container_has_title_toggle_all();
-            presentation_inline_toggle_all();
-            card_has_tooltip_toggle_all();
-            card_is_button_toggle_all();
-            chart_has_title_toggle_all();
-            container_has_dropdown_toggle_all();
-        }
-
-        $(".add-handler").click(function() {
-            setTimeout(() => {  initOnAddHandler() }, 100);          
-        });
-
         function container_has_title_toggle(obj) {
             var checked = obj.is(":checked");
             var titleField = $('#' + obj.attr('id').split("has_title")[0].concat("title"))
@@ -211,6 +197,132 @@
                 chart_has_title_toggle($(value));
             });
         }
+
+        function presentation_uses_metric_toggle(obj) {
+            var checked = obj.is(":checked");
+            var datapoint_field = $('#' + obj.attr('id').split("use_metric")[0].concat("datapoint"))
+            var metric_field = $('#' + obj.attr('id').split("use_metric")[0].concat("metric"))
+            if (checked) {
+                metric_field.parent().parent().parent().show();
+                datapoint_field.parent().parent().parent().hide();
+            }
+            else {
+                metric_field.parent().parent().parent().hide();
+                datapoint_field.parent().parent().parent().show();
+            }
+        }
+
+        // show/hide on change
+        $('[id^=id_pageelement_set][id$=use_metric]').change(function() {
+            presentation_uses_metric_toggle($(this));
+        });
+
+        function presentation_uses_metric_toggle_all() {
+            $('[id^=id_pageelement_set][id$=use_metric]').each( function(index, value){
+                if(index === $('[id^=id_pageelement_set][id$=use_metric]').length-1) {
+                    return;
+                }
+                presentation_uses_metric_toggle($(value));
+            });
+        }
+
+        function comparison_graph_inline_toggle(obj) {
+            var checked = obj.is(":checked");
+            var comparisonGraphs = $('#comparisongraph_set-group');
+
+            if (checked) {
+                comparisonGraphs.show();
+            } 
+            else {
+                comparisonGraphs.hide();
+            }
+        }
+
+        $('[id*=page_is_comparison_page]').change(function() {
+            comparison_graph_inline_toggle($(this));
+        });
+
+        function comparison_graph_inline_toggle_all() {
+            $('[id*=page_is_comparison_page]').each( function(index, value){
+                if(index === $('[id*=page_is_comparison_page]').length-1) {
+                    return;
+                }
+                comparison_graph_inline_toggle($(value));
+            });
+        }
+
+
+        function comparisonGraph_has_title_toggle(obj) {
+            var checked = obj.is(":checked");
+            var textField = $('#' + obj.attr('id').split("has_title")[0].concat("chart_title"))
+            if (checked) {
+                textField.parent().parent().show();
+            }
+            else {
+                textField.parent().parent().hide();
+            }
+
+        }
+        // show/hide on change
+        $('[id^=id_comparisongraph_set][id$=has_title]').change(function() {
+            comparisonGraph_has_title_toggle($(this));
+        });
+
+        function comparisonGraph_has_title_toggle_all() {
+            $('[id^=id_comparisongraph_set][id$=has_title]').each( function(index, value){
+                if(index === $('[id^=id_comparisongraph_set][id$=has_title]').length-1) {
+                    return;
+                }
+                comparisonGraph_has_title_toggle($(value));
+            });
+        }
+
+
+        function comparisonGraph_uses_metric_toggle(obj) {
+            var checked = obj.is(":checked");
+            var datapoint_field = $('#' + obj.attr('id').split("use_metric")[0].concat("datapoint"))
+            var metric_field = $('#' + obj.attr('id').split("use_metric")[0].concat("metric"))
+            if (checked) {
+                metric_field.parent().parent().parent().show();
+                datapoint_field.parent().parent().parent().hide();
+            }
+            else {
+                metric_field.parent().parent().parent().hide();
+                datapoint_field.parent().parent().parent().show();
+            }
+        }
+
+        // show/hide on change
+        $('[id^=id_comparisongraph_set][id$=use_metric]').change(function() {
+            comparisonGraph_uses_metric_toggle($(this));
+        });
+
+        function comparisonGraph_uses_metric_toggle_all() {
+            $('[id^=id_comparisongraph_set][id$=use_metric]').each( function(index, value){
+                if(index === $('[id^=id_comparisongraph_set][id$=use_metric]').length-1) {
+                    return;
+                }
+                comparisonGraph_uses_metric_toggle($(value));
+            });
+        }
+
+        function initOnAddHandler() {
+            toggleInlineInAllSets();
+            container_has_title_toggle_all();
+            presentation_inline_toggle_all();
+            card_has_tooltip_toggle_all();
+            card_is_button_toggle_all();
+            chart_has_title_toggle_all();
+            container_has_dropdown_toggle_all();
+            presentation_uses_metric_toggle_all();
+            comparison_graph_inline_toggle_all();
+            comparisonGraph_has_title_toggle_all();
+            comparisonGraph_uses_metric_toggle_all();
+        }
+
+        $(".add-handler").click(function() {
+            setTimeout(() => {  initOnAddHandler() }, 100);          
+        });
 
         initOnAddHandler()
     });
