@@ -229,7 +229,7 @@
         function comparison_graph_inline_toggle(obj) {
             var checked = obj.is(":checked");
             var comparisonGraphs = $('#comparisongraph_set-group');
-
+            console.log("here")
             if (checked) {
                 comparisonGraphs.show();
             } 
@@ -243,12 +243,7 @@
         });
 
         function comparison_graph_inline_toggle_all() {
-            $('[id*=page_is_comparison_page]').each( function(index, value){
-                if(index === $('[id*=page_is_comparison_page]').length-1) {
-                    return;
-                }
-                comparison_graph_inline_toggle($(value));
-            });
+            comparison_graph_inline_toggle($( $('[id*=page_is_comparison_page]')));
         }
 
 

@@ -17,6 +17,7 @@ var minuteInMillisec = 60000;
 var hourInMillisec = minuteInMillisec * 60;
 var dayInMillisec = hourInMillisec * 24;
 var weekInMillisec = dayInMillisec * 7;
+var monthInMillisec = dayInMillisec * 30;
 
 
 /*
@@ -37,6 +38,10 @@ function getLastWeeks(timestamp, n) {
     return Array.from({length:n},(v,k)=>k).map((x) => timestamp - weekInMillisec * x)
 }
 
+function getLastMonth(timestamp, n) {
+    return Array.from({length:n},(v,k)=>k).map((x) => timestamp - monthInMillisec * x)
+}
+
 /*
     This function takes a timstamp and returns the timestamp that represents the last full hour.
 
@@ -51,72 +56,6 @@ function getTimestampOfLastFullHourOf(timestamp) {
     return timestampDate.getTime();
 }
 
-
-/*
-Constructs a Map of chart datasets out of a datapoint id, an initial timestamp, 
-the data set types (e.g. history, forecast...) 
-and the data intervals (e.g hourly, daily,...).
-After Construction a obect scructure looks like the following example
-
-ChartDataset:Map
-    | "history"
-        | "hourly" : Dataset
-        | "daily" : Dataset 
-    | "forecast"
-        | "hourly" : Dataset
-        | "daily" : Dataset 
-    | "schedule"
-        | "hourly" : Dataset
-        | "daily" : Dataset 
-
-Each Dataset contains x-axis labels and data values to print a chart
-*/
-
-async function getChartDataset(datapointId, initialTimestamp, datasetTypes, dataIntervals) {
-        var lastFullHour = getTimestampOfLastFullHourOf(initialTimestamp);
-        var datasetMap = new Map();
-        for (var type of datasetTypes) { 
-            var map = new Map(); 
-            for (var intervalType of dataIntervals) {
-                var timestamps = getTimestampsForIntervalType(intervalType, lastFullHour);
-                var labels = getTimestampLablesFor(intervalType, timestamps);
-                var data = []
-                //API call for every datapoint/timestamp needed
-                if(type == "history") {
-                    for (var timestamp of timestamps) {
-                        var json = await getDatapointValueOf(datapointId, timestamp);
-                        data.push(json.value);
-                    }
-                }
-                //TODO Include this when data is ready
-                /*else if (type == "setpoints") {
-                    timestamps.forEach((timestamp) => {
-                        getDataPointSetpointsOf(datapointId, timestamp).then((result) => data.push(result.value))
-                    });
-                }
-                else if (type == "schedule") {
-                    timestamps.forEach((timestamp) => {
-                        getDataPointSchedulesOf(datapointId, timestamp).then((result) => data.push(result.value))
-                    });
-                }*/
-                map.set(intervalType, new Dataset(labels, data));
-            }  
-            datasetMap.set(type, map);
-        }
-        return datasetMap;
-    
-}
-
-/*
-    Simple data container class consistion of thwo arrays.
-*/
-class Dataset {
-    constructor(labels, data) {
-        this.labels = labels;
-        this.data = data;
-    }  
-}
-
 /*
     Takes a interval type and a starting timestamp and returns the last n timestamps of the given time interval type.
 */
@@ -129,12 +68,7 @@ function getTimestampsForIntervalType(type, timestamp) {
         case "weekly":
             return getLastWeeks(timestamp, 4);
         case "monthly":
-            //TODO Implement
-            console.error("Monthly Interval not implemented yet");
-            break;
-        case "yearly":
-            console.error("Yearly Interval not implemented yet");
-            break;
+            return getLastMonth(timestamp,12);
         default:
             console.error("No such time interval type.");
             break
@@ -152,16 +86,19 @@ function getTimestampLablesFor(type, timestampset) {
         case "daily":
             return timestampset.map((timestamp) => new Date(timestamp).getDate().toString().concat(".").concat((new Date(timestamp).getMonth()+1).toString()))
         case "weekly":
-            //return getLast4Weeks(timestamp);
+            return timestampset.map((timestamp) => new Date(timestamp).getDate().toString().concat(".").concat((new Date(timestamp).getMonth()+1).toString()))
         case "monthly":
-            //TODO Implement
-            console.error("Monthly Interval not implemented yet");
-            break;
-        case "yearly":
-            console.error("Yearly Interval not implemented yet");
-            break;
+            return timestampset.map((timestamp) => new Date(timestamp).getDate().toString().concat(".").concat((new Date(timestamp).getMonth()+1).toString()))
         default:
             console.error("No such time interval type.");
             break
     }
+}
+
+function usesOnOffValue(datapoint) {
+    return (datapoint["data_format"] == "discrete_numeric") && ((datapoint["allowed_values"] == "[0,1]") || (datapoint["allowed_values"] == "[0, 1]"));
+}
+
+function onOfValueToText(value) {
+    return Boolean(parseInt(value))
 }

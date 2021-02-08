@@ -1,7 +1,7 @@
-var colorSet = ["78, 115, 223", "189, 60, 48", "23, 123, 47",]
+var colorSet = ["78, 115, 223", "189, 60, 48", "23, 123, 47"]
 
-function createChart(elementId, chartType,  datasets,  lables_x, lables_datasets, unit="$", maxTicksLimit=7) {
-  var ctx = document.getElementById(elementId);
+function createChart(elementClass, chartType,  datasets,  lables_x, lables_datasets, unit="$", maxTicksLimit=7) {
+  var ctx = document.getElementsByClassName(elementClass);
   var range = 0;
   var data = [];
   var barChartHasNegative = false;
@@ -64,7 +64,7 @@ function createChart(elementId, chartType,  datasets,  lables_x, lables_datasets
       )
     }
   }*/
-  var myLineChart = new Chart(ctx, {
+  var graph = new Chart(ctx, {
     type: chartType,
     data: {
       labels: lables_x,
@@ -99,6 +99,8 @@ function createChart(elementId, chartType,  datasets,  lables_x, lables_datasets
       tooltips: setUpChartTooltips(chartType, unit),
     }
   });
+
+  return graph;
 }
 
 function setUpChartXAxes(chartType, maxTicksLimit) {
@@ -173,6 +175,163 @@ function setUpChartTooltips(chartType, unit="$") {
     tooltips.mode = 'index';
   }
   return tooltips;
+}
+
+var graphs = new Map();
+//TODO refactor, comment and replace
+async function setUpChart(element, data=null) {
+      var element_id = element.className;
+      var is_area_chart = element_id.includes("area");
+      var is_bar_chart = element_id.includes("bar");
+
+      var datapoint_id = element.getAttribute("datapointId");
+      var data_types = element.getAttribute("dataTypes").split(", ");
+      var data_intervals = element.getAttribute("dataIntervals").split(", ");
+      var formula = element_id.includes("metric") ? element.getAttribute("formula") : null;
+      
+      var actual_interval = data_intervals[0];
+
+      var datapoint = await getDatapoint(datapoint_id);
+      var datapoint_name = datapoint["short_name"]
+      var datapoint_unit = datapoint["unit"];
+
+      var graphLabels = data_types.map((type) => datapoint_name.concat(" " + type.charAt(0).toUpperCase() + type.slice(1)));   
+      
+      chartDataSet = await getChartDataset(datapoint, data_types, data_intervals, data, formula); 
+      var data = [];
+      //Reverse Data so that the newest data value comes last in graph.
+      data_types.forEach((type)=> {
+          var reversedData = chartDataSet.get(type).get(actual_interval).data.reverse();
+          data.push(reversedData);  
+      });
+      var labels = chartDataSet.get(data_types[0]).get(actual_interval).labels;
+      var graph;
+      if(is_area_chart) {
+        graph = createChart(element_id, "line", data, labels.reverse() , graphLabels, datapoint_unit, (labels.length / 4));
+        graphs.set(element_id, {
+          "element_id": element_id,
+          "graph" : graph,
+          "data_set": chartDataSet,
+          "type" : "line",
+          "graph_labels" : graphLabels,
+          "datapoint_unit" : datapoint_unit,
+          "ticks" : (labels.length / 4),
+        });
+      }
+      else if (is_bar_chart) {
+        graph = createChart(element_id, "bar", data, labels.reverse() , graphLabels, datapoint_unit, labels.length);
+        graphs.set(element_id, {
+          "element_id": element_id,
+          "graph" : graph,
+          "data_set": chartDataSet,
+          "type" : "bar",
+          "graph_labels" : graphLabels,
+          "datapoint_unit" : datapoint_unit,
+          "ticks" : labels.length,
+        });
+      }
+}
+
+
+/*
+Constructs a Map of chart datasets out of a datapoint id, an initial timestamp, 
+the data set types (e.g. history, forecast...) 
+and the data intervals (e.g hourly, daily,...).
+After Construction a obect scructure looks like the following example
+
+ChartDataset:Map
+    | "history"
+        | "hourly" : Dataset
+        | "daily" : Dataset 
+    | "forecast"
+        | "hourly" : Dataset
+        | "daily" : Dataset 
+    | "schedule"
+        | "hourly" : Dataset
+        | "daily" : Dataset 
+
+Each Dataset contains x-axis labels and data values to print a chart
+*/
+
+async function getChartDataset(datapoint, datasetTypes, dataIntervals, data=null, formula=null) {
+  var initialTimestamp = (new Date(datapoint["last_value_timestamp"])).getTime()
+  var lastFullHour = getTimestampOfLastFullHourOf(initialTimestamp);
+  var datasetMap = new Map();
+  for (var type of datasetTypes) { 
+      var map = new Map(); 
+      for (var intervalType of dataIntervals) {
+          var timestamps = getTimestampsForIntervalType(intervalType, lastFullHour);
+          var labels = getTimestampLablesFor(intervalType, timestamps);
+          var data_set = []
+          if (data == null && formula == null) {
+            if(type == "history") {
+                for (var timestamp of timestamps) {
+                    var json = await getDatapointValueOf(datapoint["id"], timestamp);
+                    data_set.push(json.value);
+                }
+            }
+          }
+          else if(data != null && formula == null) {
+            for (var timestamp of timestamps) {
+              var value;
+              if(type == "history") {
+                  value = data.reduce((acc, object) => acc + ((object["timestamp"] == timestamp) ? parseFloat(object["value"]) : 0), 0);
+              }
+              data_set.push(value);
+            }           
+          }
+          else {
+            if(type == "history") {
+              data_set = await calculateMetricDataSet(formula, timestamps, (data != null) ? data : null) ;
+            }          
+          }
+          map.set(intervalType, new Dataset(labels, data_set));
+      }  
+      datasetMap.set(type, map);
+  }
+  return datasetMap;
+
+}
+
+/*
+Simple data container class consistion of thwo arrays.
+*/
+class Dataset {
+  constructor(labels, data) {
+    this.labels = labels;
+    this.data = data;
+  }  
+}
+
+
+function changeDataIntervalTo(element, intervalType) {
+  //TODO Change this super hard codeded Search
+  var identifier = element.parentElement.parentElement.parentElement.parentElement.getElementsByClassName("card-body")[0].getElementsByClassName("chart-area")[0].getElementsByTagName("canvas")[0].classList[0];
+
+  var graphInfo = graphs.get(identifier);
+  
+  graphInfo["graph"].destroy();
+
+  var data = []
+
+  var reversedData = graphInfo["data_set"].get("history").get(intervalType).data.reverse();
+  data.push(reversedData);  
+
+  var labels = graphInfo["data_set"].get("history").get(intervalType).labels;
+
+  var graph = createChart(graphInfo["element_id"], graphInfo["type"], data, labels.reverse() , graphInfo["graph_labels"], graphInfo["datapoint_unit"], graphInfo["ticks"]);
+  
+  
+  graphs.delete(identifier);
+  graphs.set(identifier, {
+    "element_id": identifier,
+    "graph" : graph,
+    "data_set": graphInfo["data_set"],
+    "type" : graphInfo["type"],
+    "graph_labels" : graphInfo["graph_labels"],
+    "datapoint_unit" : graphInfo["datapoint_unit"], 
+    "ticks" : graphInfo["ticks"],
+  })
 }
 
 

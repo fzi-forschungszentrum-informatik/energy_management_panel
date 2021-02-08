@@ -16,6 +16,7 @@ from fastapi import FastAPI, HTTPException
 from scenarios.apartment.apartment import Apartment, ApartmentNoOpt
 from scenarios.apartment.apartment import dt_to_ts
 from timestamp import datetime_from_timestamp, timestamp_utc_now
+from fastapi.middleware.cors import CORSMiddleware
 
 # Setup a logger for the scenario runner to use.
 logger = logging.getLogger(__name__)
@@ -269,9 +270,22 @@ class ScenarioRunner():
 scenario_runner = ScenarioRunner()
 app = FastAPI()
 
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 #@app.on_event("startup")
 #async def run_scenarios_in_bg():
-#    asyncio.create_task(scenario_runner.run_active())
+ #   asyncio.create_task(scenario_runner.run_active())
 
 def validate_and_parse_ts(from_ts, to_ts):
     now = timestamp_utc_now()

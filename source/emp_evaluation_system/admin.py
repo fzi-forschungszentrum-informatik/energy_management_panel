@@ -2,7 +2,7 @@ from django.contrib import admin
 import nested_admin
 from guardian.admin import GuardedModelAdmin
 
-from .models import EvaluationSystemPage, PageElement, UIElementContainer, UIElement, Presentation, Chart, Card, Metric, Algorithm, ComparisonGraph
+from .models import EvaluationSystemPage, PageElement, UIElementContainer, UIElement, Presentation, Chart, Card, Metric, Algorithm, ComparisonGraph, ComparisonGraphDataset
 
 """
 Configure the admin pages here.
@@ -90,20 +90,26 @@ class PageElementInline(nested_admin.NestedStackedInline):
     #Only one of the inlines is visible (visibility set via page_admin.js). PageElement type is choosen via dropdown.
     inlines = [UIElementContainerInline, UIElementInPageElementInline]
 
-class ComparisonGraphInline(nested_admin.NestedStackedInline):
-    model = ComparisonGraph
-    extra = 0
+class ComparisonGraphDataInline(nested_admin.NestedStackedInline):
+    model = ComparisonGraphDataset
+    extra = 1
+    max_num = 3
 
-     #Disables add/change/delete buttons in UIElementContainerInline
+    #Disables add/change/delete buttons in UIElementContainerInline
     def formfield_for_dbfield(self, db_field, request, **kwargs):
-        formfield = super(ComparisonGraphInline, self).formfield_for_dbfield(
+        formfield = super(ComparisonGraphDataInline, self).formfield_for_dbfield(
             db_field, request, **kwargs)
         if db_field.name == 'datapoint' or db_field.name == 'metric':
             formfield.widget.can_add_related = False
             formfield.widget.can_change_related = False
             formfield.widget.can_delete_related = False
         return formfield
- 
+
+class ComparisonGraphInline(nested_admin.NestedStackedInline):
+    model = ComparisonGraph
+    extra = 0
+
+    inlines = [ComparisonGraphDataInline]
 
 @admin.register(EvaluationSystemPage)
 class EvaluationSystemPageAdmin(nested_admin.NestedModelAdmin, GuardedModelAdmin):
@@ -165,3 +171,4 @@ class AlgorithmAdmin(admin.ModelAdmin):
     prepopulated_fields = {
         "backend_identifier": ("name",)
     }
+

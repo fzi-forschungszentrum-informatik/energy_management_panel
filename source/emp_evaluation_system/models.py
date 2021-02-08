@@ -221,6 +221,7 @@ class Metric(models.Model):
             "Aslo you may use numbers in integer or floating point format. " 
             "As variable you can link a datapoint using dp_* with * as data point id."
             "The last value of this datapoint will be used as value."
+            "Do NOT use whitespaces!"
         )
     )
 
@@ -479,7 +480,6 @@ class Chart(models.Model):
         ("daily", "daily"),
         ("weekly", "weekly"),
         ("monthly", "monthly"),
-        ("yearly", "yearly")
     )
 
     chart_data_interval = MultiSelectField(
@@ -563,6 +563,14 @@ class ComparisonGraph(models.Model):
         blank = True
     )
 
+    
+    page = models.ForeignKey(
+        EvaluationSystemPage,
+        default = None,
+        on_delete = models.CASCADE
+    )
+    
+class ComparisonGraphDataset(models.Model):
     use_metric = models.BooleanField(
         default = False,
         blank = False,
@@ -593,9 +601,8 @@ class ComparisonGraph(models.Model):
         )
     )
 
-    page = models.ForeignKey(
-        EvaluationSystemPage,
+    comparison_graph = models.ForeignKey(
+        ComparisonGraph,
         default = None,
         on_delete = models.CASCADE
     )
-    

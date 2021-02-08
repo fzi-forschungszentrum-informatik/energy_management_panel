@@ -45,49 +45,31 @@
                     This data needs to be set as HTML element attributes, therefore data can be read from other files as well.
                     The chart will be build on the document ready event.
                 {% endcomment %}
-                <canvas id="{{chart.chart_type}}-chart-{% now 'Uu'%}" datapointId="{{datapoint.id}}" datapointUnit="{{datapoint.unit}}"
-                datapointName="{{datapoint.short_name}}" dataTypes="{{chart.chart_data_sets}}" 
-                dataIntervals="{{chart.chart_data_interval}}"></canvas>
+                {% if not presentation.use_metric and  not is_comparison_page %}
+                    <canvas class="dp_{{presentation.datapoint.id}}_{{chart.chart_type}}_chart_realtime_value" datapointId="{{datapoint.id}}" dataTypes="{{chart.chart_data_sets}}" 
+                    dataIntervals="{{chart.chart_data_interval}}"></canvas>
+                {% elif presentation.use_metric and  not is_comparison_page %}
+                    {% comment %}
+                        Chart mit normalen Metriken
+                        TODO Mit David bereden
+                        <canvas class="mt_{{presentation.metric.id}}_{{chart-chart.chart_type}}_chart_realtime_metric" datapointId="{{datapoint.id}}" dataTypes="{{chart.chart_data_sets}}" 
+                    dataIntervals="{{chart.chart_data_interval}}"></canvas>
+                    {% endcomment %}
+                {% elif not presentation.use_metric and is_comparison_page%}
+                    {% comment %}
+                        Chart mit simulierten Werten
+                    {% endcomment %}
+                        <canvas class="dp_{{presentation.datapoint.origin_id}}_{{chart.chart_type}}_chart_simulated_value_{{side}}" dataTypes="{{chart.chart_data_sets}}" 
+                    dataIntervals="{{chart.chart_data_interval}}" datapointId="{{datapoint.id}}"></canvas>
+                {% else %}
+                    {% comment %}
+                        Chart mit simulierten Metriken
+                    {% endcomment %}
+                    <canvas class="mt_{{presentation.metric.id}}_{{chart.chart_type}}_chart_simulated_metric_{{side}}" dataTypes="{{chart.chart_data_sets}}" 
+                    dataIntervals="{{chart.chart_data_interval}}"  formula="{{presentation.metric.formula}}"></canvas>
+                {% endif %}
+                
             </div>
         </div>
     </div>
 </div>
-
-<script>
-
-//TODO refactor, comment and replace
-async function setUpCharts() {
-    var allCharts = $("[id*=-chart]");
-    for (var chart of allCharts) {
-        var datapointId = chart.getAttribute("datapointId");
-        var dataTypes = chart.getAttribute("dataTypes").split(", ");
-        var dataIntervals = chart.getAttribute("dataIntervals").split(", ");
-        var unit = chart.getAttribute("datapointUnit");
-        var actualInterval = dataIntervals[0];
-        var graphLabels = dataTypes.map((type) => chart.getAttribute("datapointName").concat(" " + type.charAt(0).toUpperCase() + type.slice(1)));   
-        //TODO change initialTimestamp when database is filled with more data
-        chartDataSet = await getChartDataset(datapointId, 1611217839554 , dataTypes, dataIntervals); 
-        var data = [];
-        //Reverse Data so that the newest data value comes last in graph.
-        dataTypes.forEach((type)=> {
-            var reversedData = chartDataSet.get(type).get(actualInterval).data.reverse();
-            data.push(reversedData);  
-        });
-        var labels = chartDataSet.get(dataTypes[0]).get(actualInterval).labels;
-        //TODO Chart steps dynmaisch
-        if(chart.id.startsWith("area")) {
-            createChart(chart.id, "line", data, labels.reverse() , graphLabels, unit, 6);
-        }
-        else if (chart.id.startsWith("bar")) {
-            createChart(chart.id, "bar", data, labels.reverse() , graphLabels, unit, 24);
-        }
-    }
-}
-
-function changeDataIntervalTo(element, intervalType) {
-    console.log(intervalType);
-    //TODO Change this super hard codeded Search
-    console.log(element.parentElement.parentElement.parentElement.parentElement.getElementsByClassName("card-body")[0].getElementsByClassName("chart-area")[0].getElementsByTagName("canvas")[0])
-}
-
-</script>

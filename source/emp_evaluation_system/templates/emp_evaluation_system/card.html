@@ -18,16 +18,26 @@
         <div class="card-body">
             <div class="row no-gutters align-items-center">
                 <div class="col mr-2">
-                    
-                    {% if presentation.use_metric %}
-                        <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
-                            {{presentation.metric.name}}</div>
-                        {% comment %} TODO change value to N/A when metric actualisation is implemented{% endcomment %}
-                        <div class="h5 mb-0 font-weight-bold text-gray-800"><span class="metric_{{presentation.metric.id}}_value" formula={{presentation.metric.formula}}>N/A</span> {{presentation.metric.unit}} </div>
+                    {% if not is_comparison_page %}
+                        {% if presentation.use_metric %}
+                            <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                                {{presentation.metric.name}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><span class="mt_{{presentation.metric.id}}_realtime_metric" formula={{presentation.metric.formula}}>N/A</span> {{presentation.metric.unit}} </div>
+                        {% else %}
+                            <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                                {{datapoint.short_name}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{% dp_field_value presentation.datapoint "last_value" field_collector %} {% dp_field_value presentation.datapoint "unit" field_collector %} </div>
+                        {% endif %}
                     {% else %}
-                        <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
-                            {{datapoint.short_name}}</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{% dp_field_value presentation.datapoint "last_value" field_collector %} {% dp_field_value presentation.datapoint "unit" field_collector %} </div>
+                        {% if presentation.use_metric %}
+                            <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                                {{presentation.metric.name}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><span class="mt_{{presentation.metric.id}}_simulated_metric_{{side}}" formula={{presentation.metric.formula}}>N/A</span> {{presentation.metric.unit}} </div>
+                        {% else %}
+                            <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                                {{datapoint.short_name}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><span class="dp_{{presentation.datapoint.origin_id}}_simulated_value_{{side}}">N/A</span> {% dp_field_value presentation.datapoint "unit" field_collector %} </div>
+                        {% endif %}
                     {% endif %}
                 </div>
                 <div class="col-auto">

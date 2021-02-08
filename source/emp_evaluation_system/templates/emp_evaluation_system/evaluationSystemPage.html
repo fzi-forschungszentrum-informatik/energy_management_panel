@@ -53,30 +53,54 @@
                     {% include 'emp_evaluation_system/algorithm_selection_form.html' %}
                 </div>
                 <div class="row">
-                    <div class="col-md-6 col-12" id="leftDataColumn">
-                        {% for element in pagelements %}
-                            {% include 'emp_evaluation_system/pageelement.html' %}
-                        {% endfor %}
+                    <div class="col-md-6 col-12" id="leftDataColumn" style="display:none">
+                        {% with "left" as side %}
+                            {% for element in pagelements %}
+                                {% include 'emp_evaluation_system/pageelement.html' %}
+                            {% endfor %}
+                        {% endwith %}
                     </div>
                     <div class="col-md-6 col-12" id="waitingScreenLeft" style="display:none">
-                        Loading
-                        <button type="button" class="btn btn-danger" id="btnCancleLeft">Cancle Request</button>
+                        <div class="center-block text-center">
+                            <span class="text-primary text-xl font-weight-bold"> Loading Simulation Data. This might take a long time! ETA: <span id="leftWaitingTime"> N/A </span> </span>
+                        </div>
+                        <div class="center-block text-center">
+                            <button type="button" class="btn btn-danger" id="btnCancleLeft">Cancle Request</button>
+                        </div>
                     </div>
-                    <div class="col-md-6 col-12" id="rightDataColumn">
-                        {% for element in pagelements %}
-                            {% include 'emp_evaluation_system/pageelement.html' %}
-                        {% endfor %}
+                    <div class="col-md-6 col-12" id="noAlgorithmScreenLeft" >
+                        <div class="center-block text-center">
+                            <span class="text-primary text-xl font-weight-bold"> You have to choose a algorithm to simulate. The simulation will start as soon as you select a Algorithm. </span>
+                        </div>
                     </div>
-                     <div class="col-md-6 col-12" id="waitingScreenRight" style="display:none">
-                        Loading
-                        <button type="button" class="btn btn-danger" id="btnCancleRight">Cancle Request</button>
+                    <div class="col-md-6 col-12" id="rightDataColumn" style="display:none">
+                        {% with "right" as side %}
+                            {% for element in pagelements %}
+                                {% include 'emp_evaluation_system/pageelement.html' %}
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                    <div class="col-md-6 col-12" id="waitingScreenRight" style="display:none">
+                        <div class="center-block text-center">
+                            <span class="text-primary text-xl font-weight-bold"> Loading Simulation Data. This might take a long time! ETA: <span id="rightWaitingTime"> N/A </span> </span>
+                        </div>
+                        <div class="center-block text-center">
+                            <button type="button" class="btn btn-danger" id="btnCancleRight">Cancle Request</button>   
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12" id="noAlgorithmScreenRight" >
+                        <div class="center-block text-center">
+                            <span class="text-primary text-xl font-weight-bold"> You have to choose a algorithm to simulate. The simulation will start as soon as you select a Algorithm. </span>
+                        </div>
                     </div>
                 </div>
-                {% for graph in comparison_graphs  %}
-                    <div class="row">
-                        {% include 'emp_evaluation_system/comparison_graph.html' %}
-                    </div>
-                {% endfor %}
+                <div id="comparisonGraphs" style="display:none">
+                    {% for graph in comparison_graphs  %}
+                        <div class="row mt-4">
+                            {% include 'emp_evaluation_system/comparison_graph.html' %}
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
         {% endif %}
 
@@ -97,12 +121,11 @@
     <script>
         //TODO Setup funktionen rausziehen
         $( document ).ready(function() {
-            var allMetrics = $("[class*=metric]");
-            for (var metric of allMetrics) {
-                var formula = metric.getAttribute("formula");
-                calculate(formula, metric)
+            setUpAllMetricElements();
+            var allChartElements = $("[class*=chart_realtime]");
+            for (var chartElement of allChartElements) {
+                setUpChart(chartElement);
             }
-            setUpCharts();
         });
 
     </script>
@@ -116,6 +139,8 @@
     TODO exclude chart-*-demo files.
     charts.js includes all functions on charts defined by us.
     apiCalls.js includes all api calls to our EMP API.
+    metric.js defines all functions that are required for handling and computing backend's Metic objects.
+    simulation.js defines all functions that are used to process simuated values.
     datapointHelpers.js defines all functions used to handle datapoints and api call results.
 {% endcomment %}
 {% block body_script %}
@@ -132,5 +157,6 @@
   <script src="{% static 'emp_evaluation_system/js/charts.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/metrics.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/apiCalls.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/simulation.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/datapointHelpers.js' %}"></script>
 {% endblock body_script %}
