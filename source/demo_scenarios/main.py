@@ -273,9 +273,9 @@ class ScenarioRunner():
 scenario_runner = ScenarioRunner()
 app = FastAPI()
 
-#@app.on_event("startup")
-#async def run_scenarios_in_bg():
-#    asyncio.create_task(scenario_runner.run_active())
+@app.on_event("startup")
+async def run_scenarios_in_bg():
+    asyncio.create_task(scenario_runner.run_active())
 
 def validate_and_parse_ts(from_ts, to_ts):
     now = timestamp_utc_now()

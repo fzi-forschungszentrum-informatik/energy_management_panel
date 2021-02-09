@@ -403,6 +403,18 @@ class Apartment():
                 "timestamp": sim_ts,
                 "value": active_value,
             }
+            
+        # Compute the total electric power.
+        apartment_total_electric_power = (
+            100 + 
+            float(values["apartment_electric_power_dishwasher"]["value"]) + 
+            float(values["apartment_electric_power_washing_machine"]["value"]) + 
+            float(values["apartment_electric_power_dryer"]["value"])
+        )
+        values["apartment_total_electric_power"] = {
+            "timestamp": sim_ts,
+            "value": apartment_total_electric_power,
+        }
 
         return values
 
