@@ -1,27 +1,32 @@
-{% load evaluationpage_tags %}
-<div class="col-md-6 mb-4 px-4">
-    <select class="form-control" onchange="onAlgorithmSelectChange(this, 'left')">
-        {% for algorithm in algorithms%} 
-            <option value="{{algorithm.backend_identifier}}" >{{algorithm.name}}</option>
-        {% endfor %}
-    </select>
-    <div class="form-group">
-        <label for="start_time">Simulation Start Time:</label>
-        <input class="form-control" type="date" id="start_time" name="simulation_start_time"
-            value='{% now "Y-m-d" %}'
-                min="2000-1-1" max='2100-1-1'>
-    </div>
-</div>
-<div class="col-md-6 mb-4 px-4">
-        <select class="form-control" onchange="onAlgorithmSelectChange(this, 'right')">
+<div class="row">
+    <div class="col-md-6 mb-4 px-4">
+        <select class="form-control" id="leftAlgorithmSelection">
             {% for algorithm in algorithms%} 
                 <option value="{{algorithm.backend_identifier}}" >{{algorithm.name}}</option>
             {% endfor %}
         </select>
         <div class="form-group">
-            <label for="end_time">Simulation End Time:</label>
-            <input class="form-control" type="date" id="end_time" name="simulation_end_time"
+            <label for="start_time">Simulation Start Time:</label>
+            <input class="form-control" type="date" id="start_time" name="simulation_start_time"
                 value='{% now "Y-m-d" %}'
-                min="2000-1-1" max='2100-1-1'>
+                    min="2000-1-1" max='2100-1-1'>
         </div>
+    </div>
+    <div class="col-md-6 mb-4 px-4">
+            <select class="form-control" id="rightAlgorithmSelection">
+                {% for algorithm in algorithms%} 
+                    <option value="{{algorithm.backend_identifier}}" >{{algorithm.name}}</option>
+                {% endfor %}
+            </select>
+            <div class="form-group">
+                <label for="end_time">Simulation End Time:</label>
+                <input class="form-control" type="date" id="end_time" name="simulation_end_time"
+                    value='{% now "Y-m-d" %}'
+                    min="2000-1-1" max='2100-1-1'>
+            </div>
+    </div>
 </div>
+<div class="row justify-content-md-center">
+    <button type="button" class="btn btn-danger" id="btn_settings" onclick="startSimulation()">Start Simulation</button>
+</div>
+<hr>

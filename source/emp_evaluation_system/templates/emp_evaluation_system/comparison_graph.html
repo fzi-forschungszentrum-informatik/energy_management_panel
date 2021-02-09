@@ -1,3 +1,4 @@
+{% load evaluationpage_tags %}
 <div class="col-12">
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -6,8 +7,11 @@
         {% endif %}
         </div>
         <div class="card-body">
-            <div class="chart-bar">
-                <canvas id="myBarChart2"></canvas>
+            <div class="chart-area" >
+                 <canvas class="cc_{{graph.id}}" 
+                 using_metric="{% using_metrics graph.comparisongraphdataset_set.all %}"
+                 data="{% get_datapoints_or_formulas graph.comparisongraphdataset_set.all %}"
+                 type="{{graph.type}}"></canvas>
             </div>
         </div>
     </div>

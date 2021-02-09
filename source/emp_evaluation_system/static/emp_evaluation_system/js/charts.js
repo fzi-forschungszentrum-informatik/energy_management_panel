@@ -23,7 +23,6 @@ function createChart(elementClass, chartType,  datasets,  lables_x, lables_datas
           data: datasets[i],
           }
       )
-      console.log(data)
     }
   }
   else if (chartType == "line") {
@@ -49,21 +48,6 @@ function createChart(elementClass, chartType,  datasets,  lables_x, lables_datas
       )
     }
   }
-  //TODO Implement Donut
-  /*else if (chartType == "doughnut") {
-    for (var i = 0; i < datasets.length; i++) {
-      var colorOpaque = "rgba("+ colorSet[i] +", 1)";
-      var colorTransparent = "rgba("+ colorSet[i] +", 0.05)";
-      data.push(
-          {
-          backgroundColor: colorOpaque,
-          hoverBackgroundColor: colorTransparent,
-          hoverBorderColor: colorTransparent,
-          data: datasets[i]
-          }
-      )
-    }
-  }*/
   var graph = new Chart(ctx, {
     type: chartType,
     data: {

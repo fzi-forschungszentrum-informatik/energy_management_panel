@@ -49,9 +49,7 @@
         {% endcomment %}
         {% else %}
             <div class="col">
-                <div class="row">
-                    {% include 'emp_evaluation_system/algorithm_selection_form.html' %}
-                </div>
+                {% include 'emp_evaluation_system/algorithm_selection_form.html' %}
                 <div class="row">
                     <div class="col-md-6 col-12" id="leftDataColumn" style="display:none">
                         {% with "left" as side %}
@@ -64,14 +62,6 @@
                         <div class="center-block text-center">
                             <span class="text-primary text-xl font-weight-bold"> Loading Simulation Data. This might take a long time! ETA: <span id="leftWaitingTime"> N/A </span> </span>
                         </div>
-                        <div class="center-block text-center">
-                            <button type="button" class="btn btn-danger" id="btnCancleLeft">Cancle Request</button>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-12" id="noAlgorithmScreenLeft" >
-                        <div class="center-block text-center">
-                            <span class="text-primary text-xl font-weight-bold"> You have to choose a algorithm to simulate. The simulation will start as soon as you select a Algorithm. </span>
-                        </div>
                     </div>
                     <div class="col-md-6 col-12" id="rightDataColumn" style="display:none">
                         {% with "right" as side %}
@@ -82,15 +72,7 @@
                     </div>
                     <div class="col-md-6 col-12" id="waitingScreenRight" style="display:none">
                         <div class="center-block text-center">
-                            <span class="text-primary text-xl font-weight-bold"> Loading Simulation Data. This might take a long time! ETA: <span id="rightWaitingTime"> N/A </span> </span>
-                        </div>
-                        <div class="center-block text-center">
-                            <button type="button" class="btn btn-danger" id="btnCancleRight">Cancle Request</button>   
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-12" id="noAlgorithmScreenRight" >
-                        <div class="center-block text-center">
-                            <span class="text-primary text-xl font-weight-bold"> You have to choose a algorithm to simulate. The simulation will start as soon as you select a Algorithm. </span>
+                            <span class="text-primary text-xl font-weight-bold"> Loading Simulation Data. This might take a long time! ETA: <span id="rightWaitingTime"> N/A </span> second(s)</span>
                         </div>
                     </div>
                 </div>

@@ -36,12 +36,16 @@ class Simulation {
     }
 }
 
-function onAlgorithmSelectChange(element, side) {
-    var algorithm = element[element.selectedIndex].value;
+
+function startSimulation() {
+    var left_select = $('#leftAlgorithmSelection')[0];
+    var right_select =$('#rightAlgorithmSelection')[0];
     var start = $('#start_time').val();
     var end = $('#end_time').val();
     var startTimestamp = (new Date(start)).getTime();
     var endTimestamp = (new Date(end)).getTime();
+
+    var algorithm = left_select[left_select.selectedIndex].value;
     var simulation = new Simulation(algorithm, startTimestamp, endTimestamp);
     var statusCodes = {
         400: function() {
@@ -50,21 +54,28 @@ function onAlgorithmSelectChange(element, side) {
         },
     }
     var req = postSimulationStartRequest(simulation, statusCodes);
-    waitForSimulationResults(simulation, req, side);
+    waitForSimulationResults(simulation, req, "left");
+
+    algorithm = right_select[right_select.selectedIndex].value;
+    simulation = new Simulation(algorithm, startTimestamp, endTimestamp);
+    var statusCodes = {
+        400: function() {
+            alert('400: Unknown optimization algorithm, please edit the Algortihm object\'s backend_identifier field' +
+            'at the admin page or contact your system administrator.');
+        },
+    }
+    req = postSimulationStartRequest(simulation, statusCodes);
+    waitForSimulationResults(simulation, req, "right");
+
 }
 
 async function waitForSimulationResults(simulation, req, side) {
-    var noAlgorithmScreen = (side == 'left') ? $("#noAlgorithmScreenLeft") : $("#noAlgorithmScreenRight");
     var waitingScreen = (side == 'left') ? $("#waitingScreenLeft") : $("#waitingScreenRight");
-    var canlceButton = (side == 'left') ? $("#btnCancleLeft") : $("#btnCancleRight");
     var dataColumn = (side == 'left') ? $("#leftDataColumn") : $("#rightDataColumn");
     var waitingTimeLable = (side == 'left') ? $("#leftWaitingTime") : $("#rightWaitingTime");
-    
-    noAlgorithmScreen.hide();
+
     $('#comparisonGraphs').show();
-    waitingScreen.show();
-    canlceButton.click(() => req.abort());
-    dataColumn.hide(); 
+    waitingScreen.show(); 
     var waitingInterval = setInterval(() => {
             getSimulationStatus(simulation.name, simulation.dataWithoutName, {}).then((result) => {
                 if(result["percent complete"] != 100) {
@@ -77,7 +88,7 @@ async function waitForSimulationResults(simulation, req, side) {
                     updateUiElements(simulation, side);
                 }
             })
-    }, 10000);
+    }, 1000);
 }
 
 async function updateUiElements(simulation, side) {
@@ -127,6 +138,83 @@ async function updateComparisonPageMetricElements(values, side) {
     }
 }
 
-async function updateComparisonGraphs(values, side) {
+var comparison_graph_is_set_up = new Map();
+async function updateComparisonGraphs(simulated_data, side) {
 
+    var comparison_graphs = $("[class^=cc_]");
+    for (var graph of comparison_graphs) { 
+        var using_metric = graph.getAttribute("using_metric").replaceAll("[", "").replaceAll("]", "").split(", ");
+        var data = graph.getAttribute("data").replaceAll("[", "").replaceAll("]", "").replaceAll("'", "").split(", ");
+        if (comparison_graph_is_set_up.get(graph.className) == undefined) {
+
+            var chart_data_set = [];
+            var type = graph.getAttribute("type");
+    
+            
+            var values = [];
+            var labels = [];
+            for (var index in data) {
+                if(type == "area" && index == 1) {
+                    break;
+                } 
+    
+                if (using_metric[index] == "True") {
+                    values.push(await calculate(data[index], simulated_data));
+                    labels.push("");
+                }
+                else {
+                    var datapoint = await getDatapoint(data[index]);
+                    values.push(parseInt(datapoint["last_value"]));
+                    labels.push(datapoint["origin_id"]);
+                }
+            }
+            chart_data_set.push(values);
+            comparison_graph_is_set_up.set(graph.className, {
+                "left_is_setup" : side == "left",
+                "right_is_setup" : side == "right",
+                "type" : type,
+                "chart_data_set" : chart_data_set,
+                "labels" : labels, 
+                "graph_labels" : ["left", "right"]
+            });
+        }
+        else {
+            var existing_graph = comparison_graph_is_set_up.get(graph.className);
+            var existing_graph_data = existing_graph["chart_data_set"];
+            var values = [];
+            for (var index in data) {
+                if(type == "area" && index == 1) {
+                    break;
+                } 
+                
+                if (using_metric[index] == "True") {
+                    values.push(await calculate(data[index], simulated_data));
+                }
+                else {
+                    var datapoint = await getDatapoint(data[index]);
+                    values.push(parseInt(datapoint["last_value"]));
+                }
+            }
+
+            if (existing_graph["left_is_setup"] && side == "left") {
+                existing_graph_data[0] = values;
+            }
+            else if (existing_graph["left_is_setup"] && side == "right") {
+                existing_graph_data.push(values);
+                existing_graph["right_is_setup"] = true;
+            }
+            else if (existing_graph["right_is_setup"] && side == "left") {
+                existing_graph_data.unshift(values);
+                existing_graph["left_is_setup"] = true;
+            }
+            else if (existing_graph["right_is_setup"] && side == "right") {
+                existing_graph_data[1] = values;
+            }
+            existing_graph["chart_data_set"] = existing_graph_data;
+
+            if(existing_graph["left_is_setup"] && existing_graph["right_is_setup"]) {
+                graph_element = createChart(graph.className, existing_graph["type"], existing_graph_data,  existing_graph["labels"], existing_graph["graph_labels"], "$", data.length);
+            }
+        }
+    }
 }
