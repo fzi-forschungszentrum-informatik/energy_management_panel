@@ -19,9 +19,7 @@ class EvaluationSystemPage(models.Model):
 
     """
     Basic model for evaluation systems web pages. This pages will be configured in djangos admin panel.
-    Use the UIElementContainers to provide a structure on the page.
-    Use this model to create overview and dashboard pages.
-    Beside these pages there are special preconfigured pages, that are (semi-)hard coded (e.g.: Login page, system log page...)
+    Use this model to create overview, dashboard, or comparison pages.
     """
 
     page_name = models.CharField(
@@ -47,14 +45,6 @@ class EvaluationSystemPage(models.Model):
             "If this is checked, the page will transform into a optimization comparison page. "
             "Therefore the page consists of two algorithm select boxes and an additional comparison graph. "
             "Also the configured page will be rendered twice. Once for the first, once for the second selected algorithm."
-        )
-    )
-
-    has_report_generation = models.BooleanField(
-        default = False,
-        help_text = (
-            "If checked the 'create report' button in the top right corner of the page will be visible "
-            "providing the possibility to generate a report out of pages data."
         )
     )
 
@@ -86,7 +76,7 @@ class EvaluationSystemPage(models.Model):
 
 class PageElement(models.Model):
     """
-    This class can used be in two states: container or presentation.
+    This model can used be in two states: container or presentation.
     If a UIElementContainer is used as container it consists of other UIElements (with arbitrary recursion).
     As UIElement it is used to visualize data.
     """
@@ -222,15 +212,6 @@ class Metric(models.Model):
             "As variable you can link a datapoint using dp_* with * as data point id."
             "The last value of this datapoint will be used as value."
             "Do NOT use whitespaces!"
-        )
-    )
-
-    result = models.CharField(
-        max_length = 64,
-        null = True,
-        default = "",
-        help_text = (
-            "On save the metrics's result will be written here."
         )
     )
 
@@ -442,9 +423,7 @@ class Chart(models.Model):
 
     CHART_TYPE_CHOICES = [
         ("area", "area"),
-        ("bar", "bar"),
-        ("donut", "donut"), 
-        #TODO add spider chart    
+        ("bar", "bar"), 
     ]
 
     chart_type = models.CharField(
@@ -535,6 +514,13 @@ class Algorithm(models.Model):
     )
     
 class ComparisonGraph(models.Model):
+
+    """
+        This model represents a simulation and algorithm comparison grah.
+        These graphs can only be used in EvaluationSystemPages that are comparison pages.
+        Every comparison graph is build in at the page end.
+        Comparison graphs take data from two simulated algorithms and compare them in a maximum of three predefined matrics or values. 
+    """
     CHART_TYPE_CHOICES = [
         ("area", "area"),
         ("bar", "bar"), 
@@ -571,6 +557,12 @@ class ComparisonGraph(models.Model):
     )
     
 class ComparisonGraphDataset(models.Model):
+    """
+        Each comparion graph consists of up to three comarison graph data sets.
+        These data sets are defined in this model.
+        A data set is either a metric or a datapoint.
+    """
+  
     use_metric = models.BooleanField(
         default = False,
         blank = False,

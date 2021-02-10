@@ -1,5 +1,22 @@
+$( document ).ready(function() {
+  setUpAllCharts();
+});
+
+async function setUpAllCharts() {
+  var allChartElements = $("[class*=chart_realtime]");
+  for (var chartElement of allChartElements) {
+      setUpChart(chartElement);
+  }
+}
+
+// Color set for charts. Add new colors here.
 var colorSet = ["78, 115, 223", "189, 60, 48", "23, 123, 47"]
 
+/*
+  This function is part selfwritten part copied from sb-admin-2 example page.
+  It computes all required data to create and print a chart.
+
+*/
 function createChart(elementClass, chartType,  datasets,  lables_x, lables_datasets, unit="$", maxTicksLimit=7) {
   var ctx = document.getElementsByClassName(elementClass);
   var range = 0;
@@ -83,14 +100,12 @@ function createChart(elementClass, chartType,  datasets,  lables_x, lables_datas
       tooltips: setUpChartTooltips(chartType, unit),
     }
   });
-
   return graph;
 }
 
 function setUpChartXAxes(chartType, maxTicksLimit) {
   var xAxes = [{
     time: {
-      //TODO set unit
       unit: 'time'
     },
     gridLines: {
@@ -162,58 +177,49 @@ function setUpChartTooltips(chartType, unit="$") {
 }
 
 var graphs = new Map();
-//TODO refactor, comment and replace
+
+/*
+  This function collects all required data to set up a chart and afterwards creats the chart.
+  First of all important data is collected.
+  Out of this data the remaining required data is computed.
+  Afterwards, the chart will be set up and the data is saved for later use.
+*/
 async function setUpChart(element, data=null) {
-      var element_id = element.className;
-      var is_area_chart = element_id.includes("area");
-      var is_bar_chart = element_id.includes("bar");
+  var element_id = element.className;
+  var is_area_chart = element_id.includes("area");
 
-      var datapoint_id = element.getAttribute("datapointId");
-      var data_types = element.getAttribute("dataTypes").split(", ");
-      var data_intervals = element.getAttribute("dataIntervals").split(", ");
-      var formula = element_id.includes("metric") ? element.getAttribute("formula") : null;
-      
-      var actual_interval = data_intervals[0];
+  var datapoint_id = element.getAttribute("datapointId");
+  var data_types = element.getAttribute("dataTypes").split(", ");
+  var data_intervals = element.getAttribute("dataIntervals").split(", ");
+  var formula = element_id.includes("metric") ? element.getAttribute("formula") : null;
+  
+  var actual_interval = data_intervals[0];
 
-      var datapoint = await getDatapoint(datapoint_id);
-      var datapoint_name = datapoint["short_name"]
-      var datapoint_unit = datapoint["unit"];
+  var datapoint = await getDatapoint(datapoint_id);
+  var datapoint_name = datapoint["short_name"]
+  var datapoint_unit = datapoint["unit"];
 
-      var graphLabels = data_types.map((type) => datapoint_name.concat(" " + type.charAt(0).toUpperCase() + type.slice(1)));   
-      
-      chartDataSet = await getChartDataset(datapoint, data_types, data_intervals, data, formula); 
-      var data = [];
-      //Reverse Data so that the newest data value comes last in graph.
-      data_types.forEach((type)=> {
-          var reversedData = chartDataSet.get(type).get(actual_interval).data.reverse();
-          data.push(reversedData);  
-      });
-      var labels = chartDataSet.get(data_types[0]).get(actual_interval).labels;
-      var graph;
-      if(is_area_chart) {
-        graph = createChart(element_id, "line", data, labels.reverse() , graphLabels, datapoint_unit, (labels.length / 4));
-        graphs.set(element_id, {
-          "element_id": element_id,
-          "graph" : graph,
-          "data_set": chartDataSet,
-          "type" : "line",
-          "graph_labels" : graphLabels,
-          "datapoint_unit" : datapoint_unit,
-          "ticks" : (labels.length / 4),
-        });
-      }
-      else if (is_bar_chart) {
-        graph = createChart(element_id, "bar", data, labels.reverse() , graphLabels, datapoint_unit, labels.length);
-        graphs.set(element_id, {
-          "element_id": element_id,
-          "graph" : graph,
-          "data_set": chartDataSet,
-          "type" : "bar",
-          "graph_labels" : graphLabels,
-          "datapoint_unit" : datapoint_unit,
-          "ticks" : labels.length,
-        });
-      }
+  var graphLabels = data_types.map((type) => datapoint_name.concat(" " + type.charAt(0).toUpperCase() + type.slice(1)));   
+  
+  chartDataSet = await getChartDataset(datapoint, data_types, data_intervals, data, formula); 
+  var data = [];
+  //Reverse Data so that the newest data value comes last in graph.
+  data_types.forEach((type)=> {
+      var reversedData = chartDataSet.get(type).get(actual_interval).data.reverse();
+      data.push(reversedData);  
+  });
+  var labels = chartDataSet.get(data_types[0]).get(actual_interval).labels;
+  var graph = createChart(element_id, is_area_chart ? "line" : "bar", data, labels.reverse() , graphLabels, datapoint_unit, is_area_chart ? (labels.length / 4) : labels.length);
+
+  graphs.set(element_id, {
+    "element_id": element_id,
+    "graph" : graph,
+    "data_set": chartDataSet,
+    "type" : is_area_chart ? "line" : "bar",
+    "graph_labels" : graphLabels,
+    "datapoint_unit" : datapoint_unit,
+    "ticks" : is_area_chart ? (labels.length / 4) : labels.length,
+  });
 }
 
 
@@ -288,8 +294,11 @@ class Dataset {
 }
 
 
+/*
+  This funciton is called over every chart's dropdown menu.
+  It reads the charts data and set the presented data to the selected time interval.
+*/
 function changeDataIntervalTo(element, intervalType) {
-  //TODO Change this super hard codeded Search
   var identifier = element.parentElement.parentElement.parentElement.parentElement.getElementsByClassName("card-body")[0].getElementsByClassName("chart-area")[0].getElementsByTagName("canvas")[0].classList[0];
 
   var graphInfo = graphs.get(identifier);
@@ -320,7 +329,10 @@ function changeDataIntervalTo(element, intervalType) {
 
 
 
-
+/*
+  This function was copied out of sb-admin-2 example page.
+  The function formats numbers for better use in charts.
+*/
 function number_format(number, decimals, dec_point, thousands_sep) {
     // *     example: number_format(1234.56, 2, ',', ' ');
     // *     return: '1 234,56'

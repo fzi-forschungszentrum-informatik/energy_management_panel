@@ -18,7 +18,6 @@ class EvaluationSystemPageView(EMPBaseView):
         # Put important page date into context here
         context["page_name"] = page_object.page_name
         context["is_comparison_page"] = page_object.page_is_comparison_page
-        context["has_report_generation"] = page_object.has_report_generation
         context["pagelements"] = page_object.pageelement_set.all
         context["has_scroll_to_top_button"] = page_object.has_scroll_to_top_button      
         context["update_interval"] = EMP_EVALUATION_PAGE_UPDATE_INTERVAL

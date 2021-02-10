@@ -123,7 +123,7 @@ class EvaluationSystemPageAdmin(nested_admin.NestedModelAdmin, GuardedModelAdmin
     #Include js files that manipulate admin
     class Media:
         js = (
-            '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js', # jquery #TODO durch django jquery ersetzen
+            '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js', # jquery 
             'emp_evaluation_system/js/page_admin.js',
         )
 
@@ -151,7 +151,6 @@ admin.site.site_title = 'EMP Evaluation System Admin'
 
 @admin.register(Metric)
 class MetricAdmin(admin.ModelAdmin):
-    readonly_fields=('result',)
     list_display = (
         "metric_name",
         "description"

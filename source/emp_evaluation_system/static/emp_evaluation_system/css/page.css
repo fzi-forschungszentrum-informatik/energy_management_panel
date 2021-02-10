@@ -9,6 +9,10 @@
   --danger-darken: #bd3c30;
 }
 
+/*
+  In the following icon colors will be defined.
+  There is a icon color class for each bootstrap color scheme used in the application.
+*/
 .icon-primary {
   color: var(--primary) !important
 }
@@ -29,6 +33,11 @@
   color: var(--danger) !important;
 }
 
+/*
+  In the following the behavior of cards that are hoverd is defined.
+  The text, the icon and the borders of the card darken on hover.
+  Therefore, the darkend colors define at the file's top are used.
+*/
 .card[hoverable="True"]:hover .icon-primary {
   color: var(--primary-darken) !important;
 }

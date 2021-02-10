@@ -29,7 +29,6 @@
                     {% comment %} 
                         For every data interval chosen, when configuring the chart in the admin panel,
                         a links is included.
-                        TODO Include change data interval funcitonality
                     {% endcomment %}
                     {% for label in chart.chart_data_interval %}
                         <a class="dropdown-item" onclick='changeDataIntervalTo(this, "{{label}}")'> {{label}} </a>
@@ -46,24 +45,27 @@
                     The chart will be build on the document ready event.
                 {% endcomment %}
                 {% if not presentation.use_metric and  not is_comparison_page %}
+                    {% comment %}
+                        Chart with realtime values.
+                    {% endcomment %}
                     <canvas class="dp_{{presentation.datapoint.id}}_{{chart.chart_type}}_chart_realtime_value" datapointId="{{datapoint.id}}" dataTypes="{{chart.chart_data_sets}}" 
                     dataIntervals="{{chart.chart_data_interval}}"></canvas>
                 {% elif presentation.use_metric and  not is_comparison_page %}
                     {% comment %}
-                        Chart mit normalen Metriken
-                        TODO Mit David bereden
+                        Chart with realtime metrics.
+                        TODO Implement Charts mit normalen Metriken
                         <canvas class="mt_{{presentation.metric.id}}_{{chart-chart.chart_type}}_chart_realtime_metric" datapointId="{{datapoint.id}}" dataTypes="{{chart.chart_data_sets}}" 
                     dataIntervals="{{chart.chart_data_interval}}"></canvas>
                     {% endcomment %}
                 {% elif not presentation.use_metric and is_comparison_page%}
                     {% comment %}
-                        Chart mit simulierten Werten
+                        Chart with simulated values.
                     {% endcomment %}
                         <canvas class="dp_{{presentation.datapoint.origin_id}}_{{chart.chart_type}}_chart_simulated_value_{{side}}" dataTypes="{{chart.chart_data_sets}}" 
                     dataIntervals="{{chart.chart_data_interval}}" datapointId="{{datapoint.id}}"></canvas>
                 {% else %}
                     {% comment %}
-                        Chart mit simulierten Metriken
+                        Chart with metrics over simulated values.
                     {% endcomment %}
                     <canvas class="mt_{{presentation.metric.id}}_{{chart.chart_type}}_chart_simulated_metric_{{side}}" dataTypes="{{chart.chart_data_sets}}" 
                     dataIntervals="{{chart.chart_data_interval}}"  formula="{{presentation.metric.formula}}"></canvas>

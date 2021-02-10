@@ -2,14 +2,19 @@
 {% comment %} 
     All generic content like nav/title bar is provided by the base template
 {% endcomment %}
+
+{% comment %}
+    Loading all needed tag libraries.
+{% endcomment %}
 {% load static %}
 {% load datapoint_helpers %}
 
 {% block head %}
     {% comment %} 
         Load additional css files here, or whatever is needed in the header.
-        sb-admin-2.css is the base css file for the admin template we used.
-        fontawesome-free/css/all.min.css file provides all fontawesome icons etc.
+        In the page.css all application specific css classes are defined.
+        Sb-admin-2.css is the base css file for the admin template we used.
+        Fontawesome-free/css/all.min.css file provides all fontawesome icons etc.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/page.css' %}">
     <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/sb-admin-2.css' %}">
@@ -20,17 +25,13 @@
   
     <!-- Begin Page Content -->
     <div class="container-fluid">
-       <!-- Report Generation Button-->
-        {% comment %} 
-            Including the report generation button.
-            TODO add functionality
+        {% comment %}
+            This is the error field that handles all errors.
+            Errors are handled and thrown by the static/emp_evaluation_system/js/errors.js
         {% endcomment %}
-        {%if has_report_generation %}
-            <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-                    class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
-            </div>
-        {% endif %}
+        <div id="error-field">
+        </div>
+        
         {% comment %} 
             Core functionality of a simple EvaluationSystemPage.
             For every Pageelement linked to the EvaluationSystemPage a template will be included.
@@ -45,7 +46,11 @@
         {% comment %} 
             Core functionality of a comparison EvaluationSystemPage.
             For every Pageelement linked to the EvaluationSystemPage two templates will be included.
-            Also a algorithm selection at the top and a comparison graph at the bottom will be included
+            Also a algorithm selection at the top and one to many comparison graphs at the bottom will be included.
+            Page elements and comparison graphs will not be visible on page load.
+            When starting a simulation with the start button from the algorithms selection form, two waiting pages will be visible.
+            These pages will be updated and show the estimated waiting time. When simulation results are available these waiting screens will be hidden.
+            Afterwards, the page elements will be updated with the new simulated data and then will be visible.
         {% endcomment %}
         {% else %}
             <div class="col">
@@ -60,7 +65,7 @@
                     </div>
                     <div class="col-md-6 col-12" id="waitingScreenLeft" style="display:none">
                         <div class="center-block text-center">
-                            <span class="text-primary text-xl font-weight-bold"> Loading Simulation Data. This might take a long time! ETA: <span id="leftWaitingTime"> N/A </span> </span>
+                            <span class="text-primary text-xl font-weight-bold"> Loading Simulation Data. This might take a long time! ETA: <span id="leftWaitingTime"> N/A </span> second(s) </span>
                         </div>
                     </div>
                     <div class="col-md-6 col-12" id="rightDataColumn" style="display:none">
@@ -84,9 +89,7 @@
                     {% endfor %}
                 </div>
             </div>
-        {% endif %}
-
-       
+        {% endif %}   
     </div>
     <!-- End Page Content-->
     <!-- /.container-fluid -->
@@ -100,17 +103,6 @@
             <i class="fas fa-angle-up"></i>
         </a>
     {% endif %}
-    <script>
-        //TODO Setup funktionen rausziehen
-        $( document ).ready(function() {
-            setUpAllMetricElements();
-            var allChartElements = $("[class*=chart_realtime]");
-            for (var chartElement of allChartElements) {
-                setUpChart(chartElement);
-            }
-        });
-
-    </script>
 {% endblock body_html %}
 
 {% comment %} 
@@ -118,7 +110,7 @@
     jquery.easing.min.js provides easing in canvas elements (in our case the charts).
     sb-admin-2.min.js is the base JavaScript file for the bootstrap admin template we are using.
     Chart.min.js provides the framework responsible for printing the charts on canvases.
-    TODO exclude chart-*-demo files.
+    errors.js provides error handling for our website
     charts.js includes all functions on charts defined by us.
     apiCalls.js includes all api calls to our EMP API.
     metric.js defines all functions that are required for handling and computing backend's Metic objects.
@@ -136,6 +128,7 @@
   <script src="{% static 'emp_evaluation_system/vendor/chart.js/Chart.min.js' %}"></script>
 
   <!-- Page level custom scripts -->
+  <script src="{% static 'emp_evaluation_system/js/errors.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/charts.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/metrics.js' %}"></script>
   <script src="{% static 'emp_evaluation_system/js/apiCalls.js' %}"></script>

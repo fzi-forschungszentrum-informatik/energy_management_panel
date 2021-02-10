@@ -1,4 +1,14 @@
+{% comment %}
+    Loading evulation page tags.
+    These are reuqired for data processing when setting up comparioson graphs.
+{% endcomment %}
 {% load evaluationpage_tags %}
+
+{% comment %}
+    Setting up a comparion graph.
+    Each graph consists of a dynamic title and a canvas where the graph will be print.
+    The canvas holds all important data for the graph setup handled by the static/emp_evaluation_system/js/charts.js and the static/emp_evaluation_system/js/simulation.js file.
+{% endcomment %}
 <div class="col-12">
     <div class="card shadow mb-4">
         <div class="card-header py-3">
