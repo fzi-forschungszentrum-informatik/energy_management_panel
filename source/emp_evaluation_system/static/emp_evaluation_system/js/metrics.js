@@ -104,7 +104,6 @@ async function parse_formula(formula, data, timestamp=null) {
  *  }
  */
 async function calculate(formula, data=null){
-    console.log(data)
     var parsedFormula = await parse_formula(formula, data);
     var result = eval(parsedFormula);
     return result;

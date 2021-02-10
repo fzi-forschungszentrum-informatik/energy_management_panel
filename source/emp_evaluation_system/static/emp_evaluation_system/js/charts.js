@@ -307,12 +307,12 @@ function changeDataIntervalTo(element, intervalType) {
 
   var data = []
 
-  var reversedData = graphInfo["data_set"].get("history").get(intervalType).data.reverse();
+  var reversedData = graphInfo["data_set"].get("history").get(intervalType).data;
   data.push(reversedData);  
 
   var labels = graphInfo["data_set"].get("history").get(intervalType).labels;
 
-  var graph = createChart(graphInfo["element_id"], graphInfo["type"], data, labels.reverse() , graphInfo["graph_labels"], graphInfo["datapoint_unit"], graphInfo["ticks"]);
+  var graph = createChart(graphInfo["element_id"], graphInfo["type"], data, labels , graphInfo["graph_labels"], graphInfo["datapoint_unit"], graphInfo["ticks"]);
   
   
   graphs.delete(identifier);

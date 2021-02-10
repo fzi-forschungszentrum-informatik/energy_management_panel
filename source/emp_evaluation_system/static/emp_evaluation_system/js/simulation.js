@@ -125,7 +125,7 @@ async function updateUiElements(simulation, side) {
     var json = await getSimulationResult(simulation.name, simulation.dataWithoutName, {});
     
     var values = json["values"];
-
+    console.log(values)
     updateComparisonPageValueElements(values, side);
     updateComparisonPageMetricElements(values, side);
     updateComparisonGraphs(values, side);
@@ -223,14 +223,15 @@ async function updateComparisonGraphs(simulated_data, side) {
                     var step_cout = 20;
                     var step_size = (last_timestamp - first_timestamp) / step_cout;
                     var timestamps = [];
-                    for (var i = 0; i < step_cout; i++) {
+                    timestamps = getTimestampsForIntervalType("hourly", last_timestamp);
+                    /*for (var i = 0; i < step_cout; i++) {
                         timestamps.push(first_timestamp + i * step_size);
-                    }
+                    }*/
                     
                     for (var timestamp of timestamps) {
                         values.push(simulated_data[datapoint_origin_id].reduce((acc, object) => acc + ((object["timestamp"] == timestamp) ? parseFloat(object["value"]) : 0), 0));
                     }
-                    labels = getTimestampLablesFor("daily", timestamps)
+                    labels = getTimestampLablesFor("hourly", timestamps)
                 }
             }
             else {
@@ -272,7 +273,7 @@ async function updateComparisonGraphs(simulated_data, side) {
             graph_data.push(right_data_set);
             if (graph_element != null) graph_element.destroy();
             if(type == "area") {
-                graph_element = createChart(graph_identifier, "line", graph_data,  graph_labels, ["first", "second", "thrid"]);
+                graph_element = createChart(graph_identifier, "line", graph_data,  graph_labels, ["first", "second", "thrid"], "W");
             }
             else {
                 graph_element = createChart(graph_identifier, "bar", graph_data,  graph_labels, ["first", "second", "thrid"]);
