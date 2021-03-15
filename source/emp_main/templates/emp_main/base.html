@@ -142,14 +142,12 @@
     // Update current time displays
     function update_time(){
       let ct_elements = document.getElementsByClassName("current-time");
-      let d = new Date();
-      let d_hou = `0${d.getHours()}`.slice(-2);
-      let d_min = `0${d.getMinutes()}`.slice(-2);
-      let d_sec = `0${d.getSeconds()}`.slice(-2);
+      let d = new Date().toLocaleTimeString('de-DE', {hour12: false});
+      // .slice(0, -3); for minute precision
       for (let ct_element of ct_elements){
-        ct_element.innerHTML = `${d_hou}:${d_min}:${d_sec}`;
+        ct_element.innerHTML = d;
       };
-      setTimeout(update_time, 200);
+      setTimeout(update_time, 1000);
     }
     update_time();
 
