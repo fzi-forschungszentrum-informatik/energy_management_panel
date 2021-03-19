@@ -4,7 +4,8 @@ channels==3.0.*
 # service_identity  # is required by channels.
 django-guardian==2.3.*
 djangorestframework==3.12.*
-django-nested-admin==3.3.*
+django-nested-admin==3.3.* #enables nested admin forms in djangos admin
+django-multiselectfield==0.1.* #Includes Multiselect (multiple radio buttons) for djangos admin page
 drf-spectacular==0.11.*  # Online Swagger-UI for REST schema 
 
 # Other packages required for developing.
