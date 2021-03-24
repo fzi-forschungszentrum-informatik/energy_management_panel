@@ -1,11 +1,11 @@
 # EMP Evaluation System
 
-This is the source of the evaluation system app. This porjects intorduces mulitple features for monitoring and analyzing building energy management data. Furthermore, a comparison tool was included. This tool enables users to compare different building energy management optimization algoithms or differen algorithm settings. 
+This is the source of the evaluation system app. This porjects introduces mulitple features for monitoring and analyzing building energy management data. Furthermore, a comparison tool was included. This tool enables users to compare different building energy management optimization algoithms or different algorithm settings. 
 Overall this module's goal is to point out the potential of energy management algorithms to inexperienced users and help experts to develop new optimization algorithms with the help of the data monitoring features of this module. 
 
 ## Application Idea
 
-The application is build in a content management style. Users may create system evaluation pages with the help of Django's admin pages. These evaluation page's then will be build up on frontend load. This enables users to creat their own building energy management dashboards. 
+The application is build in a content management style. Users may create system evaluation pages with the help of Django's admin pages. These evaluation pages then will be build up on frontend load. This enables users to creat their own building energy management dashboards. 
 Predefined user interface elements are available. These UI elements can be linked to Datapoint objects and, therefore, will be filled with the Datapoint's information.
 
 ## Development
