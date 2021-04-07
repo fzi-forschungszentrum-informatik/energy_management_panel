@@ -3,13 +3,16 @@ from django.db import models
 
 class DatapointTemplate(models.Model):
     """
-    Model for a datapoint.
+    Devices are abstracted as a set of datapoints.
 
     A datapoint represents one source of information. Devices will typically
     emit information on more then one datapoints. E.g. climate sensor in a
     room might publish temperature and humidity measurements. Both will be
     treated as individual datapoints as this allows us to abstract away the
     complexity of the devices.
+
+    Each datapoint object contains the metadata necessary to interpret
+    the datapoint.
     """
 
     class Meta:
@@ -31,10 +34,14 @@ class DatapointTemplate(models.Model):
     )
     short_name = models.TextField(
         max_length=30,
-        null=True,  # Auto generated datapoints will be stored as null...
+        null=True,  # Auto generated datapoints will be stored as null.
         default=None,
         unique=True,
-        blank=False,  # ... but once it is edited in admin we need a value.
+        # Allowing short name to be an empty string would raise unique
+        # validation errors. So we ensure while saving the model that
+        # empty strings will be stored as Nones. However, we still need
+        # to allow blank inputs to prevent validation errors in admin.
+        blank=True,
         help_text=(
             "A short name to identify the datapoint."
         )
@@ -90,15 +97,6 @@ class DatapointTemplate(models.Model):
         help_text=(
             "A human readable description of the datapoint targeted on "
             "users of the API wihtout knowledge about connector details."
-        )
-    )
-    origin_description = models.TextField(
-        editable=True,
-        blank=True,
-        help_text=(
-            "A human readable description of the datapoint targeted on "
-            "users of the API wihtout knowledge about connector details."
-            "This is the description provided by the extenral tool."
         )
     )
     #
@@ -220,6 +218,8 @@ class DatapointTemplate(models.Model):
         """
         if self.origin_id == "":
             self.origin_id = None
+        if self.short_name == "":
+            self.short_name = None
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -231,11 +231,26 @@ class DatapointTemplate(models.Model):
 
 class DatapointValueTemplate(models.Model):
     """
-    Model to store value messages.
+    Represents a value of a Datapoint.
+
+    For a sensor datapoint: Represents a measurement emitted by a device.
+    Message is published by the corresponding connector service.
+
+    For an actuator datapoint: Represents a set value that should be
+    "written" to an device actuator. Message is created by an external
+    entity, send to the API service which publishes the message on the
+    broker.
     """
 
     class Meta:
         abstract = True
+        constraints = [
+            models.UniqueConstraint(
+                fields=['datapoint', 'timestamp'],
+                name='Value msg unique for timestamp',
+            ),
+        ]
+
 
     datapoint = models.ForeignKey(
         DatapointTemplate,
@@ -249,15 +264,32 @@ class DatapointValueTemplate(models.Model):
         blank=True,
         default=None,
         help_text=(
-            "The value field in datapoint value msg."
+            "The last value of the datapoint. Will be a string "
+            "or null. Values of numeric datapoints are sent "
+            "as strings too, as this drastically reduces effort "
+            "for implementing the REST interfaces."
         )
     )
-    timestamp = models.DateTimeField(
+    value_float = models.FloatField(
         null=True,
         blank=True,
         default=None,
         help_text=(
-            "The field that stores the timestamp of value msg as datetime."
+            "Similar to value but an internal float representation for "
+            "numeric datapoints."
+        )
+    )
+
+    timestamp = models.DateTimeField(
+        null=False,
+        blank=False,
+        default=None,
+        help_text=(
+            "For sensor datapoints: The time the value was "
+            "received by the connector.\n"
+            "For actuator datapoints: The time the message was "
+            "created by the external entity.\n"
+            "Both in milliseconds since 1970-01-01 UTC."
         )
     )
 
@@ -265,8 +297,27 @@ class DatapointValueTemplate(models.Model):
         """
         Update the last_value/last_value_timestamp fields in datapoint too.
         """
-        # But check first that the save for this object goes trough.
+        # Check if we can store the value as float, which is probably
+        # much more storage effiecient, comparing at least one byte
+        original_value = self.value
+        if self.value is not None:
+            try:
+                value_float = float(self.value)
+                parsable = True
+            except ValueError:
+                parsable = False
+
+            if parsable:
+                self.value_float = value_float
+                # AFAIK, null values can be stored quite effieciently by
+                # most databases.
+                self.value = None
+
         super().save(*args, **kwargs)
+
+        # Restore the original value, for any code that continous to work with
+        # the object.
+        self.value = original_value
 
         # A message without a timestamp cannot be latest.
         if self.timestamp is None:
@@ -276,18 +327,40 @@ class DatapointValueTemplate(models.Model):
         existing_ts = self.datapoint.last_value_timestamp
 
         if existing_ts is None or existing_ts <= self.timestamp:
+            print(original_value)
             self.datapoint.last_value = self.value
             self.datapoint.last_value_timestamp = self.timestamp
-            self.datapoint.save()
+            self.datapoint.save(
+                update_fields=[
+                    "last_value",
+                    "last_value_timestamp",
+                ]
+            )
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        if instance.value_float is not None:
+            instance.value = str(instance.value_float)
+        return instance
 
 
 class DatapointScheduleTemplate(models.Model):
     """
-    Model to store schedule messages.
+    The schedule is a list of actuator values computed by an optimization
+    algorithm that should be executed on the specified actuator datapoint
+    as long as the setpoint constraints is not violated. Executing
+    setpoints requires a controller service in BEMCom.
     """
 
     class Meta:
         abstract = True
+        constraints = [
+            models.UniqueConstraint(
+                fields=['datapoint', 'timestamp'],
+                name='Schedule msg unique for timestamp',
+            ),
+        ]
 
     datapoint = models.ForeignKey(
         DatapointTemplate,
@@ -297,19 +370,20 @@ class DatapointScheduleTemplate(models.Model):
         )
     )
     schedule = models.JSONField(
-        null=True,
+        null=False,
         blank=True,
-        default=None,
+        default=list,
         help_text=(
-            "The schedule field in datapoint schedule msg."
+            "A JSON array holding zero or more DatapointScheduleItems."
         )
     )
     timestamp = models.DateTimeField(
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
         default=None,
         help_text=(
-            "The field that stores the timestamp of schedule msg as datetime."
+            "The time the message was created by the external entity in "
+            "milliseconds since 1970-01-01 UTC."
         )
     )
 
@@ -331,16 +405,32 @@ class DatapointScheduleTemplate(models.Model):
         if existing_ts is None or existing_ts <= self.timestamp:
             self.datapoint.last_schedule = self.schedule
             self.datapoint.last_schedule_timestamp = self.timestamp
-            self.datapoint.save()
+            self.datapoint.save(
+                update_fields=[
+                    "last_schedule",
+                    "last_schedule_timestamp",
+                ]
+            )
 
 
 class DatapointSetpointTemplate(models.Model):
     """
-    Model to store setpoint messages.
+    The setpoint specifies the demand of the users of the system. The setpoint
+    must hold a preferred_value which is the value the user would appreciate
+    most, and can additially define flexibility of values the user would also
+    accept. The setpoint message is used by optimiazation algorithms as
+    constraints while computing schedules, as well as by controller services
+    to ensure that the demand of the user is always met.
     """
 
     class Meta:
         abstract = True
+        constraints = [
+            models.UniqueConstraint(
+                fields=['datapoint', 'timestamp'],
+                name='Setpoint msg unique for timestamp',
+            ),
+        ]
 
     datapoint = models.ForeignKey(
         DatapointTemplate,
@@ -350,11 +440,11 @@ class DatapointSetpointTemplate(models.Model):
         )
     )
     setpoint = models.JSONField(
-        null=True,
+        null=False,
         blank=True,
-        default=None,
+        default=list,
         help_text=(
-            "The setpoint field in datapoint setpoint msg."
+            "A JSON array holding zero or more DatapointSetpointItems."
         )
     )
     timestamp = models.DateTimeField(
@@ -362,7 +452,8 @@ class DatapointSetpointTemplate(models.Model):
         blank=True,
         default=None,
         help_text=(
-            "The field that stores the timestamp of setpoint msg as datetime."
+            "The time the message was created by the external entity in "
+            "milliseconds since 1970-01-01 UTC."
         )
     )
 
@@ -384,4 +475,9 @@ class DatapointSetpointTemplate(models.Model):
         if existing_ts is None or existing_ts <= self.timestamp:
             self.datapoint.last_setpoint = self.setpoint
             self.datapoint.last_setpoint_timestamp = self.timestamp
-            self.datapoint.save()
+            self.datapoint.save(
+                update_fields=[
+                    "last_setpoint",
+                    "last_setpoint_timestamp",
+                ]
+            )

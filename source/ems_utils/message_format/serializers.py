@@ -3,6 +3,9 @@ from datetime import datetime
 
 from rest_framework import serializers
 
+from ems_utils.message_format.models import DatapointValueTemplate
+from ems_utils.message_format.models import DatapointSetpointTemplate
+from ems_utils.message_format.models import DatapointScheduleTemplate
 from ems_utils.timestamp import datetime_from_timestamp, timestamp_utc_now
 
 class GenericValidators():
@@ -64,7 +67,7 @@ class GenericValidators():
             # Could be None or emptry string, both should be handled no values
             # allowed.
             if datapoint.allowed_values:
-                allowed_values = json.loads(datapoint.allowed_values)
+                allowed_values = datapoint.allowed_values
             else:
                 allowed_values = []
             if value not in allowed_values:
@@ -301,13 +304,14 @@ class GenericValidators():
         return setpoint
 
 
-class DatapointSerializer(serializers.HyperlinkedModelSerializer):
+class DatapointSerializer(serializers.ModelSerializer):
     """
-    Serializer matching the fields of the Datapoint model generated from
-    models.DatapointTemplate.
+    This is not functional but just a template for copy&paste.
+    Overload the Meta.model variable below to make it work.
     """
 
     class Meta:
+        model = None
         fields = [
             "id",
             "origin_id",
@@ -315,7 +319,6 @@ class DatapointSerializer(serializers.HyperlinkedModelSerializer):
             "data_format",
             "short_name",
             "description",
-            "origin_description",
             "min_value",
             "max_value",
             "allowed_values",
@@ -332,31 +335,27 @@ class DatapointSerializer(serializers.HyperlinkedModelSerializer):
             }
         }
 
-    def __init__(self, DatapointModel):
-        """
-        Parameters
-        ----------
-        DatapointModel : Django model
-            The datapoint model that is used to identify the nessary fields
-            of this serializer.
-        """
-        self.Meta.model = DatapointModel
-
 
 class DatapointValueSerializer(serializers.Serializer):
     """
-    Value message for a datapoint.
+    Serializer for a value message.
 
-    The value measured by sensor datapoint, or the set value send to an
-    actuator.
+    See the docstring of the DatapointValueTemplate model for details.
 
-    TODO: Add help_text.
+    Explicitly reusue the help text defined in the models to expose it
+    in the API schema.
     """
+    # Deactive docstring being pushed to schema, it's not relevant for
+    # an API user.
+    __doc__ = None
+    #
     value = serializers.CharField(
-        allow_null=True
+        allow_null=True,
+        help_text=DatapointValueTemplate.value.field.help_text,
     )
     timestamp = serializers.IntegerField(
-        allow_null=False
+        allow_null=False,
+        help_text=DatapointValueTemplate.timestamp.field.help_text,
     )
 
     def to_representation(self, instance):
@@ -385,39 +384,63 @@ class DatapointValueSerializer(serializers.Serializer):
 class DatapointScheduleItemSerializer(serializers.Serializer):
     """
     Represents the optimized actuator value for one interval in time.
-
-    TODO: Add help_text.
     """
     from_timestamp = serializers.IntegerField(
         allow_null=True,
         help_text=(
             "The time in milliseconds since 1970-01-01 UTC that the value "
             "should be applied. Can be `null` in which case the value should "
-            "be applied immediately after the schedule is received."
-        )
+            "be applied immediately after the schedule is received by "
+            "the controller."
+        ),
     )
     to_timestamp = serializers.IntegerField(
-        allow_null=True
+        allow_null=True,
+        help_text=(
+            "The time in milliseconds since 1970-01-01 UTC that the value "
+            "should no longer be applied. Can be `null` in which case the "
+            "value should be applied forever, or more realistically, until "
+            "a new schedule is received."
+        ),
     )
     value = serializers.CharField(
-        allow_null=True
+        allow_null=True,
+        help_text=(
+            "The value that should be sent to the actuator datapoint.\n"
+            "The value must be larger or equal min_value (as listed in the "
+            "datapoint metadata) if the datapoints data format is "
+            "continuous_numeric.\n"
+            "The value must be smaller or equal max_value (as listed in the "
+            "datapoint metadata) if the datapoints data format is "
+            "continuous_numeric.\n"
+            "The value must be in the list of acceptable_values (as listed "
+            "in the datapoint metadata) if the datapoints data format is "
+            "discrete."
+        )
     )
 
 class DatapointScheduleSerializer(serializers.Serializer):
     """
-    The schedule is list of actuator values computed by an optimization
-    algorithm that should be executed on the specified actuator datapoint
-    if the setpoint is not violated.
+    Serializer for a schedule message.
 
-    TODO: Add help_text.
+    See the docstring of the DatapointScheduleTemplate model for details.
+
+    Explicitly reusue the help text defined in the models to expose it
+    in the API schema.
     """
+    # Deactive docstring being pushed to schema, it's not relevant for
+    # an API user.
+    __doc__ = None
+    #
     schedule = DatapointScheduleItemSerializer(
         many=True,
         read_only=False,
-        allow_null=True,
+        allow_null=False,
+        help_text=DatapointScheduleTemplate.schedule.field.help_text,
     )
     timestamp = serializers.IntegerField(
-        allow_null=False
+        allow_null=False,
+        help_text=DatapointScheduleTemplate.timestamp.field.help_text,
     )
 
     def to_representation(self, instance):
@@ -444,18 +467,41 @@ class DatapointScheduleSerializer(serializers.Serializer):
 
 class DatapointSetpointItemSerializer(serializers.Serializer):
     """
-    The user requested value for a one time interval.
-
-    TODO: Add help_text.
+    Represents the user demand for one interval in time.
     """
     from_timestamp = serializers.IntegerField(
         allow_null=True,
+        help_text=(
+            "The time in milliseconds since 1970-01-01 UTC that the setpoint "
+            "itme should be applied. Can be `null` in which case the item "
+            "should be applied immediately after the setpoint is received by "
+            "the controller."
+        ),
     )
     to_timestamp = serializers.IntegerField(
         allow_null=True,
+        help_text=(
+            "The time in milliseconds since 1970-01-01 UTC that the setpoint "
+            "item should no longer be applied. Can be `null` in which case the "
+            "item should be applied forever, or more realistically, until "
+            "a new setpoint is received."
+        ),
     )
     preferred_value = serializers.CharField(
         allow_null=True,
+        help_text=(
+            "Specifies the preferred setpoint of the user. This value should "
+            "be send to the actuator datapoint by the controller if either no "
+            "schedule is applicable, or the current value of the corresponding "
+            "sensor datapoint is out of range of `acceptable_values` (for "
+            "discrete datapoints) or not between `min_value` and `max_value` "
+            "(for continuous datapoints) as defined in this setpoint item.\n"
+            "Furthermore, the value of `preferred_value` must match the "
+            "requirements of the actuator datapoint, i.e. it must be in "
+            "`acceptable_values` (for discrete datapoints) or not between "
+            "`min_value` and `max_value` (for continuous datapoints) as "
+            "specified in the correpsonding fields of the actuator datapoint."
+        ),
     )
     acceptable_values = serializers.ListField(
         child=serializers.CharField(
@@ -463,31 +509,57 @@ class DatapointSetpointItemSerializer(serializers.Serializer):
         ),
         allow_null=True,
         required=False,
+        help_text=(
+            "Specifies the flexibility of the user regarding the sensor "
+            "datapoint for discrete values. That is, it specifies the actually "
+            "realized values the user is willing to accept. Consider e.g. the "
+            "scenario where a room with a discrete heating control has "
+            "currently 16°C. If the user specified this field with [20, 21, 22]"
+            "it means that only these three temperature values are acceptable. "
+            "This situation would cause the controller to immediately send the "
+            "preferred_value to the actuator datapoint, even if the schedule "
+            "would define a value that lays within the acceptable range."
+        ),
     )
     min_value = serializers.FloatField(
         allow_null=True,
         required=False,
+        help_text=(
+            "Similar to `acceptable_values` above but defines the minimum value"
+            "the user is willing to accept for continous datapoints."
+        ),
     )
     max_value = serializers.FloatField(
         allow_null=True,
         required=False,
+        help_text=(
+            "Similar to `acceptable_values` above but defines the maximum value"
+            "the user is willing to accept for continous datapoints."
+        ),
     )
 
 
 class DatapointSetpointSerializer(serializers.Serializer):
     """
-    Represents the demand that a user specifies for a datapoint, i.e. the
-    range of values (or single value) the user is willing to except.
+    Serializer for a setpoint message.
 
-    TODO: Add help_text.
+    See the docstring of the DatapointSetpointTemplate model for details.
+
+    Explicitly reusue the help text defined in the models to expose it
+    in the API schema.
     """
+    # Deactive docstring being pushed to schema, it's not relevant for
+    # an API user.
+    __doc__ = None
     setpoint = DatapointSetpointItemSerializer(
         many=True,
         read_only=False,
-        allow_null=True
+        allow_null=True,
+        help_text=DatapointSetpointTemplate.setpoint.field.help_text,
     )
     timestamp = serializers.IntegerField(
-        allow_null=False
+        allow_null=False,
+        help_text=DatapointSetpointTemplate.timestamp.field.help_text,
     )
 
     def to_representation(self, instance):
