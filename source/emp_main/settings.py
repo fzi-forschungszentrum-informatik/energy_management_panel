@@ -38,11 +38,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'guardian',
+    'rest_framework',
+    'drf_spectacular',
     'emp_main.apps.EmpMainConfig',
     'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
     'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
+    'emp_history_db.apps.EmpHistoryDbConfig'
 ]
+
+REST_FRAMEWORK = {
+    # YOUR SETTINGS
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
 
 # Define all installed apps which extend the EMP functionality.
 # This is used to automatically wire up the urls to these apps and to
@@ -53,6 +61,7 @@ EMP_APPS = [
     "emp_demo_ui_app",
     "emp_demo_dp_interface",
     "emp_django_authenticator",
+    "emp_history_db",
 ]
 
 MIDDLEWARE = [

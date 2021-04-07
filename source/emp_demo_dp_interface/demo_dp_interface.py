@@ -76,7 +76,7 @@ class DemoDPInterface():
 
         # Updateing/Inserting metadata for a datapoint could look like this:
         dp, created = Datapoint.objects.get_or_create(
-            external_id=1,
+            origin_id=1,
             type="sensor"
         )
         dp.data_format = "continuous_numeric"
@@ -99,7 +99,7 @@ class DemoDPInterface():
             # last_value is string field but will also accept a number. However
             # the methods listening to post_save (e.g. consumers notifing the
             # user about new data) will expect a string.
-            dp = Datapoint.objects.get(external_id=1)
+            dp = Datapoint.objects.get(origin_id=1)
             dp.last_value = str(value)
             dp.last_value_timestamp = timestamp_as_dt
             dp.save(update_fields=["last_value", "last_value_timestamp"])
