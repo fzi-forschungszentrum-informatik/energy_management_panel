@@ -1,4 +1,0 @@
-# FastAPI for providing quick and dirty REST interface of fake orchestration services.
-fastapi==0.61.*
-uvicorn==0.12.2
-
