@@ -98,10 +98,28 @@ class ScenarioRunner():
             self.datapoint_id_mapping = {}
             for datapoint in scenario.datapoints:
                 response = requests.post(dp_url, json=datapoint)
+                if response.status_code == 201:
+                    emp_id = response.json()["id"]
+                elif response.status_code == 400:
+                    # The cause might be that the DP already exists.
+                    # Thus we try to update an existing DP.
+                    # Start by retrieving the id.
+                    response = requests.get(
+                        dp_url + "?origin_id={}"
+                        .format(datapoint["origin_id"])
+                    )
+                    if response.status_code != 200:
+                        raise RuntimeError("Could not retrieve DP ID.")
+                    emp_id = response.json()[0]["id"]
+                    # Now also trigger an update
+                    put_url = dp_url + "/{}/".format(emp_id)
+                    response = requests.put(put_url, json=datapoint)
+                else:
+                    raise RuntimeError("EMP Server Error: {}".format(response))
+
                 # We also keep a mapping from the origin_id we use here
                 # to the datapoint id used by the EMP. It looks e.g. like this
                 # {'apartment_total_electric_power': 8, ... }
-                emp_id = response.json()["id"]
                 self.datapoint_id_mapping[datapoint["origin_id"]] = emp_id
 
     async def run_active(self):
