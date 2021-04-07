@@ -4,17 +4,23 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 
 from .models import Datapoint
-from .utils import datetime_to_pretty_str
+from .models import DatapointValue
+from .models import DatapointSetpoint
+from .models import DatapointSchedule
+from ems_utils.timestamp import datetime_to_pretty_str
 
 
 @admin.register(Datapoint)
 class DatapointAdmin(admin.ModelAdmin):
     """
     Admin model instance for Datapoints.
+
+    TODO: Prevent changing stuff in Admin for external datapoints, like
+    e.g. type or data_format. In fact all the fields that are pushed in
+    externally.
     """
     list_display = (
         "string_representation",
-        "external_id",
         "type",
         "data_format",
         "description",
@@ -34,8 +40,9 @@ class DatapointAdmin(admin.ModelAdmin):
     )
     search_fields = (
         "id",
-        "external_id",
+        "origin_id",
         "description",
+        "origin_description",
     )
     readonly_fields = (
         "id",
@@ -124,7 +131,7 @@ class DatapointAdmin(admin.ModelAdmin):
 
         generic_metadata_fields.extend([
             "short_name",
-            "external_id",
+            "origin_id",
             "type",
             "data_format",
             "description",
@@ -183,3 +190,86 @@ class DatapointAdmin(admin.ModelAdmin):
     formfield_overrides = {
         db.models.TextField: {'widget': forms.TextInput(attrs={'size': '60'})},
     }
+
+
+@admin.register(DatapointValue)
+class DatapointValueAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "datapoint",
+        "timestamp_pretty",
+        "value",
+    )
+    list_filter = (
+        "datapoint",
+    )
+    readonly_fields = (
+        "id",
+    )
+
+    def timestamp_pretty(self, obj):
+        """
+        Displays a prettier timestamp format.
+        """
+        ts = obj.timestamp
+        if ts is None:
+            return "-"
+        return datetime_to_pretty_str(ts)
+    timestamp_pretty.admin_order_field = "timestamp"
+    timestamp_pretty.short_description = "Timestamp"
+
+
+@admin.register(DatapointSetpoint)
+class DatapointSetpointAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "datapoint",
+        "timestamp_pretty",
+        "setpoint",
+    )
+    list_filter = (
+        "datapoint",
+    )
+    readonly_fields = (
+        "id",
+    )
+
+    def timestamp_pretty(self, obj):
+        """
+        Displays a prettier timestamp format.
+        """
+        ts = obj.timestamp
+        if ts is None:
+            return "-"
+        return datetime_to_pretty_str(ts)
+    timestamp_pretty.admin_order_field = "timestamp"
+    timestamp_pretty.short_description = "Timestamp"
+
+@admin.register(DatapointSchedule)
+class DatapointScheduleAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "datapoint",
+        "timestamp_pretty",
+        "schedule",
+    )
+    list_filter = (
+        "datapoint",
+    )
+    readonly_fields = (
+        "id",
+    )
+
+    def timestamp_pretty(self, obj):
+        """
+        Displays a prettier timestamp format.
+        """
+        ts = obj.timestamp
+        if ts is None:
+            return "-"
+        return datetime_to_pretty_str(ts)
+    timestamp_pretty.admin_order_field = "timestamp"
+    timestamp_pretty.short_description = "Timestamp"

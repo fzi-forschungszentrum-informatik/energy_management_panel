@@ -1,4 +1,8 @@
+"""
+Utility functions for timestamps and datetime objects.
+"""
 from datetime import datetime, timezone
+
 
 def datetime_from_timestamp(timestamp, tz_aware=True):
     """
@@ -16,10 +20,27 @@ def datetime_from_timestamp(timestamp, tz_aware=True):
     dt: datetime object
         Corresponding datetime object
     """
+    # This returns the local time.
     dt = datetime.fromtimestamp(timestamp / 1000.)
-    if tz_aware:
-        dt = dt.astimezone(timezone.utc)
+    # So we recompute it to UTC.
+    dt = dt.astimezone(timezone.utc)
+    if not tz_aware:
+        # Remove timezone if not requested.
+        dt = dt.replace(tzinfo=None)
     return dt
+
+
+def timestamp_utc_now():
+    """
+    Compute current timestamp.
+
+    Returns:
+    --------
+    ts_utc_now : int
+        The rounded timestamp of the current UTC time in milliseconds.
+    """
+    return round(datetime.now(tz=timezone.utc).timestamp() * 1000)
+
 
 def datetime_to_pretty_str(dt):
     """

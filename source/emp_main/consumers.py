@@ -8,7 +8,7 @@ from channels.generic.websocket import JsonWebsocketConsumer
 
 from .models import Datapoint
 from .apps import EmpAppsCache
-from .utils import datetime_to_pretty_str
+from ems_utils.timestamp import datetime_to_pretty_str
 
 logger = logging.getLogger(__name__)
 
