@@ -47,7 +47,10 @@ class TestDatapointValueSerializer(TransactionTestCase):
         cls.datapoint.save()
 
         # Here are the default field values:
-        cls.default_field_values = {"datapoint": cls.datapoint}
+        cls.default_field_values = {
+            "datapoint": cls.datapoint,
+            "timestamp": datetime_from_timestamp(1612860152000),
+        }
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -127,7 +130,7 @@ class TestDatapointValueSerializer(TransactionTestCase):
         accepted.
         """
         dp = self.datapoint
-        dp.allowed_values = '["not a number"]'
+        dp.allowed_values = ["not a number"]
         dp.save()
 
         numeric_data_formats = [
@@ -261,22 +264,22 @@ class TestDatapointValueSerializer(TransactionTestCase):
             {
                 "value": 2.0,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1.0, 2.0, 3.0]'
+                "allowed_values": [1.0, 2.0, 3.0]
             },
             {
                 "value": 2,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1, 2, 3]'
+                "allowed_values": [1, 2, 3]
             },
             {
                 "value": "OK",
                 "data_format": "discrete_text",
-                "allowed_values": '["OK", "Done"]'
+                "allowed_values": ["OK", "Done"]
             },
             {
                 "value": None,
                 "data_format": "discrete_text",
-                "allowed_values": '[null, "Nope"]'
+                "allowed_values": [None, "Nope"]
             },
         ]
         for valid_combination in valid_combinations:
@@ -306,32 +309,32 @@ class TestDatapointValueSerializer(TransactionTestCase):
             {
                 "value": 2.0,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1.0, 3.0]'
+                "allowed_values": [1.0, 3.0]
             },
             {
                 "value": 2,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1, 3]'
+                "allowed_values": [1, 3]
             },
             {
                 "value": 2,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[]'
+                "allowed_values": []
             },
             {
                 "value": "OK",
                 "data_format": "discrete_text",
-                "allowed_values": '["NotOK", "OK "]'
+                "allowed_values": ["NotOK", "OK "]
             },
             {
                 "value": "",
                 "data_format": "discrete_text",
-                "allowed_values": '["OK"]'
+                "allowed_values": ["OK"]
             },
             {
                 "value": None,
                 "data_format": "discrete_text",
-                "allowed_values": '["OK"]'
+                "allowed_values": ["OK"]
             },
         ]
         for invalid_combination in invalid_combinations:
@@ -470,25 +473,28 @@ class TestDatapointScheduleSerializer(TransactionTestCase):
         serializer = DatapointScheduleSerializer(dp_schedule)
         assert serializer.data == expected_data
 
-    def test_to_representation_for_none(self):
-        """
-        Check that a schedule message is serialized as expected if the
-        schedule is None.
-        """
-        expected_data = {
-            "schedule": None,
-            "timestamp": timestamp_utc_now(),
-        }
-
-        field_values = self.default_field_values.copy()
-        field_values.update({
-            "schedule": expected_data["schedule"],
-            "timestamp": datetime_from_timestamp(expected_data["timestamp"])
-        })
-        dp_schedule = self.DatapointSchedule.objects.create(**field_values)
-
-        serializer = DatapointScheduleSerializer(dp_schedule)
-        assert serializer.data == expected_data
+    #
+    # # Deactivated. None is currently not defined as a valid schedule
+    #
+    # def test_to_representation_for_none(self):
+    #     """
+    #     Check that a schedule message is serialized as expected if the
+    #     schedule is None.
+    #     """
+    #     expected_data = {
+    #         "schedule": None,
+    #         "timestamp": timestamp_utc_now(),
+    #     }
+    #
+    #     field_values = self.default_field_values.copy()
+    #     field_values.update({
+    #         "schedule": expected_data["schedule"],
+    #         "timestamp": datetime_from_timestamp(expected_data["timestamp"])
+    #     })
+    #     dp_schedule = self.DatapointSchedule.objects.create(**field_values)
+    #
+    #     serializer = DatapointScheduleSerializer(dp_schedule)
+    #     assert serializer.data == expected_data
 
     def test_required_fields(self):
         """
@@ -561,13 +567,16 @@ class TestDatapointScheduleSerializer(TransactionTestCase):
         serializer = DatapointScheduleSerializer(dp, data=test_data)
         assert serializer.is_valid(raise_exception=True)
 
-        # This is also ok.
-        test_data = {
-            "schedule": None,
-            "timestamp": timestamp_utc_now(),
-        }
-        serializer = DatapointScheduleSerializer(dp, data=test_data)
-        assert serializer.is_valid(raise_exception=True)
+        #
+        # # This is currently not a valid schedule anymore.
+        #
+        # # This is also ok.
+        # test_data = {
+        #     "schedule": None,
+        #     "timestamp": timestamp_utc_now(),
+        # }
+        # serializer = DatapointScheduleSerializer(dp, data=test_data)
+        # assert serializer.is_valid(raise_exception=True)
 
     def test_schedule_validated_as_list(self):
         """
@@ -887,22 +896,22 @@ class TestDatapointScheduleSerializer(TransactionTestCase):
             {
                 "value": 2.0,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1.0, 2.0, 3.0]'
+                "allowed_values": [1.0, 2.0, 3.0]
             },
             {
                 "value": 2,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1, 2, 3]'
+                "allowed_values": [1, 2, 3]
             },
             {
                 "value": "OK",
                 "data_format": "discrete_text",
-                "allowed_values": '["OK", "Done"]'
+                "allowed_values": ["OK", "Done"]
             },
             {
                 "value": None,
                 "data_format": "discrete_text",
-                "allowed_values": '[null, "Nope"]'
+                "allowed_values": [None, "Nope"]
             },
         ]
         for valid_combination in valid_combinations:
@@ -937,32 +946,32 @@ class TestDatapointScheduleSerializer(TransactionTestCase):
             {
                 "value": 2.0,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1.0, 3.0]'
+                "allowed_values": [1.0, 3.0]
             },
             {
                 "value": 2,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1, 3]'
+                "allowed_values": [1, 3]
             },
             {
                 "value": 2,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[]'
+                "allowed_values": []
             },
             {
                 "value": "OK",
                 "data_format": "discrete_text",
-                "allowed_values": '["NotOK", "OK "]'
+                "allowed_values": ["NotOK", "OK "]
             },
             {
                 "value": "",
                 "data_format": "discrete_text",
-                "allowed_values": '["OK"]'
+                "allowed_values": ["OK"]
             },
             {
                 "value": None,
                 "data_format": "discrete_text",
-                "allowed_values": '["OK"]'
+                "allowed_values": ["OK"]
             },
         ]
         for invalid_combination in invalid_combinations:
@@ -1278,27 +1287,29 @@ class TestDatapointSetpointSerializer(TransactionTestCase):
 
         serializer = DatapointSetpointSerializer(dp_schedule)
         assert serializer.data == expected_data
-
-    def test_to_representation_for_none(self):
-
-        """
-        Check that a setpoint message is serialized as expected if the
-        setpoint is None.
-        """
-        expected_data = {
-            "setpoint": None,
-            "timestamp": timestamp_utc_now(),
-        }
-
-        field_values = self.default_field_values.copy()
-        field_values.update({
-            "setpoint": expected_data["setpoint"],
-            "timestamp": datetime_from_timestamp(expected_data["timestamp"])
-        })
-        dp_schedule = self.DatapointSetpoint.objects.create(**field_values)
-
-        serializer = DatapointSetpointSerializer(dp_schedule)
-        assert serializer.data == expected_data
+    #
+    # # Deactivated. None is currently not defined as a valid setpoint
+    #
+    # def test_to_representation_for_none(self):
+    #
+    #     """
+    #     Check that a setpoint message is serialized as expected if the
+    #     setpoint is None.
+    #     """
+    #     expected_data = {
+    #         "setpoint": None,
+    #         "timestamp": timestamp_utc_now(),
+    #     }
+    #
+    #     field_values = self.default_field_values.copy()
+    #     field_values.update({
+    #         "setpoint": expected_data["setpoint"],
+    #         "timestamp": datetime_from_timestamp(expected_data["timestamp"])
+    #     })
+    #     dp_schedule = self.DatapointSetpoint.objects.create(**field_values)
+    #
+    #     serializer = DatapointSetpointSerializer(dp_schedule)
+    #     assert serializer.data == expected_data
 
     def test_required_fields(self):
         """
@@ -1369,13 +1380,16 @@ class TestDatapointSetpointSerializer(TransactionTestCase):
         serializer = DatapointSetpointSerializer(dp, data=test_data)
         assert serializer.is_valid()
 
-        # This is also ok.
-        test_data = {
-            "setpoint": None,
-            "timestamp": timestamp_utc_now(),
-        }
-        serializer = DatapointSetpointSerializer(dp, data=test_data)
-        assert serializer.is_valid()
+        #
+        # # This is currently not a valid setpoint anymore.
+        #
+        # # This is also ok.
+        # test_data = {
+        #     "setpoint": None,
+        #     "timestamp": timestamp_utc_now(),
+        # }
+        # serializer = DatapointSetpointSerializer(dp, data=test_data)
+        # assert serializer.is_valid()
 
     def test_setpoint_validated_as_list(self):
         """
@@ -1762,22 +1776,22 @@ class TestDatapointSetpointSerializer(TransactionTestCase):
             {
                 "preferred_value": 2.0,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1.0, 2.0, 3.0]'
+                "allowed_values": [1.0, 2.0, 3.0]
             },
             {
                 "preferred_value": 2,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1, 2, 3]'
+                "allowed_values": [1, 2, 3]
             },
             {
                 "preferred_value": "OK",
                 "data_format": "discrete_text",
-                "allowed_values": '["OK", "Done"]'
+                "allowed_values": ["OK", "Done"]
             },
             {
                 "preferred_value": None,
                 "data_format": "discrete_text",
-                "allowed_values": '[null, "Nope"]'
+                "allowed_values": [None, "Nope"]
             },
         ]
         for valid_combination in valid_combinations:
@@ -1815,32 +1829,32 @@ class TestDatapointSetpointSerializer(TransactionTestCase):
             {
                 "preferred_value": 2.0,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1.0, 3.0]'
+                "allowed_values": [1.0, 3.0]
             },
             {
                 "preferred_value": 2,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[1, 3]'
+                "allowed_values": [1, 3]
             },
             {
                 "preferred_value": 2,
                 "data_format": "discrete_numeric",
-                "allowed_values": '[]'
+                "allowed_values": []
             },
             {
                 "preferred_value": "OK",
                 "data_format": "discrete_text",
-                "allowed_values": '["NotOK", "OK "]'
+                "allowed_values": ["NotOK", "OK "]
             },
             {
                 "preferred_value": "",
                 "data_format": "discrete_text",
-                "allowed_values": '["OK"]'
+                "allowed_values": ["OK"]
             },
             {
                 "preferred_value": None,
                 "data_format": "discrete_text",
-                "allowed_values": '["OK"]'
+                "allowed_values": ["OK"]
             },
         ]
         for invalid_combination in invalid_combinations:
