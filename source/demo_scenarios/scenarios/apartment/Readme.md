@@ -1,0 +1,3 @@
+# Apartment Scenario
+
+Represents a normal apartment with smart appliances that allow optimizing the start time of operation to minimize energy costs for a dynamic electricity tariff. All code lives in [apartment.py](apartment.py). The electricity profiles of the appliances are stored in [appliances_profiles.pickle](appliances_profiles.pickle) and have been generated from measurements, as documented in [load_from_csv_raw_data.ipynb](load_from_csv_raw_data.ipynb). 
