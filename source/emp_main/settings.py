@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
     'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
+    'emp_locations.apps.EmpLocationsConfig',
 ]
 
 # Define all installed apps which extend the EMP functionality.
@@ -57,6 +58,7 @@ EMP_APPS = [
     "emp_demo_ui_app",
     "emp_demo_dp_interface",
     "emp_django_authenticator",
+    "emp_locations",
 ]
 
 MIDDLEWARE = [

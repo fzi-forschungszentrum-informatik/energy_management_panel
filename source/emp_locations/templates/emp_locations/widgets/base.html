@@ -1,0 +1,31 @@
+{% load static %}
+{% comment %}
+Here all generic widget (cards) code.
+
+Including
+1) The card.
+2) The modal. (NOT IMPLEMENTED)
+{% endcomment %}
+<div class="card emp-widget-card">
+    <div class="card-header">
+        {% block widget-title %}
+            Example-title
+        {% endblock %}
+
+        {% if widget.has_detail %}
+          <button type="button"
+                  class="btn close"
+                  data-toggle="modal"
+                  data-target="#{{widget.detail_id}}"
+            >
+            <img src="{% static "emp-main/icons/fullscreen.svg" %}"
+                 alt="Maximize"
+            >
+          </button>
+        {% endif %}
+    </div>
+    <div class="card-body emp-widget-card-center-body-vertically">
+        {% block widget-content %}
+        {% endblock %}
+    </div>
+</div>

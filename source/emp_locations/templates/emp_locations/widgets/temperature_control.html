@@ -1,0 +1,55 @@
+{% extends "emp_locations/widgets/base.html" %}
+{% load static %}
+{% load datapoint_helpers %}
+
+{% block widget-title %}
+    Temperature Control
+{% endblock %}
+
+{% block widget-content %}
+
+    <div style="display: flex; justify-content: center" class="mb-3">
+      <div class="btn-group btn-group-toggle" data-toggle="buttons">
+
+        <label class="btn btn-primary">
+          <input type="radio" name="options" id="option1" autocomplete="off"> Cool
+        </label>
+
+        <label class="btn btn-primary active">
+          <input type="radio" name="options" id="option2" autocomplete="off"> Off
+        </label>
+
+        <label class="btn btn-primary">
+          <input type="radio" name="options" id="option3" autocomplete="off"> Heat
+        </label>
+
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: center">
+
+      <button class="btn btn-primary emp-widget-card-body-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+               class="feather feather-chevron-down">
+              <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+      </button>
+
+      <div class="my-auto mx-3">
+        <b>
+          {% dp_field_value widget.temperaturecontrolwidgetaddition.temperature_setpoint "last_value" field_collector %}
+        </b>
+        {% dp_field_value widget.temperaturecontrolwidgetaddition.temperature_setpoint "unit" field_collector %}
+      </div>
+
+      <button class="btn btn-primary emp-widget-card-body-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+               class="feather feather-chevron-up">
+              <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+      </button>
+
+    </div>
+{% endblock %}

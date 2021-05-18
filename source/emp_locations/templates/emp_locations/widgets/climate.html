@@ -1,0 +1,32 @@
+{% extends "emp_locations/widgets/base.html" %}
+{% load static %}
+{% load datapoint_helpers %}
+
+{% block widget-title %}
+    Climate
+{% endblock %}
+
+{% block widget-content %}
+    <div style="display: flex; justify-content: space-around">
+        <div>
+            <img src="{% static "emp-locations/icons/temperature.png" %}"
+                 alt="Temperature"
+                 class="emp-widget-card-body-icon"
+            >
+            <b>
+              {% dp_field_value widget.climatewidgetaddition.temperature "last_value" field_collector %}
+            </b>
+            {% dp_field_value widget.climatewidgetaddition.temperature "unit" field_collector %}
+        </div>
+        <div>
+            <img src="{% static "emp-locations/icons/humidity.png" %}"
+                 alt="Humidity"
+                 class="emp-widget-card-body-icon"
+            >
+            <b>
+              {% dp_field_value widget.climatewidgetaddition.humidity "last_value" field_collector %}
+            </b>
+            {% dp_field_value widget.climatewidgetaddition.humidity "unit" field_collector %}
+        </div>
+    </div>
+{% endblock %}

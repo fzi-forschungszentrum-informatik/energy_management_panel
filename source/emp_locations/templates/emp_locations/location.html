@@ -1,0 +1,45 @@
+{% extends "emp_main/base.html" %}
+{% load static %}
+{% load datapoint_helpers %}
+
+{% block head %}
+    <link href='https://use.fontawesome.com/releases/v5.0.6/css/all.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{% static "emp-locations/fullcalendar/core/main.min.css" %}">
+    <link rel="stylesheet" href="{% static "emp-locations/fullcalendar/list/main.min.css" %}">
+    <link rel="stylesheet" href="{% static "emp-locations/fullcalendar/daygrid/main.min.css" %}>
+    <link rel="stylesheet" href="{% static "emp-locations/fullcalendar/timegrid/main.min.css" %}">
+    <link rel="stylesheet" href="{% static "emp-locations/fullcalendar/bootstrap/main.min.css" %}">
+    <script src="{% static "emp-locations/fullcalendar/core/main.min.js" %}"></script>
+    <script src="{% static "emp-locations/fullcalendar/list/main.min.js" %}"></script>
+    <script src="{% static "emp-locations/fullcalendar/daygrid/main.min.js" %}"></script>
+    <script src="{% static "emp-locations/fullcalendar/timegrid/main.min.js" %}"></script>
+    <script src="{% static "emp-locations/fullcalendar/bootstrap/main.min.js" %}"></script>
+{% endblock head %}
+
+{% block body_html %}
+  <style>
+    .emp-content-container{
+      overflow-y: scroll;
+    }
+  </style>
+
+  <h5>{{location_name|title}}</h5>
+  <hr>
+  <div class="emp-card-deck">
+    {% for widget in location_widgets %}
+      {% include "emp_locations/widgets/"|add:widget.type|add:".html" with widget=widget %}
+    {% endfor %}
+  </div>
+{% endblock body_html %}
+
+{% block body_details %}
+  {% for widget in location_widgets %}
+    {% if widget.has_detail %}
+      {% include "emp_locations/widgets/"|add:widget.type|add:"_detail.html" with widget=widget detail=widget.detail %}
+    {% endif %}
+  {% endfor %}
+{% endblock body_details %}
+
+  {% block body_script %}
+    <!-- Place additional JS scripting here. -->
+  {% endblock body_script %}
