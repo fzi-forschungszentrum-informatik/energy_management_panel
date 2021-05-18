@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from .apps import app_url_prefix
 from emp_main.models import Datapoint
 
+
 class Location(models.Model):
     """
     Model for Locations like room numbers used to organize the EMP.
@@ -148,6 +149,24 @@ class GenericWidgetAddition(models.Model):
         editable=False,
     )
 
+    def get_detail(self):
+        """
+        Returns the Detail config, creates no detail by default.
+
+        Returns:
+        --------
+        Detail : class
+            A class that dynamically configures the detail template.
+        """
+        class Detail:
+            is_active = False
+            has_custom_tab = False
+            has_plot_tab = False
+            has_datapoint_tab = False
+        Detail.html_id = "widget_detail_" + str(self.widget.id)
+        Detail.datapoints_for_tab = []
+        return Detail
+
 
 class ClimateWidgetAddition(GenericWidgetAddition):
 
@@ -174,6 +193,23 @@ class ClimateWidgetAddition(GenericWidgetAddition):
         )
     )
 
+    def get_detail(self):
+        """
+        Returns the Detail config, creates no detail by default.
+
+        Returns:
+        --------
+        Detail : class
+            A class that dynamically configures the detail template.
+        """
+        class Detail:
+            is_active = True
+            has_custom_tab = True
+            has_plot_tab = False
+            has_datapoint_tab = True
+        Detail.html_id = "widget_detail_" + str(self.widget.id)
+        Detail.datapoints_for_tab = [self.humidity, self.temperature]
+        return Detail
 
 class TemperatureControlWidgetAddition(GenericWidgetAddition):
 
@@ -203,4 +239,21 @@ class OccupancyWidgetAddition(GenericWidgetAddition):
     This model needs some additional fields (and probably logic too) to
     handle some form of calendar data.
     """
-    pass
+
+    def get_detail(self):
+        """
+        Returns the Detail config, creates no detail by default.
+
+        Returns:
+        --------
+        Detail : class
+            A class that dynamically configures the detail template.
+        """
+        class Detail:
+            is_active = True
+            has_custom_tab = False
+            has_plot_tab = False
+            has_datapoint_tab = False
+        Detail.html_id = "widget_detail_" + str(self.widget.id)
+        Detail.datapoints_for_tab = []
+        return Detail

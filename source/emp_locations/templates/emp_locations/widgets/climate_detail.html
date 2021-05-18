@@ -1,13 +1,19 @@
-{% extends "emp_main/base_detail.html" %}
+{% extends "emp_main/base_detail_with_tabs.html" %}
 {% load static %}
 
 {% block detail_title %}
-  Climate Detail - {{detail.location.name}}
+  Climate Detail - {{widget.location.name}}
 {% endblock detail_title %}
 
-{% block detail_body %}
+{% block detail_custom_tab_title %}
+  Climate
+{% endblock detail_custom_tab_title %}
+
+{% block detail_custom_tab_body %}
+<div style="height:300px">
   <p>
-    This is the custom tab of the {{widget.type}} widget.
+    Add here any details about the {{widget.type}} widget that are important
+    but don't fit into main widget card.
   </p>
-  <img src="https://via.placeholder.com/865">
-{% endblock detail_body %}
+</div>
+{% endblock detail_custom_tab_body %}
