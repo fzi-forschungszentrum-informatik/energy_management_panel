@@ -42,7 +42,6 @@ class DatapointAdmin(admin.ModelAdmin):
         "id",
         "origin_id",
         "description",
-        "origin_description",
     )
     readonly_fields = (
         "id",
