@@ -109,7 +109,7 @@
 
 .emp-side-navbar a {
   /* Removes the link color from navbar entries. */
-  color: inherit;
+  color: inherit !important; /* !important necessary since bootstrap v5 as .nav-link:focus now sets link color (blue) */
   text-decoration: none;
 }
 
@@ -124,7 +124,8 @@
 }
 
 .nav-link-separator{
-  border-top: 1px solid #dedfe0;
+  color: #dedfe0;
+  opacity: 1;
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }

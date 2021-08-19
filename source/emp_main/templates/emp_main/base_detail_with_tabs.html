@@ -15,7 +15,7 @@
       {% if detail.has_custom_tab %}
         <a class="nav-item nav-link active"
            id="{{detail.html_id}}_custom_nav"
-           data-toggle="tab"
+           data-bs-toggle="tab"
            href="#{{detail.html_id}}_custom_tab">
              {% block detail_custom_tab_title %}
              {% endblock detail_custom_tab_title %}
@@ -24,7 +24,7 @@
       {% if detail.has_plot_tab %}
         <a class="nav-item nav-link {% if not detail.has_custom_tab %}active{% endif %}"
            id="{{detail.html_id}}_plot_nav"
-           data-toggle="tab"
+           data-bs-toggle="tab"
            href="#{{detail.html_id}}_plot_tab">
           <!-- TODO -->
           Plot
@@ -33,7 +33,7 @@
       {% if detail.has_datapoint_tab %}
         <a class="nav-item nav-link {% if not detail.has_custom_tab and not detail.has_plot_tab %}active{% endif %}"
            id="{{detail.html_id}}_datapoints_nav"
-           data-toggle="tab"
+           data-bs-toggle="tab"
            href="#{{detail.html_id}}_datapoints_tab"
         >
           <!-- TODO -->
