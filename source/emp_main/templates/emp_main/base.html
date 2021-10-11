@@ -32,7 +32,7 @@
 
 </head>
 <body>
-  <nav class="navbar navbar-dark bg-dark emp-top-navbar">
+  <nav class="navbar navbar-dark bg-dark emp-top-navbar px-3">
     <div id="title-logo-container">
       <img id="title-logo" src={{TOPBAR_LOGO_STATIC}} alt="FZI" height="100%">
     </div>
@@ -80,7 +80,7 @@
           <li class="nav-item">
             <a class="nav-link collapsed"
                href=#{{app_nav_content.app_nav_id}}
-               data-toggle="collapse">
+               data-bs-toggle="collapse">
               <img class="nav-link-icon"
                    src="{% static "emp-main/icons/submenu.svg" %}"
               >{{app_nav_name}}
@@ -163,7 +163,7 @@
     window.addEventListener("beforeunload", function(){
       let shown_submenus = [];
       let shown_submenu_nav_links = document.querySelectorAll(
-        '.nav-link[data-toggle="collapse"]:not(.collapsed)'
+        '.nav-link[data-bs-toggle="collapse"]:not(.collapsed)'
       );
       for (let nl of shown_submenu_nav_links){
         shown_submenus.push(nl.attributes.href.value);
