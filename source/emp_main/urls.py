@@ -25,6 +25,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from .views import EMPBaseView
 from .views import DatapointViewSet, DatapointValueViewSet
 from .views import DatapointScheduleViewSet, DatapointSetpointViewSet
+from .views import DatapointLastValueViewSet
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -52,6 +53,12 @@ urlpatterns = [
         DatapointValueViewSet.as_view({
             "get": "list",
             "post": "create",
+        })
+    ),
+    path(
+        "api/datapoint/<int:dp_id>/last_value/",
+        DatapointLastValueViewSet.as_view({
+            "get": "retrieve",
         })
     ),
     path(
