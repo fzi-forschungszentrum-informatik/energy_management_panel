@@ -196,12 +196,14 @@ async function setUpChart(element, data=null) {
   var actual_interval = data_intervals[0];
 
   var datapoint = await getDatapoint(datapoint_id);
+  var datapoint_lastValue = await getDatapointLastValue(datapoint_id);
+  console.log(datapoint)
   var datapoint_name = datapoint["short_name"]
   var datapoint_unit = datapoint["unit"];
 
   var graphLabels = data_types.map((type) => datapoint_name.concat(" " + type.charAt(0).toUpperCase() + type.slice(1)));   
   
-  chartDataSet = await getChartDataset(datapoint, data_types, data_intervals, data, formula); 
+  chartDataSet = await getChartDataset(datapoint, datapoint_lastValue, data_types, data_intervals, data, formula); 
   var data = [];
   //Reverse Data so that the newest data value comes last in graph.
   data_types.forEach((type)=> {
@@ -243,14 +245,15 @@ ChartDataset:Map
 Each Dataset contains x-axis labels and data values to print a chart
 */
 
-async function getChartDataset(datapoint, datasetTypes, dataIntervals, data=null, formula=null) {
-  var initialTimestamp = (new Date(datapoint["last_value_timestamp"])).getTime()
+async function getChartDataset(datapoint, datapoint_lastValue, datasetTypes, dataIntervals, data=null, formula=null) {
+  var initialTimestamp = (new Date(datapoint_lastValue["timestamp"])).getTime()
   var lastFullHour = getTimestampOfLastFullHourOf(initialTimestamp);
   var datasetMap = new Map();
   for (var type of datasetTypes) { 
       var map = new Map(); 
       for (var intervalType of dataIntervals) {
           var timestamps = getTimestampsForIntervalType(intervalType, lastFullHour);
+
           var labels = getTimestampLablesFor(intervalType, timestamps);
           var data_set = []
           if (data == null && formula == null) {

@@ -8,6 +8,11 @@ var datapoint_api_url = "http://localhost:8000/api/datapoint/";
 function getDatapoint(datapointId) {
     return $.getJSON(datapoint_api_url + datapointId);
 }
+
+function getDatapointLastValue(datapointId) {
+    return $.getJSON(datapoint_api_url + datapointId + "/last_value/");
+}
+
 /**
  * Calls the datapoint API, requests and returns the value of a datapoint object.
  * @param {*} datapointId The id of the requested datapoint 
