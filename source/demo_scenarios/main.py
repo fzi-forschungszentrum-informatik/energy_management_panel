@@ -16,6 +16,9 @@ from scenarios.apartment.apartment import Apartment, ApartmentNoOpt
 from scenarios.apartment.apartment import dt_to_ts
 from timestamp import datetime_from_timestamp, timestamp_utc_now
 
+
+from fastapi.middleware.cors import CORSMiddleware
+
 # Setup a logger for the scenario runner to use.
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
@@ -290,7 +293,16 @@ class ScenarioRunner():
 
 scenario_runner = ScenarioRunner()
 app = FastAPI()
-
+origins = [
+    "http://localhost:8000",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 #@app.on_event("startup")
 #async def run_scenarios_in_bg():
  #   asyncio.create_task(scenario_runner.run_active())
@@ -468,3 +480,4 @@ async def request(scenario_name, from_ts: int = None, to_ts: int = None):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8018)
+
