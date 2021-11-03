@@ -11,9 +11,9 @@ as a container for information pices in the EMP.
 
         {% if widget.has_detail %}
           <button type="button"
-                  class="btn close"
-                  data-toggle="modal"
-                  data-target="#{{widget.detail_id}}"
+                  class="btn btn-close"
+                  data-bs-toggle="modal"
+                  data-bs-target="#{{widget.detail_id}}"
             >
             <img src="{% static "emp-main/icons/fullscreen.svg" %}"
                  alt="Maximize"
