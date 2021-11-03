@@ -125,7 +125,6 @@ async function updateUiElements(simulation, side) {
     var json = await getSimulationResult(simulation.name, simulation.dataWithoutName, {});
     
     var values = json["values"];
-    console.log(values)
     updateComparisonPageValueElements(values, side);
     updateComparisonPageMetricElements(values, side);
     updateComparisonGraphs(values, side);

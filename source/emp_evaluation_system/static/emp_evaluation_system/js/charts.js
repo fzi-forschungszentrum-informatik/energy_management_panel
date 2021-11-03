@@ -197,7 +197,6 @@ async function setUpChart(element, data=null) {
 
   var datapoint = await getDatapoint(datapoint_id);
   var datapoint_lastValue = await getDatapointLastValue(datapoint_id);
-  console.log(datapoint)
   var datapoint_name = datapoint["short_name"]
   var datapoint_unit = datapoint["unit"];
 
