@@ -28,7 +28,10 @@ On a Linux system you can start developing on the code quickly by following thes
   docker exec -it emp-devl auto-pytest /source/emp/
   ```
 
-  
+* For an interactive python terminal execute:
+  ```bash
+  docker exec -it emp-devl /opt/conda/bin/python /source/emp/manage.py shell
+  ```
 
 ## Contact
 

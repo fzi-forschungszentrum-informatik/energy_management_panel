@@ -20,36 +20,36 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'm^mi03=jg0&i=d#zh#8=t0*_+17ryt)e7nw+)-1if79u-gj&g6'
+SECRET_KEY = "m^mi03=jg0&i=d#zh#8=t0*_+17ryt)e7nw+)-1if79u-gj&g6"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ["localhost"]
 
 # Application definition
 INSTALLED_APPS = [
-    'channels',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'guardian',
-    'rest_framework',
-    'rest_framework.authtoken',
-    'drf_spectacular',
-    'django_filters',
-    'emp_main.apps.EmpMainConfig',
-    'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
-    'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
-    'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
-    'emp_evaluation_system.apps.EmpEvaluationSystemConfig',
-
-    'nested_admin',
-    'multiselectfield',
-    
+    "channels",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "guardian",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "drf_spectacular",
+    "django_filters",
+    "emp_main.apps.EmpMainConfig",
+    "emp_demo_ui_app.apps.EmpDemoUiAppConfig",
+    "emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig",
+    "emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig",
+    # Uncomment to activate the emp_evaluation_system app.
+    # Note that additional depedencies must be installed too.
+    # "emp_evaluation_system.apps.EmpEvaluationSystemConfig",
+    # "nested_admin",
+    # "multiselectfield",
 ]
 
 # Define all installed apps which extend the EMP functionality.
@@ -58,121 +58,120 @@ INSTALLED_APPS = [
 # This process expects that each app holds a apps.py and urls.py file following
 # the conventions shown in emp_demo_ui_app.
 EMP_APPS = [
-   "emp_demo_ui_app",
-   "emp_demo_dp_interface",
+    "emp_demo_ui_app",
+    "emp_demo_dp_interface",
     "emp_django_authenticator",
-    "emp_evaluation_system",
+    # "emp_evaluation_system",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend', # this is django default.
-    'guardian.backends.ObjectPermissionBackend', # this is required for guardian.
+    "django.contrib.auth.backends.ModelBackend",  # this is django default.
+    "guardian.backends.ObjectPermissionBackend",  # required for guardian.
 )
 
-ROOT_URLCONF = 'emp_main.urls'
+ROOT_URLCONF = "emp_main.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'emp_main.wsgi.application'
-ASGI_APPLICATION = 'emp_main.asgi.application'
+WSGI_APPLICATION = "emp_main.wsgi.application"
+ASGI_APPLICATION = "emp_main.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
 # Logging inspired by suggestions in practical django book.
 # This configures one explicit logger per app, as this allows us
 # to identify the source of a log message easily.
-log_level = 'INFO'
+log_level = "INFO"
 if DEBUG:
-    log_level = 'DEBUG'
+    log_level = "DEBUG"
 
 loggers = {}
 # Explicitly add emp_main, as log messages from it won't be displayed else.
-for emp_app in EMP_APPS + ["emp_main", ]:
+for emp_app in EMP_APPS + [
+    "emp_main",
+]:
     loggers[emp_app] = {
-        'handlers': ['console'],
-        'level': log_level,
-        'propagate': True,
+        "handlers": ["console"],
+        "level": log_level,
+        "propagate": True,
     }
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'simple': {
-            'format': '%(asctime)s-%(name)s-%(levelname)s: %(message)s'
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "%(asctime)s-%(name)s-%(levelname)s: %(message)s"},
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
         },
     },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-    },
-    'loggers': loggers,
-    'root': {
-        'handlers': ['console'],
-        'level': log_level,
-    },
+    "loggers": loggers,
+    "root": {"handlers": ["console"], "level": log_level},
 }
 
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-
+# fmt: off
 AUTH_PASSWORD_VALIDATORS = [
+    # NOQA here as breaking these lines won't improve readability.
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",  # NOQA
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",  # NOQA
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",  # NOQA
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",  # NOQA
     },
 ]
+# fmt: on
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -184,33 +183,29 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 
 # Don't place media files in source folder but next to it.
 MEDIA_ROOT = BASE_DIR.parent / "media"
-MEDIA_URL ="/media/"
+MEDIA_URL = "/media/"
 
 # ------------------------------------------------------------------------------
 # Special settings for REST API
 # ------------------------------------------------------------------------------
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
-        'emp_main.authentication.TokenAuthenticationBearer',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.BasicAuthentication",
+        "emp_main.authentication.TokenAuthenticationBearer",
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-            'rest_framework.permissions.AllowAny',
-        ],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': "EMP API",
-    'LICENSE': {
-        'name': 'Licensed under MIT',
-    },
-    'VERSION': '0.1.0',
+    "TITLE": "EMP API",
+    "LICENSE": {"name": "Licensed under MIT"},
+    "VERSION": "0.1.0",
 }
 
 # ------------------------------------------------------------------------------
@@ -228,7 +223,7 @@ FAVICON_ICO_STATIC = "emp-main/icons/favicon.ico"
 
 # The path to the logo displayed in the left corner of the top nav bar,
 # as usual within static files.
-TOPBAR_LOGO_STATIC  = "emp-main/icons/title-logo.png"
+TOPBAR_LOGO_STATIC = "emp-main/icons/title-logo.png"
 
 # Strings to display in the top navbar.
 TOPBAR_NAME_SHORT = "EMP"
@@ -252,8 +247,8 @@ HOME_PAGE_URL = "/welcome/"
 LOGIN_PAGE_URL = "/auth/login/?next=%s" % HOME_PAGE_URL
 LOGOUT_PAGE_URL = "/auth/logout/?next=%s" % HOME_PAGE_URL
 
-#EPM evaluation page update interval in milliseconds
+# EPM evaluation page update interval in milliseconds
 EMP_EVALUATION_PAGE_UPDATE_INTERVAL = 60000
 
-#Increase this if admin cant post model changes anymore.
-DATA_UPLOAD_MAX_NUMBER_FIELDS=8192
+# Increase this if admin cant post model changes anymore.
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 8192
