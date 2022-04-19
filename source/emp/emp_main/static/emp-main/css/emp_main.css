@@ -62,8 +62,8 @@
 }
 
 /*
-  Make side-navbar always visible for larger screens and
-  hideable on smaller screens. The content container
+  Make side-navbar shown by default for larger screens and
+  hidden on smaller screens. The content container
   is covered by the sidebar in small screens but not on
   larger ones. The breakpoint is bootstraps medium.
 */
@@ -71,28 +71,37 @@
 @media (min-width: 768px) {
 
   .emp-side-navbar {
-    width: 14em;
+    width: 16em;
   }
 
-  .emp-content-container {
-    margin-left: 14em;
+  .emp-side-navbar:not(.hidden-lg) {
   }
 
-  #toggle-sidebar {
-    display: none;
+  .emp-side-navbar.hidden-lg {
+    margin-left: -16em;
   }
+
+  .emp-content-container.wide {
+    margin-left: 0em;
+  }
+
+  .emp-content-container:not(.wide) {
+    margin-left: 16em;
+  }
+
 }
 
 @media (max-width: 767px) {
 
-  .emp-side-navbar:not(.hidden) {
+  .emp-side-navbar:not(.hidden-sm) {
   }
 
-  .emp-side-navbar.hidden {
+  .emp-side-navbar.hidden-sm {
     margin-left: -80%;
   }
 
 }
+
 
 /*
   CSS for sidebar.
