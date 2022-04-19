@@ -14,6 +14,22 @@ The EMP is the outcome of the continuous research on algorithmic energy manageme
 * In order to retrieve measurements and send actuator signals to hardware devices in buildings it is necessary to implement a "Datapoint interface" that takes care of this communication. Source code of a dummy interface that pushes random data into the EMP is provided in [source/emp_demo_dp_interface](./source/emp_demo_dp_interface) as an example.
 * The EMP ships with an stand alone authenticator module that allows user management and authentication, that is used in the demo, and for which source code is placed in [source/emp_django_authenticator](./source/emp_django_authenticator/). Integration of the EMP into existing authentication infrastructure (e.g. LDAP) should be easily possible, see the source code of the provided authenticator as example. 
 
+## Development Quick Start
+
+On a Linux system you can start developing on the code quickly by following these steps.
+
+* In a terminal execute:
+  ```bash
+  docker-compose down -v && USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose up --build
+  ```
+
+* For automatic execution of tests run the following in a second terminal:
+  ```bash
+  docker exec -it emp-devl auto-pytest /source/emp/
+  ```
+
+  
+
 ## Contact
 
 Please feel free to contact [David Wölfle](https://www.fzi.de/en/about-us/organisation/detail/address/david-woelfle/) for all inquiries.
