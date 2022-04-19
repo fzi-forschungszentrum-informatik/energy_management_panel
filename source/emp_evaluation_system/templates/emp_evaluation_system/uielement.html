@@ -1,0 +1,7 @@
+{% comment %}
+    The only purpose of this template is to include the presentation template.
+    This template might seem redundant but its used to represent the systems architecture.
+{% endcomment %}
+{% with element.presentation_set.all|first as presentation %}
+    {% include "emp_evaluation_system/presentation.html" %}
+{% endwith %}

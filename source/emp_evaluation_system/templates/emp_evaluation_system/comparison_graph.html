@@ -1,0 +1,28 @@
+{% comment %}
+    Loading evulation page tags.
+    These are reuqired for data processing when setting up comparioson graphs.
+{% endcomment %}
+{% load evaluationpage_tags %}
+
+{% comment %}
+    Setting up a comparion graph.
+    Each graph consists of a dynamic title and a canvas where the graph will be print.
+    The canvas holds all important data for the graph setup handled by the static/emp_evaluation_system/js/charts.js and the static/emp_evaluation_system/js/simulation.js file.
+{% endcomment %}
+<div class="col-12">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+        {% if graph.has_title %}
+            <h6 class="m-0 font-weight-bold text-primary">{{graph.chart_title}}</h6>
+        {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="chart-area" >
+                 <canvas class="cc_{{graph.id}}" 
+                 using_metric="{% using_metrics graph.comparisongraphdataset_set.all %}"
+                 data="{% get_datapoints_or_formulas graph.comparisongraphdataset_set.all %}"
+                 type="{{graph.type}}"></canvas>
+            </div>
+        </div>
+    </div>
+</div>

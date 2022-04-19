@@ -1,0 +1,137 @@
+{% extends "emp_main/base.html" %}
+{% comment %} 
+    All generic content like nav/title bar is provided by the base template
+{% endcomment %}
+
+{% comment %}
+    Loading all needed tag libraries.
+{% endcomment %}
+{% load static %}
+{% load datapoint_helpers %}
+
+{% block head %}
+    {% comment %} 
+        Load additional css files here, or whatever is needed in the header.
+        In the page.css all application specific css classes are defined.
+        Sb-admin-2.css is the base css file for the admin template we used.
+        Fontawesome-free/css/all.min.css file provides all fontawesome icons etc.
+    {% endcomment %}
+    <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/page.css' %}">
+    <link rel="stylesheet" href="{% static 'emp_evaluation_system/css/sb-admin-2.css' %}">
+    <link rel="stylesheet" href="{% static 'emp_evaluation_system/vendor/fontawesome-free/css/all.min.css' %}">
+{% endblock head %}
+
+{% block body_html %}
+  
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+        {% comment %}
+            This is the error field that handles all errors.
+            Errors are handled and thrown by the static/emp_evaluation_system/js/errors.js
+        {% endcomment %}
+        <div id="error-field">
+        </div>
+        
+        {% comment %} 
+            Core functionality of a simple EvaluationSystemPage.
+            For every Pageelement linked to the EvaluationSystemPage a template will be included.
+            Every template recursively includes additional templates e.g. UIContainer->UIElement->Presentaion->Card
+        {% endcomment %}
+        {% if not is_comparison_page %}
+
+            {% for element in pagelements %}
+                {% include 'emp_evaluation_system/pageelement.html' %}
+            {% endfor %}
+
+        {% comment %} 
+            Core functionality of a comparison EvaluationSystemPage.
+            For every Pageelement linked to the EvaluationSystemPage two templates will be included.
+            Also a algorithm selection at the top and one to many comparison graphs at the bottom will be included.
+            Page elements and comparison graphs will not be visible on page load.
+            When starting a simulation with the start button from the algorithms selection form, two waiting pages will be visible.
+            These pages will be updated and show the estimated waiting time. When simulation results are available these waiting screens will be hidden.
+            Afterwards, the page elements will be updated with the new simulated data and then will be visible.
+        {% endcomment %}
+        {% else %}
+            <div class="col">
+                {% include 'emp_evaluation_system/algorithm_selection_form.html' %}
+                <div class="row">
+                    <div class="col-md-6 col-12" id="leftDataColumn" style="display:none">
+                        {% with "left" as side %}
+                            {% for element in pagelements %}
+                                {% include 'emp_evaluation_system/pageelement.html' %}
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                    <div class="col-md-6 col-12" id="waitingScreenLeft" style="display:none">
+                        <div class="center-block text-center">
+                            <span class="text-primary text-xl font-weight-bold"> Loading Simulation Data. This might take a long time! ETA: <span id="leftWaitingTime"> N/A </span> second(s) </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12" id="rightDataColumn" style="display:none">
+                        {% with "right" as side %}
+                            {% for element in pagelements %}
+                                {% include 'emp_evaluation_system/pageelement.html' %}
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                    <div class="col-md-6 col-12" id="waitingScreenRight" style="display:none">
+                        <div class="center-block text-center">
+                            <span class="text-primary text-xl font-weight-bold"> Loading Simulation Data. This might take a long time! ETA: <span id="rightWaitingTime"> N/A </span> second(s)</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="comparisonGraphs" style="display:none">
+                    {% for graph in comparison_graphs  %}
+                        <div class="row mt-4">
+                            {% include 'emp_evaluation_system/comparison_graph.html' %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}   
+    </div>
+    <!-- End Page Content-->
+    <!-- /.container-fluid -->
+
+    {% comment %} 
+        Including the scroll top button. 
+        Press this button will scroll the opend page back to the page top (HTML element with 'page-top' id)
+    {% endcomment %}
+    {% if has_scroll_to_top_button %}
+        <a class="scroll-to-top rounded" href="#page-top">
+            <i class="fas fa-angle-up"></i>
+        </a>
+    {% endif %}
+{% endblock body_html %}
+
+{% comment %} 
+    Including all required JavaScript files that are not included in emp_main/base.html.
+    jquery.easing.min.js provides easing in canvas elements (in our case the charts).
+    sb-admin-2.min.js is the base JavaScript file for the bootstrap admin template we are using.
+    Chart.min.js provides the framework responsible for printing the charts on canvases.
+    errors.js provides error handling for our website
+    charts.js includes all functions on charts defined by us.
+    apiCalls.js includes all api calls to our EMP API.
+    metric.js defines all functions that are required for handling and computing backend's Metic objects.
+    simulation.js defines all functions that are used to process simuated values.
+    datapointHelpers.js defines all functions used to handle datapoints and api call results.
+{% endcomment %}
+{% block body_script %}
+  <!-- Core plugin JavaScript-->
+  <script src="{% static 'emp_evaluation_system/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+
+  <!-- Custom scripts for all pages-->
+  <script src="{% static 'emp_evaluation_system/js/sb-admin-2.min.js' %}"></script>
+
+  <!-- Page level plugins -->
+  <script src="{% static 'emp_evaluation_system/vendor/chart.js/Chart.min.js' %}"></script>
+
+  <!-- Page level custom scripts -->
+  <script src="{% static 'emp_evaluation_system/js/errors.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/charts.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/metrics.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/apiCalls.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/simulation.js' %}"></script>
+  <script src="{% static 'emp_evaluation_system/js/datapointHelpers.js' %}"></script>
+{% endblock body_script %}

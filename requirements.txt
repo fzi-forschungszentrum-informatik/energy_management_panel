@@ -3,7 +3,12 @@ Django==3.1.*
 channels==3.0.*
 django-guardian==2.3.*
 djangorestframework==3.12.*
+
+django-nested-admin==3.3.* #enables nested admin forms in djangos admin
+django-multiselectfield==0.1.* #Includes Multiselect (multiple radio buttons) for djangos admin page
+
 drf-spectacular==0.17.*  # Online Swagger-UI for REST schema 
+
 django-filter==2.4.*
 
 # Other packages required for developing.

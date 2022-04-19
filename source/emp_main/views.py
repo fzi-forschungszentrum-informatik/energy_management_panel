@@ -7,7 +7,9 @@ from django.utils.text import slugify
 from django.views.generic import TemplateView
 from django.templatetags.static import static
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
+from rest_framework.response import Response
 
 from emp_main.apps import EmpAppsCache
 from emp_main.models import Datapoint
@@ -149,6 +151,22 @@ class DatapointValueViewSet(DatapointValueViewSetTemplate):
     create_for_actuators_only = False
     filterset_class = DatapointValueFilter
 
+class DatapointLastValueViewSet(DatapointValueViewSetTemplate):
+    # TODO: Verify permissions of user.
+    # TODO: Create method should push to origin.
+    __doc__ = DatapointValue.__doc__.strip()
+    model = DatapointValue
+    datapoint_model = Datapoint
+    queryset = DatapointValue.objects.all()
+    # TODO: Set to True after switching from push to pulling the messages.
+    create_for_actuators_only = False
+    filterset_class = DatapointValueFilter
+
+    def retrieve(self, request, dp_id):
+        datapoint = get_object_or_404(self.datapoint_model, id=dp_id)
+        object = self.queryset.filter(datapoint=datapoint).last()
+        serializer = self.serializer_class(object)
+        return Response(serializer.data)
 
 class DatapointScheduleViewSet(DatapointScheduleViewSetTemplate):
     # TODO: Verify permissions of user.

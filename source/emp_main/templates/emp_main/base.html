@@ -16,8 +16,8 @@
         type="image/x-icon"
         href={{FAVICON_ICO_STATIC}}>
 
-  <link rel="stylesheet" href="{% static "emp-main/css/bootstrap.min.css" %}">
-  <link rel="stylesheet" href="{% static "emp-main/css/emp_main.css" %}">
+  <link rel="stylesheet" href="{% static 'emp-main/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'emp-main/css/emp_main.css' %}">
 
   <script src="{% static "emp-main/js/jquery.min.js" %}"></script>
   <script src="{% static "emp-main/js/popper.min.js" %}"></script>
@@ -107,7 +107,7 @@
       {% endfor %}
       </ul>
   </nav>
-  <main class="emp-content-container p-3">
+  <main class="emp-content-container p-3  overflow-auto">
       {% comment %}
         Page content goes in this block.
       {% endcomment %}

@@ -25,8 +25,7 @@ SECRET_KEY = 'm^mi03=jg0&i=d#zh#8=t0*_+17ryt)e7nw+)-1if79u-gj&g6'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['192.168.0.25', 'localhost']
 
 # Application definition
 INSTALLED_APPS = [
@@ -43,9 +42,15 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_filters',
     'emp_main.apps.EmpMainConfig',
-    'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
-    'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
+    #'emp_demo_ui_app.apps.EmpDemoUiAppConfig',
+    #'emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig',
     'emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig',
+    #'emp_history_db.apps.EmpHistoryDbConfig',
+    'emp_evaluation_system.apps.EmpEvaluationSystemConfig',
+
+    'nested_admin',
+    'multiselectfield',
+    
 ]
 
 # Define all installed apps which extend the EMP functionality.
@@ -54,9 +59,11 @@ INSTALLED_APPS = [
 # This process expects that each app holds a apps.py and urls.py file following
 # the conventions shown in emp_demo_ui_app.
 EMP_APPS = [
-    "emp_demo_ui_app",
-    "emp_demo_dp_interface",
+   # "emp_demo_ui_app",
+   # "emp_demo_dp_interface",
     "emp_django_authenticator",
+    #"emp_history_db",
+    "emp_evaluation_system",
 ]
 
 MIDDLEWARE = [
@@ -246,3 +253,9 @@ HOME_PAGE_URL = "/welcome/"
 # EMPBaseView. Use ?next= to redirect after login/logout.
 LOGIN_PAGE_URL = "/auth/login/?next=%s" % HOME_PAGE_URL
 LOGOUT_PAGE_URL = "/auth/logout/?next=%s" % HOME_PAGE_URL
+
+#EPM evaluation page update interval in milliseconds
+EMP_EVALUATION_PAGE_UPDATE_INTERVAL = 60000
+
+#Increase this if admin cant post model changes anymore.
+DATA_UPLOAD_MAX_NUMBER_FIELDS=8192

@@ -1,0 +1,49 @@
+{% comment %}
+    This is the html template for a card model.
+    As base construct a bootstrap card is used. 
+    Cusomizable elements: 
+        - Card decoration (left, bottom, none)
+        - Card icon (Choose out of a selection of fontawesome icons)
+        - Card color (Font, icon, decoration)
+        - Card tooltip
+        - Card as button -> Link to another EvaluationSystemPage
+    The in the parent Presentation element linked Datapoint values will be shown as card text.
+{% endcomment %} 
+{% load datapoint_helpers %}
+<div class="{% if is_comparison_page %}col-sm-12{% else %}col-xl-3 col-md-6{% endif %} mb-4">
+    <div class="card {% if card.card_decoration != 'none' %} border-{{card.card_decoration}}-{{card.card_color}} {% endif %} 
+    shadow h-100 py-2" hoverable="{{card.card_is_button}}"
+    {% if card.card_is_button%} onclick="window.location='{{card.card_button_link.get_absolute_url}}'" {% endif %} 
+    {% if card.card_has_tooltip %}title="{{card.card_tooltip_text}}"{% endif %} >
+        <div class="card-body">
+            <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                    {% if not is_comparison_page %}
+                        {% if presentation.use_metric %}
+                            <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                                {{presentation.metric.name}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><span class="mt_{{presentation.metric.id}}_realtime_metric" formula={{presentation.metric.formula}}>N/A</span> {{presentation.metric.unit}} </div>
+                        {% else %}
+                            <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                                {{datapoint.short_name}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{% dp_field_value presentation.datapoint "last_value" field_collector %} {% dp_field_value presentation.datapoint "unit" field_collector %} </div>
+                        {% endif %}
+                    {% else %}
+                        {% if presentation.use_metric %}
+                            <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                                {{presentation.metric.name}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><span class="mt_{{presentation.metric.id}}_simulated_metric_{{side}}" formula={{presentation.metric.formula}}>N/A</span> {{presentation.metric.unit}} </div>
+                        {% else %}
+                            <div class="text-xs font-weight-bold text-{{card.card_color}} text-uppercase mb-1">
+                                {{datapoint.short_name}}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><span class="dp_{{presentation.datapoint.origin_id}}_simulated_value_{{side}}">N/A</span> {% dp_field_value presentation.datapoint "unit" field_collector %} </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="col-auto">
+                    <i class="fas fa-{{card.card_icon}} fa-2x icon-{{card.card_color}}"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

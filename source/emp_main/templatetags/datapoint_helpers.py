@@ -18,6 +18,9 @@ def dp_field_value(datapoint, field_name, field_collector=None):
         field_value = "Error! Datapoint has no field name \"%s\"" % field_name
     else:
         field_value = getattr(datapoint, field_name)
+       
+    if (field_name == "last_value") and (getattr(datapoint, "data_format") == "discrete_numeric"):
+            field_value = bool(field_value)
 
     if not hasattr(datapoint, "id"):
         emsg = "Datapoint %s has no id." % datapoint

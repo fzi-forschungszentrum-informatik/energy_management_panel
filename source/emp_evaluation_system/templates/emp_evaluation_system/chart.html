@@ -1,0 +1,77 @@
+{% comment %}
+    This is the html template for a Chart model object.
+    As base consturct a bootstrap card with header is used to contain the canvas where the chart is printed.
+    The chart is printed by the vendor/chart.js/Chart.js library and our own code in  js/charts.js.
+    Costomizable elements are:
+        - Chart title in the card header.
+        - The dropdown menu's links. These will change the chart's data set intervals.
+        - Chart type (area, bar, doughnut)
+        - Chart data sets.
+    The in the parent Presentation element linked Datapoint values will be shown as chart datasets. 
+{% endcomment %}
+<div class="col-xl-12 col-lg-12">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            {% comment%} 
+                Charts header is included here
+            {% endcomment %}
+            {% if chart.chart_has_title %}
+                <h6 class="m-0 font-weight-bold text-primary">{{chart.chart_title}}</h6>
+            {% endif %}
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                    aria-labelledby="dropdownMenuLink">
+                    <div class="dropdown-header">Change Interval</div>
+                    {% comment %} 
+                        For every data interval chosen, when configuring the chart in the admin panel,
+                        a links is included.
+                    {% endcomment %}
+                    {% for label in chart.chart_data_interval %}
+                        <a class="dropdown-item" onclick='changeDataIntervalTo(this, "{{label}}")'> {{label}} </a>
+                    {% endfor %} 
+                </div>
+            </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            <div class="chart-area">
+                {% comment %}
+                    A canvas with all important data is created.
+                    This data needs to be set as HTML element attributes, therefore data can be read from other files as well.
+                    The chart will be build on the document ready event.
+                {% endcomment %}
+                {% if not presentation.use_metric and  not is_comparison_page %}
+                    {% comment %}
+                        Chart with realtime values.
+                    {% endcomment %}
+                    <canvas class="dp_{{presentation.datapoint.id}}_{{chart.chart_type}}_chart_realtime_value" datapointId="{{datapoint.id}}" dataTypes="{{chart.chart_data_sets}}" 
+                    dataIntervals="{{chart.chart_data_interval}}"></canvas>
+                {% elif presentation.use_metric and  not is_comparison_page %}
+                    {% comment %}
+                        Chart with realtime metrics.
+                        TODO Implement Charts mit normalen Metriken
+                        <canvas class="mt_{{presentation.metric.id}}_{{chart-chart.chart_type}}_chart_realtime_metric" datapointId="{{datapoint.id}}" dataTypes="{{chart.chart_data_sets}}" 
+                    dataIntervals="{{chart.chart_data_interval}}"></canvas>
+                    {% endcomment %}
+                {% elif not presentation.use_metric and is_comparison_page%}
+                    {% comment %}
+                        Chart with simulated values.
+                    {% endcomment %}
+                        <canvas class="dp_{{presentation.datapoint.origin_id}}_{{chart.chart_type}}_chart_simulated_value_{{side}}" dataTypes="{{chart.chart_data_sets}}" 
+                    dataIntervals="{{chart.chart_data_interval}}" datapointId="{{datapoint.id}}"></canvas>
+                {% else %}
+                    {% comment %}
+                        Chart with metrics over simulated values.
+                    {% endcomment %}
+                    <canvas class="mt_{{presentation.metric.id}}_{{chart.chart_type}}_chart_simulated_metric_{{side}}" dataTypes="{{chart.chart_data_sets}}" 
+                    dataIntervals="{{chart.chart_data_interval}}"  formula="{{presentation.metric.formula}}"></canvas>
+                {% endif %}
+                
+            </div>
+        </div>
+    </div>
+</div>
