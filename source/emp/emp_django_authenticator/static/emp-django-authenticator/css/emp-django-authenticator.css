@@ -1,19 +1,12 @@
 /*
   Style for login screen. Adapted from:
-  https://getbootstrap.com/docs/4.0/examples/sign-in/signin.css
+  https://getbootstrap.com/docs/5.0/examples/sign-in/signin.css
 */
 
- .login-main {
-  display: -ms-flexbox;
-  display: -webkit-box;
+.login-page {
+  height: 100%;
   display: flex;
-  -ms-flex-align: center;
-  -ms-flex-pack: center;
-  -webkit-box-align: center;
   align-items: center;
-  -webkit-box-pack: center;
-  justify-content: center;
-  padding-top: 40px;
   padding-bottom: 40px;
 }
 
@@ -21,5 +14,25 @@
   width: 100%;
   max-width: 330px;
   padding: 15px;
-  margin: 0 auto;
+  margin: auto;
+}
+
+.form-signin .checkbox {
+  font-weight: 400;
+}
+
+.form-signin .form-floating:focus-within {
+  z-index: 2;
+}
+
+.form-signin input[type="text"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
