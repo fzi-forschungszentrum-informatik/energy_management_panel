@@ -6,14 +6,13 @@ from django.db.utils import IntegrityError
 from ..models import Datapoint
 from ems_utils.timestamp import datetime_from_timestamp
 
-class TestDatapoint(TestCase):
 
+class TestDatapoint(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Generic default values to prevent errors when creating datapoints
         # while violating non empty constraints.
         cls.default_field_values = {"type": "sensor"}
-
 
     def generic_field_value_test(self, field_values):
         """
@@ -117,7 +116,6 @@ class TestDatapoint(TestCase):
 
         self.generic_field_value_test(field_values=field_values)
 
-
     def test_last_setpoint_exists(self):
         """
         This field stores datapoint payload.
@@ -126,18 +124,20 @@ class TestDatapoint(TestCase):
         """
         field_values = self.default_field_values.copy()
 
-        last_setpoint = json.dumps([
-            {
-                'from_timestamp': None,
-                'to_timestamp': 1564489613491,
-                'preferred_value': 21,
-            },
-            {
-                'from_timestamp': 1564489613491,
-                'to_timestamp': None,
-                'preferred_value': None,
-            }
-        ])
+        last_setpoint = json.dumps(
+            [
+                {
+                    "from_timestamp": None,
+                    "to_timestamp": 1564489613491,
+                    "preferred_value": 21,
+                },
+                {
+                    "from_timestamp": 1564489613491,
+                    "to_timestamp": None,
+                    "preferred_value": None,
+                },
+            ]
+        )
         field_values.update({"last_setpoint": last_setpoint})
 
         self.generic_field_value_test(field_values=field_values)
@@ -162,18 +162,12 @@ class TestDatapoint(TestCase):
         """
         field_values = self.default_field_values.copy()
 
-        last_schedule = json.dumps([
-            {
-                'from_timestamp': None,
-                'to_timestamp': 1564489613491,
-                'value': 21
-            },
-            {
-                'from_timestamp': 1564489613491,
-                'to_timestamp': None,
-                'value': None
-            }
-        ])
+        last_schedule = json.dumps(
+            [
+                {"from_timestamp": None, "to_timestamp": 1564489613491, "value": 21},
+                {"from_timestamp": 1564489613491, "to_timestamp": None, "value": None},
+            ]
+        )
         field_values.update({"last_schedule": last_schedule})
 
         self.generic_field_value_test(field_values=field_values)

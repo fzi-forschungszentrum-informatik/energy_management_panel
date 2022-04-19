@@ -19,6 +19,7 @@ class DatapointAdmin(admin.ModelAdmin):
     e.g. type or data_format. In fact all the fields that are pushed in
     externally.
     """
+
     list_display = (
         "string_representation",
         "type",
@@ -27,9 +28,7 @@ class DatapointAdmin(admin.ModelAdmin):
         "last_value",
         "last_value_timestamp_pretty",
     )
-    list_display_links = (
-        "string_representation",
-    )
+    list_display_links = ("string_representation",)
     list_editable = (
         "description",
         "data_format",
@@ -43,12 +42,11 @@ class DatapointAdmin(admin.ModelAdmin):
         "origin_id",
         "description",
     )
-    readonly_fields = (
-        "id",
-    )
+    readonly_fields = ("id",)
 
     def string_representation(self, obj):
         return obj
+
     string_representation.short_description = "ID - Short Name"
 
     def last_value_timestamp_pretty(self, obj):
@@ -59,6 +57,7 @@ class DatapointAdmin(admin.ModelAdmin):
         if dt is None:
             return "-"
         return datetime_to_pretty_str(dt)
+
     last_value_timestamp_pretty.admin_order_field = "last_value_timestamp"
     last_value_timestamp_pretty.short_description = "Last value timestamp"
 
@@ -70,6 +69,7 @@ class DatapointAdmin(admin.ModelAdmin):
         if dt is None:
             return "-"
         return datetime_to_pretty_str(dt)
+
     last_setpoint_timestamp_pretty.admin_order_field = "last_setpoint_timestamp"
     last_setpoint_timestamp_pretty.short_description = "Last setpoint timestamp"
 
@@ -81,6 +81,7 @@ class DatapointAdmin(admin.ModelAdmin):
         if dt is None:
             return "-"
         return datetime_to_pretty_str(dt)
+
     last_schedule_timestamp_pretty.admin_order_field = "last_schedule_timestamp"
     last_schedule_timestamp_pretty.short_description = "Last schedule timestamp"
 
@@ -98,6 +99,7 @@ class DatapointAdmin(admin.ModelAdmin):
         except Exception:
             pass
         return schedule
+
     last_schedule_pretty.short_description = "Last schedule"
 
     def last_setpoint_pretty(self, obj):
@@ -115,6 +117,7 @@ class DatapointAdmin(admin.ModelAdmin):
         except Exception:
             pass
         return setpoint
+
     last_setpoint_pretty.short_description = "Last setpoint"
 
     def get_fieldsets(self, request, obj=None):
@@ -128,14 +131,9 @@ class DatapointAdmin(admin.ModelAdmin):
         else:
             generic_metadata_fields = []
 
-        generic_metadata_fields.extend([
-            "short_name",
-            "origin_id",
-            "type",
-            "data_format",
-            "description",
-        ])
-
+        generic_metadata_fields.extend(
+            ["short_name", "origin_id", "type", "data_format", "description",]
+        )
 
         data_format_specific_fields = []
         if obj is not None:
@@ -147,7 +145,6 @@ class DatapointAdmin(admin.ModelAdmin):
                 data_format_specific_fields.append("min_value")
                 data_format_specific_fields.append("max_value")
 
-
         last_datapoint_msg_fields = []
         if obj is not None:
             last_datapoint_msg_fields = [
@@ -155,39 +152,26 @@ class DatapointAdmin(admin.ModelAdmin):
                 "last_value_timestamp",
             ]
             if obj.type == "actuator":
-                last_datapoint_msg_fields.extend([
-                    "last_setpoint",
-                    "last_setpoint_timestamp",
-                    "last_schedule",
-                    "last_schedule_timestamp",
-                ])
+                last_datapoint_msg_fields.extend(
+                    [
+                        "last_setpoint",
+                        "last_setpoint_timestamp",
+                        "last_schedule",
+                        "last_schedule_timestamp",
+                    ]
+                )
 
         fieldsets = (
-            (
-                "GENERIC METADATA",
-                {
-                    "fields": generic_metadata_fields
-                }
-            ),
-            (
-                "DATA FORMAT SPECIFIC METADATA",
-                {
-                    "fields": data_format_specific_fields
-                }
-            ),
-            (
-                "LAST DATAPOINT MESSAGES",
-                {
-                    "fields": last_datapoint_msg_fields
-                }
-            ),
+            ("GENERIC METADATA", {"fields": generic_metadata_fields}),
+            ("DATA FORMAT SPECIFIC METADATA", {"fields": data_format_specific_fields}),
+            ("LAST DATAPOINT MESSAGES", {"fields": last_datapoint_msg_fields}),
         )
         return fieldsets
 
     # Display wider version of normal TextInput for all text fields, as
     # default forms look ugly.
     formfield_overrides = {
-        db.models.TextField: {'widget': forms.TextInput(attrs={'size': '60'})},
+        db.models.TextField: {"widget": forms.TextInput(attrs={"size": "60"})},
     }
 
 
@@ -200,12 +184,8 @@ class DatapointValueAdmin(admin.ModelAdmin):
         "timestamp_pretty",
         "value",
     )
-    list_filter = (
-        "datapoint",
-    )
-    readonly_fields = (
-        "id",
-    )
+    list_filter = ("datapoint",)
+    readonly_fields = ("id",)
 
     def timestamp_pretty(self, obj):
         """
@@ -215,6 +195,7 @@ class DatapointValueAdmin(admin.ModelAdmin):
         if ts is None:
             return "-"
         return datetime_to_pretty_str(ts)
+
     timestamp_pretty.admin_order_field = "timestamp"
     timestamp_pretty.short_description = "Timestamp"
 
@@ -228,12 +209,8 @@ class DatapointSetpointAdmin(admin.ModelAdmin):
         "timestamp_pretty",
         "setpoint",
     )
-    list_filter = (
-        "datapoint",
-    )
-    readonly_fields = (
-        "id",
-    )
+    list_filter = ("datapoint",)
+    readonly_fields = ("id",)
 
     def timestamp_pretty(self, obj):
         """
@@ -243,8 +220,10 @@ class DatapointSetpointAdmin(admin.ModelAdmin):
         if ts is None:
             return "-"
         return datetime_to_pretty_str(ts)
+
     timestamp_pretty.admin_order_field = "timestamp"
     timestamp_pretty.short_description = "Timestamp"
+
 
 @admin.register(DatapointSchedule)
 class DatapointScheduleAdmin(admin.ModelAdmin):
@@ -255,12 +234,8 @@ class DatapointScheduleAdmin(admin.ModelAdmin):
         "timestamp_pretty",
         "schedule",
     )
-    list_filter = (
-        "datapoint",
-    )
-    readonly_fields = (
-        "id",
-    )
+    list_filter = ("datapoint",)
+    readonly_fields = ("id",)
 
     def timestamp_pretty(self, obj):
         """
@@ -270,5 +245,6 @@ class DatapointScheduleAdmin(admin.ModelAdmin):
         if ts is None:
             return "-"
         return datetime_to_pretty_str(ts)
+
     timestamp_pretty.admin_order_field = "timestamp"
     timestamp_pretty.short_description = "Timestamp"

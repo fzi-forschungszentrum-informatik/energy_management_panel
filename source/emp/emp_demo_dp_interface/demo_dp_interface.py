@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 logger = logging.getLogger(__name__)
 
 
-class DemoDPInterface():
+class DemoDPInterface:
     """
     This is a demo version of a datapoint interface which pushes dummy values
     and metadata into the DB to support the EMP Demo UI App.
@@ -75,10 +75,7 @@ class DemoDPInterface():
         from emp_main.models import Datapoint
 
         # Updateing/Inserting metadata for a datapoint could look like this:
-        dp, created = Datapoint.objects.get_or_create(
-            origin_id=1,
-            type="sensor"
-        )
+        dp, created = Datapoint.objects.get_or_create(origin_id=1, type="sensor")
         dp.data_format = "continuous_numeric"
         dp.description = "A dummy temperature like datapoint."
         dp.min_value = 19.0

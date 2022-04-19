@@ -32,6 +32,7 @@ class EMPBaseView(TemplateView):
     Like the normal TemplateView but automatically extends the context with
     all data required for all pages, that is, for the base.html template.
     """
+
     def check_permissions_for_url(self, user):
         """
         Check if the user has permissions to access the requested url.
@@ -55,11 +56,7 @@ class EMPBaseView(TemplateView):
                 logger.info(
                     "EMPBaseView blocked request by user %s to access page %s. "
                     "Allowed pages are:\n%s",
-                    *(
-                        user,
-                        requested_url,
-                        json.dumps(sorted(allowed_urls), indent=2)
-                    )
+                    *(user, requested_url, json.dumps(sorted(allowed_urls), indent=2))
                 )
                 raise PermissionDenied
 
@@ -96,10 +93,7 @@ class EMPBaseView(TemplateView):
         nav_content = apps_cache.get_apps_nav_content_for_user(user)
         context["emp_apps_nav_content"] = nav_content
 
-        logger.debug(
-            "EMPBaseView loaded for user=%s",
-            user
-        )
+        logger.debug("EMPBaseView loaded for user=%s", user)
 
         return context
 
@@ -109,6 +103,7 @@ class EMP403View(EMPBaseView):
     This allows us to still display the nav and title bar, to allow users
     to navigate back to safety more easy.
     """
+
     template_name = "emp_main/403.html"
 
     def check_permissions_for_url(self, *args, **kwargs):
@@ -118,6 +113,7 @@ class EMP403View(EMPBaseView):
         prevent the delivery of the 403 page.
         """
         pass
+
 
 def emp_403_handler(*args, **kwargs):
     """
@@ -151,6 +147,7 @@ class DatapointValueViewSet(DatapointValueViewSetTemplate):
     create_for_actuators_only = False
     filterset_class = DatapointValueFilter
 
+
 class DatapointLastValueViewSet(DatapointValueViewSetTemplate):
     # TODO: Verify permissions of user.
     # TODO: Create method should push to origin.
@@ -167,6 +164,7 @@ class DatapointLastValueViewSet(DatapointValueViewSetTemplate):
         object = self.queryset.filter(datapoint=datapoint).last()
         serializer = self.serializer_class(object)
         return Response(serializer.data)
+
 
 class DatapointScheduleViewSet(DatapointScheduleViewSetTemplate):
     # TODO: Verify permissions of user.

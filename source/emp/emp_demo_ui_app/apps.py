@@ -9,7 +9,8 @@ class EmpDemoUiAppConfig(AppConfig):
     This is partly Django default functionality, extended with some EMP
     specific code.
     """
-    name = 'emp_demo_ui_app'
+
+    name = "emp_demo_ui_app"
 
 
 # The first part of the url, that is used to identify the pages
@@ -61,7 +62,8 @@ def get_app_nav_content_for_user(user):
         app_pages[page_obj.page_name] = page_obj.get_absolute_url()
     app_nav_content["Demo UI App"] = app_pages
 
-    return  app_nav_content
+    return app_nav_content
+
 
 def get_permitted_datapoint_ids_for_user(user):
     """

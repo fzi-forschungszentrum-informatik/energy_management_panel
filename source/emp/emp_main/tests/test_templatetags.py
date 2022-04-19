@@ -5,8 +5,8 @@ from django.test import TestCase
 from ..models import Datapoint
 from ..templatetags.datapoint_helpers import dp_field_value, dp_update_map
 
-class TestDpFieldValue(TestCase):
 
+class TestDpFieldValue(TestCase):
     @classmethod
     def setUpTestData(cls):
         default_field_values = {"type": "sensor"}
@@ -22,7 +22,7 @@ class TestDpFieldValue(TestCase):
         self.assertIn(expected_error, actual_return)
 
     def test_returned_html_with_span_tag_and_class_label(self):
-        expected_class_label = 'dp%s__type' % self.dp.id
+        expected_class_label = "dp%s__type" % self.dp.id
         expected_html = "<span class=%s>sensor</span>" % expected_class_label
         actual_html = dp_field_value(self.dp, "type")
         self.assertEqual(expected_html, actual_html)
@@ -46,7 +46,7 @@ class TestDpFieldValue(TestCase):
         field_collector = {}
         _ = dp_field_value(self.dp, "type", field_collector)
 
-        expected_class_label = 'dp%s__type' % self.dp.id
+        expected_class_label = "dp%s__type" % self.dp.id
         self.assertIn(expected_class_label, field_collector[self.dp.id])
 
     def test_class_label_in_existing_field_connector(self):
@@ -59,15 +59,14 @@ class TestDpFieldValue(TestCase):
         _ = dp_field_value(self.dp, "type", field_collector)
         _ = dp_field_value(self.dp, "last_value", field_collector)
 
-        expected_class_label_1 = 'dp%s__type' % self.dp.id
-        expected_class_label_2 = 'dp%s__last_value' % self.dp.id
+        expected_class_label_1 = "dp%s__type" % self.dp.id
+        expected_class_label_2 = "dp%s__last_value" % self.dp.id
 
         self.assertIn(expected_class_label_1, field_collector[self.dp.id])
         self.assertIn(expected_class_label_2, field_collector[self.dp.id])
 
 
 class TestDpUpdateMap(TestCase):
-
     @classmethod
     def setUpTestData(cls):
         cls.test_field_collector = {
@@ -91,10 +90,7 @@ class TestDpUpdateMap(TestCase):
             self.assertIn(expected_datapoint_id, parsed_update_map.keys())
 
         # Verify we got no extra datapoint ids.
-        self.assertEqual(
-            len(self.test_field_collector.keys()),
-            len(parsed_update_map)
-        )
+        self.assertEqual(len(self.test_field_collector.keys()), len(parsed_update_map))
 
     def test_datapoint_class_labels_in_json_output(self):
         """

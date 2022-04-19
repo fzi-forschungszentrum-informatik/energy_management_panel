@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 from ..apps import EmpAppsCache
 
+
 class TestEmpAppsCache(TestCase):
     """
     TODO: Extend this.

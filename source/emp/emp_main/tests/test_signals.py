@@ -7,7 +7,6 @@ from emp_main.apps import EmpAppsCache
 
 
 class TestUpdateUserPermissions(TestCase):
-
     @classmethod
     def setUpTestData(cls):
         User = get_user_model()
@@ -24,7 +23,7 @@ class TestUpdateUserPermissions(TestCase):
         apps_cache.update_for_user = MagicMock()
 
         client = Client()
-        login_success = client.login(username='u1', password='p1')
+        login_success = client.login(username="u1", password="p1")
         self.assertTrue(login_success)
 
         # Verify that the permissions have been updated for the normal

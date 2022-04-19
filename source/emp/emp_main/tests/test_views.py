@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 from emp_demo_ui_app.apps import app_url_prefix
 
+
 class TestEMPBaseView(TestCase):
     """
     Correct opertation of check_permissions_for_url() of the EmpBaseView is
@@ -76,10 +77,7 @@ class TestEMPBaseView(TestCase):
                         # Static setting options will be parsed to static
                         # address by the view.
                         expected_context_value = static(expected_context_value)
-                    self.assertEqual(
-                        test_content,
-                        expected_context_value
-                    )
+                    self.assertEqual(test_content, expected_context_value)
 
     def test_field_collector_in_context(self):
         """
@@ -90,10 +88,7 @@ class TestEMPBaseView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("field_collector", response.context)
         test_content = response.context["field_collector"]
-        self.assertEqual(
-            test_content,
-            {}
-        )
+        self.assertEqual(test_content, {})
 
 
 class TestEMP403View(TestCase):
@@ -101,11 +96,9 @@ class TestEMP403View(TestCase):
     def setUpTestData(cls):
         # This is an url to a page which does not exist.
         page_slug_na = "test-page-na"
-        cls.page_na_url = (
-            "/" + app_url_prefix + "/" +page_slug_na + "/"
-        )
+        cls.page_na_url = "/" + app_url_prefix + "/" + page_slug_na + "/"
 
     def test_correct_template_used(self):
         response = self.client.get(self.page_na_url)
         self.assertEqual(response.status_code, 403)
-        self.assertTemplateUsed(response, 'emp_main/403.html')
+        self.assertTemplateUsed(response, "emp_main/403.html")

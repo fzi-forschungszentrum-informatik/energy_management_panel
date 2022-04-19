@@ -8,6 +8,7 @@ from django.utils.html import format_html, escapejs
 
 register = template.Library()
 
+
 @register.simple_tag
 def dp_field_value(datapoint, field_name, field_collector=None):
     """
@@ -15,23 +16,21 @@ def dp_field_value(datapoint, field_name, field_collector=None):
     dynamic updateing of the value via websocket.
     """
     if not hasattr(datapoint, field_name):
-        field_value = "Error! Datapoint has no field name \"%s\"" % field_name
+        field_value = 'Error! Datapoint has no field name "%s"' % field_name
     else:
         field_value = getattr(datapoint, field_name)
-       
-    if (field_name == "last_value") and (getattr(datapoint, "data_format") == "discrete_numeric"):
-            field_value = bool(field_value)
+
+    if (field_name == "last_value") and (
+        getattr(datapoint, "data_format") == "discrete_numeric"
+    ):
+        field_value = bool(field_value)
 
     if not hasattr(datapoint, "id"):
         emsg = "Datapoint %s has no id." % datapoint
         raise ValueError(emsg)
 
-    class_label = 'dp%s__%s' % (datapoint.id, field_name)
-    field_html = format_html(
-        "<span class={}>{}</span>",
-        class_label,
-        field_value
-    )
+    class_label = "dp%s__%s" % (datapoint.id, field_name)
+    field_html = format_html("<span class={}>{}</span>", class_label, field_value)
 
     if field_collector is not None:
         if datapoint.id not in field_collector:
@@ -39,6 +38,7 @@ def dp_field_value(datapoint, field_name, field_collector=None):
         field_collector[datapoint.id].add(class_label)
 
     return field_html
+
 
 @register.simple_tag
 def dp_update_map(field_collector, escape_to_js=True):

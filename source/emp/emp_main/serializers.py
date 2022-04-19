@@ -22,14 +22,10 @@ class DatapointSerializer(serializers.ModelSerializer):
             "max_value",
             "allowed_values",
             "unit",
-            ]
+        ]
         read_only_fields = [
             "id",
         ]
         # Disable the unqieness check for datapoint. We just update
         # for simplicity.
-        extra_kwargs = {
-            'origin_id': {
-                'validators': [],
-            }
-        }
+        extra_kwargs = {"origin_id": {"validators": [],}}

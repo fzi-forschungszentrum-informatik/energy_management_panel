@@ -8,4 +8,4 @@ class EMPLoginView(LoginView, EMPBaseView):
 
     template_name = "emp_django_authenticator/login.html"
     form_class = AuthenticationForm
-    redirect_authenticated_user=False
+    redirect_authenticated_user = False

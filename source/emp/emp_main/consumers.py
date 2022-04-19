@@ -34,13 +34,12 @@ class DatapointUpdate(JsonWebsocketConsumer):
         self.user = self.scope["user"]
         self.accept()
         logger.debug(
-            "DatapointUpdate consumer accepted connection from user=%s",
-            self.user
+            "DatapointUpdate consumer accepted connection from user=%s", self.user
         )
 
         # Parse the set of requested datapoints from the query string.
         try:
-            query_string = self.scope["query_string"].decode('utf8')
+            query_string = self.scope["query_string"].decode("utf8")
             query_string_parsed = urlparse.parse_qs(query_string)
             # if the query string looks like this: ?datapoint-ids=[1,2]"
             # then the query_string_parsed object looks like this:
@@ -51,7 +50,7 @@ class DatapointUpdate(JsonWebsocketConsumer):
             logging.exception(
                 "DatapointUpdate consumer received object not translatable "
                 "into requested datapoint ids by user=%s.",
-                self.user
+                self.user,
             )
             raise
 
@@ -77,8 +76,7 @@ class DatapointUpdate(JsonWebsocketConsumer):
         denied_ids = requested_dp_ids.difference(all_allowed_dp_ids)
         if denied_ids:
             logger.warning(
-                "DatapointUpdate consumer denied user=%s access to the"
-                "datapoints=%s",
+                "DatapointUpdate consumer denied user=%s access to the" "datapoints=%s",
                 *(self.user, denied_ids)
             )
 
@@ -89,7 +87,7 @@ class DatapointUpdate(JsonWebsocketConsumer):
         post_save.connect(
             self.send_datapoint_update_to_client,
             sender=Datapoint,
-            dispatch_uid=self.post_save_uid
+            dispatch_uid=self.post_save_uid,
         )
 
     def send_datapoint_update_to_client(self, sender, **kwargs):
@@ -99,10 +97,7 @@ class DatapointUpdate(JsonWebsocketConsumer):
 
         TODO: Use a proper serializer.
         """
-        logger.debug(
-            "DatapointUpdate consumer got datapoint update %s",
-            kwargs
-        )
+        logger.debug("DatapointUpdate consumer got datapoint update %s", kwargs)
 
         # Be aware that this datapoint is not the object from the
         # database but the object that was created by the method that
@@ -124,7 +119,6 @@ class DatapointUpdate(JsonWebsocketConsumer):
             dp_field_values[field.name] = field_value
         self.send_json(dp_field_values)
 
-
     def disconnect(self, close_code):
         """
         Disconnect from signal.
@@ -134,9 +128,6 @@ class DatapointUpdate(JsonWebsocketConsumer):
         post_save.disconnect(
             self.send_datapoint_update_to_client,
             sender=Datapoint,
-            dispatch_uid=self.post_save_uid
+            dispatch_uid=self.post_save_uid,
         )
-        logger.debug(
-            "DatapointUpdate consumer disconnected for user=%s",
-            self.user
-        )
+        logger.debug("DatapointUpdate consumer disconnected for user=%s", self.user)

@@ -2,7 +2,8 @@ from django.apps import AppConfig
 
 
 class EmpDjangoAuthenticatorConfig(AppConfig):
-    name = 'emp_django_authenticator'
+    name = "emp_django_authenticator"
+
 
 # The first part of the url, that is used to identify the pages
 # belongig to this app. No leading or trailing slashes, they will
@@ -16,5 +17,5 @@ necessary to provide a get_app_nav_content_for_user function. However,
 the corresponding URLs must be whitelisted in
 settings.URLS_PERMISSION_WHITELIST
 """
-#def get_app_nav_content_for_user(user):
+# def get_app_nav_content_for_user(user):
 #    pass

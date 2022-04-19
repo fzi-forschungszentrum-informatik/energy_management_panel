@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from emp_main.views import EMPBaseView
 from .models import DemoAppPage
 
+
 class DemoUIPageView(EMPBaseView):
     """
     A simple example for a view that appends the context with page specific
@@ -22,13 +23,13 @@ class DemoUIPageView(EMPBaseView):
         # This is a detail object for demo_datapoint, that is used to configure
         # the default detail_with_tabs template.
         if page_object.page_has_detail:
-            class Detail():
+
+            class Detail:
                 pass
+
             detail = Detail()
             # This must be a unique id, is used to wire up buttons and modal.
-            detail.html_id = "dp_{}_detail".format(
-                page_object.demo_datapoint.id
-            )
+            detail.html_id = "dp_{}_detail".format(page_object.demo_datapoint.id)
 
             # The demo_detail.html template uses this attribute as title:
             detail.title = "A demo detail"

@@ -19,20 +19,21 @@ from .serializers import DatapointSetpointSerializer
 # TODO This also overrides the default 200/201 responses.
 # Use with     @extend_schema(responses=common_resonses_all)
 common_resonses_read_list = {
-        401: NotAuthenticated,
-        403: PermissionDenied,
-    }
+    401: NotAuthenticated,
+    403: PermissionDenied,
+}
 common_resonses_read_single = {
-        401: NotAuthenticated,
-        403: PermissionDenied,
-        404: NotFound,
-    }
+    401: NotAuthenticated,
+    403: PermissionDenied,
+    404: NotFound,
+}
 common_resonses_all = {
-        400: ValidationError,
-        401: NotAuthenticated,
-        403: PermissionDenied,
-        404: NotFound,
-    }
+    400: ValidationError,
+    401: NotAuthenticated,
+    403: PermissionDenied,
+    404: NotFound,
+}
+
 
 class DatapointViewSetTemplate(GenericViewSet):
     """
@@ -59,11 +60,12 @@ class DatapointViewSetTemplate(GenericViewSet):
         belongs to. This is id by default, but other combinations
         may be useful to provide portability of the metadata.
     """
+
     datapoint_model = None
     queryset = None
     serializer_class = None
     filter_backends = (filters.DjangoFilterBackend,)
-    unique_together_fields = ("origin_id", )
+    unique_together_fields = ("origin_id",)
 
     # Reuse the Docstring of Datapoint of the API schema.
     __doc__ = DatapointTemplate.__doc__
@@ -76,6 +78,7 @@ class DatapointViewSetTemplate(GenericViewSet):
         datapoint = get_object_or_404(self.queryset, id=dp_id)
         serializer = self.serializer_class(datapoint)
         return Response(serializer.data)
+
     retrieve.__doc__ = __doc__ + "<br><br>" + retrieve.__doc__.strip()
 
     def list(self, request):
@@ -86,8 +89,8 @@ class DatapointViewSetTemplate(GenericViewSet):
         datapoints = self.filter_queryset(datapoints)
         serializer = self.serializer_class(datapoints, many=True)
         return Response(serializer.data)
-    list.__doc__ = __doc__ + "<br><br>" + list.__doc__.strip()
 
+    list.__doc__ = __doc__ + "<br><br>" + list.__doc__.strip()
 
     def create(self, request):
         """
@@ -113,6 +116,7 @@ class DatapointViewSetTemplate(GenericViewSet):
         serializer = self.serializer_class(datapoint)
         # Return datapoint also with auto generated data like id.
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     create.__doc__ = __doc__ + "<br><br>" + create.__doc__.strip()
 
     def update(self, request):
@@ -134,6 +138,7 @@ class DatapointViewSetTemplate(GenericViewSet):
         serializer = self.serializer_class(datapoint)
         # Return datapoint also with auto generated data like id.
         return Response(serializer.data, status=status.HTTP_200_OK)
+
     update.__doc__ = __doc__ + "<br><br>" + update.__doc__.strip()
 
     def update_many(self, request):
@@ -155,13 +160,13 @@ class DatapointViewSetTemplate(GenericViewSet):
             q = {k: data[k] for k in self.unique_together_fields if k in data}
             dp_qs = self.datapoint_model.objects.filter(**q)
             if dp_qs.count() == 0:
-                errors.append({
-                    "datapoint": "No datapoint found matching query: %s." % q
-                })
+                errors.append(
+                    {"datapoint": "No datapoint found matching query: %s." % q}
+                )
             elif dp_qs.count() > 1:
-                errors.append({
-                    "datapoint": "Multiple datapoints found matching query: %s." % q
-                })
+                errors.append(
+                    {"datapoint": "Multiple datapoints found matching query: %s." % q}
+                )
             else:
                 errors.append({})
                 datapoint = dp_qs[0]
@@ -178,7 +183,9 @@ class DatapointViewSetTemplate(GenericViewSet):
         serializer = self.serializer_class(datapoints, many=True)
         # Return datapoint also with auto generated data like id.
         return Response(serializer.data, status=status.HTTP_200_OK)
+
     update_many.__doc__ = __doc__ + "<br><br>" + update_many.__doc__.strip()
+
 
 class ViewSetWithDatapointFK(GenericViewSet):
     """
@@ -213,6 +220,7 @@ class ViewSetWithDatapointFK(GenericViewSet):
         You should not need to change this. See also:
         https://www.django-rest-framework.org/api-guide/filtering/
     """
+
     model = None
     datapoint_model = None
     queryset = None
@@ -230,9 +238,7 @@ class ViewSetWithDatapointFK(GenericViewSet):
     def retrieve(self, request, dp_id, timestamp=None):
         datapoint = get_object_or_404(self.datapoint_model, id=dp_id)
         dt = datetime_from_timestamp(timestamp)
-        object = get_object_or_404(
-            self.queryset, datapoint=datapoint, timestamp=dt
-        )
+        object = get_object_or_404(self.queryset, datapoint=datapoint, timestamp=dt)
         serializer = self.serializer_class(object)
         return Response(serializer.data)
 
@@ -253,11 +259,13 @@ class ViewSetWithDatapointFK(GenericViewSet):
             datapoint=datapoint, timestamp=dt
         )
         if not created:
-            raise ValidationError({
-                "timestamp": [
-                    "Entry for this datapoint and timestamp exists already."
-                ],
-            })
+            raise ValidationError(
+                {
+                    "timestamp": [
+                        "Entry for this datapoint and timestamp exists already."
+                    ],
+                }
+            )
 
         for field in validated_data:
             if field == "timestamp":
@@ -274,7 +282,6 @@ class ViewSetWithDatapointFK(GenericViewSet):
         serializer = self.serializer_class(datapoint, data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
-
 
         dt = datetime_from_timestamp(validated_data["timestamp"])
         if self.create_for_actuators_only and datapoint.type != "actuator":
@@ -294,9 +301,7 @@ class ViewSetWithDatapointFK(GenericViewSet):
     def destroy(self, request, dp_id, timestamp=None):
         datapoint = get_object_or_404(self.datapoint_model, id=dp_id)
         dt = datetime_from_timestamp(timestamp)
-        object = get_object_or_404(
-            self.model, datapoint=datapoint, timestamp=dt
-        )
+        object = get_object_or_404(self.model, datapoint=datapoint, timestamp=dt)
         object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -307,6 +312,7 @@ class DatapointValueViewSetTemplate(ViewSetWithDatapointFK):
 
     Subclass to use. Overload the class attributes with appropriate values
     """
+
     serializer_class = DatapointValueSerializer
 
 
@@ -317,7 +323,9 @@ class DatapointScheduleViewSetTemplate(ViewSetWithDatapointFK):
     Subclass to use, ensure to overload `model` and `serializer_class`
     with appropriate values.
     """
+
     serializer_class = DatapointScheduleSerializer
+
 
 class DatapointSetpointViewSetTemplate(ViewSetWithDatapointFK):
     """
@@ -326,4 +334,5 @@ class DatapointSetpointViewSetTemplate(ViewSetWithDatapointFK):
     Subclass to use, ensure to overload `model` and `serializer_class`
     with appropriate values.
     """
+
     serializer_class = DatapointSetpointSerializer

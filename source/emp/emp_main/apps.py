@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class EmpMainConfig(AppConfig):
-    name = 'emp_main'
+    name = "emp_main"
 
     def ready(self):
         EmpAppsCache()
@@ -19,7 +19,7 @@ class EmpMainConfig(AppConfig):
         import emp_main.signals
 
 
-class EmpAppsCache():
+class EmpAppsCache:
     """
     A cache for the user specfic objects per EMP UI apps.
 
@@ -128,7 +128,6 @@ class EmpAppsCache():
             if hasattr(app_config, "get_permitted_datapoint_ids_for_user"):
                 dp_ids = app_config.get_permitted_datapoint_ids_for_user(user)
                 self.allowed_datapoint_ids[user].update(dp_ids)
-
 
     def get_apps_nav_content_for_user(self, user):
         """

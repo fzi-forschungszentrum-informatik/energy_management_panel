@@ -8,7 +8,6 @@ from ..apps import get_app_nav_content_for_user
 
 
 class TestGetAppNavContentForUser(TestCase):
-
     @classmethod
     def setUpTestData(cls):
         """
@@ -22,30 +21,21 @@ class TestGetAppNavContentForUser(TestCase):
         cls.expected_page_name_1 = "Test Page 1"
         cls.expected_page_slug_1 = "test-page-1"
         cls.page1 = DemoAppPage.objects.create(
-            page_name = cls.expected_page_name_1,
-            page_slug = cls.expected_page_slug_1,
-            page_content = ""
+            page_name=cls.expected_page_name_1,
+            page_slug=cls.expected_page_slug_1,
+            page_content="",
         )
-        assign_perm(
-            "emp_demo_ui_app.view_demoapppage",
-            cls.anon_user,
-            cls.page1
-        )
+        assign_perm("emp_demo_ui_app.view_demoapppage", cls.anon_user, cls.page1)
 
         # This page only to test_user_1
         cls.expected_page_name_2 = "Test Page 2"
         cls.expected_page_slug_2 = "test-page-2"
         cls.page2 = DemoAppPage.objects.create(
-            page_name = cls.expected_page_name_2,
-            page_slug = cls.expected_page_slug_2,
-            page_content = ""
+            page_name=cls.expected_page_name_2,
+            page_slug=cls.expected_page_slug_2,
+            page_content="",
         )
-        assign_perm(
-            "emp_demo_ui_app.view_demoapppage",
-            cls.test_user_1,
-            cls.page2
-        )
-
+        assign_perm("emp_demo_ui_app.view_demoapppage", cls.test_user_1, cls.page2)
 
     def test_navbar_group_name_in_content_dict(self):
         """
@@ -93,7 +83,5 @@ class TestGetAppNavContentForUser(TestCase):
     def test_page_url_correct(self):
         app_nav_content = get_app_nav_content_for_user(self.anon_user)
         page_url = app_nav_content["Demo UI App"][self.expected_page_name_1]
-        expected_page_url = (
-            "/" + app_url_prefix + "/" + self.expected_page_slug_1 + "/"
-        )
+        expected_page_url = "/" + app_url_prefix + "/" + self.expected_page_slug_1 + "/"
         self.assertEqual(page_url, expected_page_url)

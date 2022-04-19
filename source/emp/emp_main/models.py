@@ -8,6 +8,7 @@ from ems_utils.message_format.models import DatapointValueTemplate
 from ems_utils.message_format.models import DatapointSetpointTemplate
 from ems_utils.message_format.models import DatapointScheduleTemplate
 
+
 class ModelWithIterableFields(models.Model):
     """
     A model that supports iterating over fields.
@@ -37,10 +38,12 @@ class Datapoint(DatapointTemplate, ModelWithIterableFields):
     Similar to the generic Datapoint model (see docstring in DatapointTemplate
     for more information).
     """
+
     # Overload the docstring with the one of DatapointTemplate for the
     # automatic generation of documentation in schema, as the original
     # docstring contains more general descriptions.
     __doc__ = DatapointTemplate.__doc__.strip()
+
 
 class DatapointValue(DatapointValueTemplate):
     """
@@ -48,6 +51,7 @@ class DatapointValue(DatapointValueTemplate):
     DatapointValueTemplate for more information) but with the correct
     Datapoint model linked to it.
     """
+
     # Overload the docstring with the one of DatapointValueTemplate for
     # the automatic generation of documentation in schema, as the original
     # docstring contains more general descriptions.
@@ -56,10 +60,9 @@ class DatapointValue(DatapointValueTemplate):
     datapoint = models.ForeignKey(
         Datapoint,
         on_delete=models.CASCADE,
-        help_text=(
-            "The datapoint that the value message belongs to."
-        )
+        help_text=("The datapoint that the value message belongs to."),
     )
+
 
 class DatapointSchedule(DatapointScheduleTemplate):
     """
@@ -67,6 +70,7 @@ class DatapointSchedule(DatapointScheduleTemplate):
     DatapointScheduleTemplate for more information) but with the correct
     Datapoint model linked to it.
     """
+
     # Overload the docstring with the one of DatapointScheduleTemplate for
     # the automatic generation of documentation in schema, as the original
     # docstring contains more general descriptions.
@@ -75,10 +79,9 @@ class DatapointSchedule(DatapointScheduleTemplate):
     datapoint = models.ForeignKey(
         Datapoint,
         on_delete=models.CASCADE,
-        help_text=(
-            "The datapoint that the schedule message belongs to."
-        )
+        help_text=("The datapoint that the schedule message belongs to."),
     )
+
 
 class DatapointSetpoint(DatapointSetpointTemplate):
     """
@@ -86,6 +89,7 @@ class DatapointSetpoint(DatapointSetpointTemplate):
     DatapointSetpointTemplate for more information) but with the correct
     Datapoint model linked to it.
     """
+
     # Overload the docstring with the one of DatapointSetpointTemplate for
     # the automatic generation of documentation in schema, as the original
     # docstring contains more general descriptions.
@@ -94,7 +98,5 @@ class DatapointSetpoint(DatapointSetpointTemplate):
     datapoint = models.ForeignKey(
         Datapoint,
         on_delete=models.CASCADE,
-        help_text=(
-            "The datapoint that the setpoint message belongs to."
-        )
+        help_text=("The datapoint that the setpoint message belongs to."),
     )

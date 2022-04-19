@@ -11,8 +11,6 @@ from .views import DemoUIPageView
 urlpatterns = [
     path(
         "<slug:page_slug>/",
-        DemoUIPageView.as_view(
-            template_name="./emp_demo_ui_app/demo_page.html"
-        ),
+        DemoUIPageView.as_view(template_name="./emp_demo_ui_app/demo_page.html"),
     ),
 ]

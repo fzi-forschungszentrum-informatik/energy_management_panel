@@ -28,76 +28,52 @@ from .views import DatapointScheduleViewSet, DatapointSetpointViewSet
 from .views import DatapointLastValueViewSet
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     path("", RedirectView.as_view(url=settings.HOME_PAGE_URL, permanent=False)),
     path("welcome/", EMPBaseView.as_view(template_name="./emp_main/welcome.html")),
     # These are the URLS for REST API.
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/", SpectacularSwaggerView.as_view(url_name="schema")),
     path(
-        "api/datapoint/",
-        DatapointViewSet.as_view({
-            "get": "list",
-            "post": "create",
-        })
+        "api/datapoint/", DatapointViewSet.as_view({"get": "list", "post": "create",})
     ),
     path(
         "api/datapoint/<int:dp_id>/",
-        DatapointViewSet.as_view({
-            "get": "retrieve",
-            "put": "update",
-        })
+        DatapointViewSet.as_view({"get": "retrieve", "put": "update",}),
     ),
     path(
         "api/datapoint/<int:dp_id>/value/",
-        DatapointValueViewSet.as_view({
-            "get": "list",
-            "post": "create",
-        })
+        DatapointValueViewSet.as_view({"get": "list", "post": "create",}),
     ),
     path(
         "api/datapoint/<int:dp_id>/last_value/",
-        DatapointLastValueViewSet.as_view({
-            "get": "retrieve",
-        })
+        DatapointLastValueViewSet.as_view({"get": "retrieve",}),
     ),
     path(
         "api/datapoint/<int:dp_id>/value/<int:timestamp>/",
-        DatapointValueViewSet.as_view({
-            "get": "retrieve",
-            "put": "update",
-            "delete": "destroy",
-        })
+        DatapointValueViewSet.as_view(
+            {"get": "retrieve", "put": "update", "delete": "destroy",}
+        ),
     ),
     path(
         "api/datapoint/<int:dp_id>/schedule/",
-        DatapointScheduleViewSet.as_view({
-            "get": "list",
-            "post": "create",
-        })
+        DatapointScheduleViewSet.as_view({"get": "list", "post": "create",}),
     ),
     path(
         "api/datapoint/<int:dp_id>/schedule/<int:timestamp>/",
-        DatapointScheduleViewSet.as_view({
-            "get": "retrieve",
-            "put": "update",
-            "delete": "destroy",
-        })
+        DatapointScheduleViewSet.as_view(
+            {"get": "retrieve", "put": "update", "delete": "destroy",}
+        ),
     ),
     path(
         "api/datapoint/<int:dp_id>/setpoint/",
-        DatapointSetpointViewSet.as_view({
-            "get": "list",
-            "post": "create",
-        })
+        DatapointSetpointViewSet.as_view({"get": "list", "post": "create",}),
     ),
     path(
         "api/datapoint/<int:dp_id>/setpoint/<int:timestamp>/",
-        DatapointSetpointViewSet.as_view({
-            "get": "retrieve",
-            "put": "update",
-            "delete": "destroy",
-        })
+        DatapointSetpointViewSet.as_view(
+            {"get": "retrieve", "put": "update", "delete": "destroy",}
+        ),
     ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
@@ -118,4 +94,4 @@ for emp_app in settings.EMP_APPS:
     app_path = path(app_url_prefix, include(emp_app + ".urls"))
     urlpatterns.append(app_path)
 
-handler403 = 'emp_main.views.emp_403_handler'
+handler403 = "emp_main.views.emp_403_handler"
