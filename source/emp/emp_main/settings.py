@@ -9,7 +9,10 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import os
+import json
+import random
+import string
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,13 +22,38 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "m^mi03=jg0&i=d#zh#8=t0*_+17ryt)e7nw+)-1if79u-gj&g6"
+if not os.getenv("DJANGO_SECRET_KEY"):
+    # This generates a new random key every time we start the application or
+    # run anything from manage.py. This also invalidates all cookies which
+    # makes users login again. Thus, it is a good idea to fix the key in
+    # production.
+    # However, this only works if we have only a single worker. If there are
+    # more then one, each will get a dedicated SECRET_KEY which will cause
+    # permanent suspicious session warnings.
+    if int(os.getenv("N_WORKER_PROCESSES") or 1) == 1:
+        SECRET_KEY = "".join(
+            random.choice(string.ascii_letters) for i in range(64)
+        )
+    else:
+        raise ValueError(
+            "DJANGO_SECRET_KEY must be set explicitly if django-api is "
+            "run with N_WORKER_PROCESSES > 1."
+        )
+else:
+    SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+if (os.getenv("DJANGO_DEBUG") or "FALSE").lower() == "true":
+    DEBUG = True
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = json.loads(os.getenv("DJANGO_ALLOWED_HOSTS") or '["localhost"]')
+if os.getenv("DJANGO_ADMINS"):
+    ADMINS = json.loads(os.getenv("DJANGO_ADMINS"))
 
 # Application definition
 INSTALLED_APPS = [
@@ -102,19 +130,34 @@ ASGI_APPLICATION = "emp_main.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if os.getenv("EMPDB_HOST"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "timescale.db.backends.postgresql",
+            "HOST": os.getenv("EMPDB_HOST"),
+            "PORT": int(os.getenv("EMPDB_PORT") or 5432),
+            "USER": os.getenv("EMPDB_USER") or "emp",
+            "PASSWORD": os.getenv("EMPDB_PASSWORD") or "emp",
+            "NAME": os.getenv("EMPDB_DBNAME") or "emp",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+# This is just here to silence some warnings and make explicit what
+# django < 3.2 has always done. See:
+# https://docs.djangoproject.com/en/3.2/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # Logging inspired by suggestions in practical django book.
 # This configures one explicit logger per app, as this allows us
 # to identify the source of a log message easily.
-log_level = "INFO"
-if DEBUG:
-    log_level = "DEBUG"
+log_level = os.getenv("LOGLEVEL") or "INFO"
 
 loggers = {}
 # Explicitly add emp_main, as log messages from it won't be displayed else.
@@ -122,7 +165,7 @@ for emp_app in EMP_APPS + [
     "emp_main",
 ]:
     loggers[emp_app] = {
-        "handlers": ["console"],
+        "handlers": ["console", "prometheus"],
         "level": log_level,
         "propagate": True,
     }
@@ -131,17 +174,21 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "simple": {"format": "%(asctime)s-%(name)s-%(levelname)s: %(message)s"},
+        "simple": {"format": "%(asctime)s-%(name)s-%(levelname)s: %(message)s"}
     },
     "handlers": {
         "console": {
             "level": "DEBUG",
-            "class": "logging.StreamHandler",
+            "class": "emp_main.loggers.StreamHandlerPlusIPs",
             "formatter": "simple",
+        },
+        "prometheus": {
+            "level": "DEBUG",
+            "class": "emp_main.loggers.PrometheusHandler",
         },
     },
     "loggers": loggers,
-    "root": {"handlers": ["console"], "level": log_level},
+    "root": {"handlers": ["console", "prometheus"], "level": log_level},
 }
 
 
@@ -165,6 +212,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 # fmt: on
 
+# The default value (1000) prevents us from deleting larger number of items
+# with Django Admin. See also:
+# https://docs.djangoproject.com/en/3.1/ref/settings/#data-upload-max-number-fields
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -248,7 +299,4 @@ LOGIN_PAGE_URL = "/auth/login/?next=%s" % HOME_PAGE_URL
 LOGOUT_PAGE_URL = "/auth/logout/?next=%s" % HOME_PAGE_URL
 
 # EPM evaluation page update interval in milliseconds
-EMP_EVALUATION_PAGE_UPDATE_INTERVAL = 60000
-
-# Increase this if admin cant post model changes anymore.
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 8192
+# EMP_EVALUATION_PAGE_UPDATE_INTERVAL = 60000

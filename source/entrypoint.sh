@@ -18,6 +18,9 @@ then
     printf "\nDjango production tests done\n\n"
 fi
 
+# Load the demo data.
+python3 /source/emp/manage.py loaddata /source/emp/demo_data.json
+
 # Create the admin account from environment variables.
 if [ ! -z "${DJANGO_SUPERUSER_PASSWORD}" ] && [ ! -z "${DJANGO_SUPERUSER_USERNAME}" ] && [ ! -z "${DJANGO_SUPERUSER_EMAIL}" ]
 then

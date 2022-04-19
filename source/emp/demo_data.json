@@ -1,0 +1,185 @@
+[
+{
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+        "password": "!XvgOJkwF4cUZI6n0BzuntYO4odtg3So5bQLtkNJ3",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "AnonymousUser",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2020-09-21T19:24:54.332Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+        "password": "pbkdf2_sha256$260000$lEdKkh3XMaP7UOPYbW8jvq$OjK+dK8DgP39q5N9wOc3gdAk4aHsFzMXetN/+hxEghk=",
+        "last_login": "2022-04-19T10:28:35.553Z",
+        "is_superuser": false,
+        "username": "test",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2020-09-22T09:37:38Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "guardian.userobjectpermission",
+    "pk": 8,
+    "fields": {
+        "permission": [
+            "view_demoapppage",
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "content_type": [
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "object_pk": "1",
+        "user": [
+            "AnonymousUser"
+        ]
+    }
+},
+{
+    "model": "guardian.userobjectpermission",
+    "pk": 9,
+    "fields": {
+        "permission": [
+            "view_demoapppage",
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "content_type": [
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "object_pk": "3",
+        "user": [
+            "AnonymousUser"
+        ]
+    }
+},
+{
+    "model": "guardian.userobjectpermission",
+    "pk": 10,
+    "fields": {
+        "permission": [
+            "view_demoapppage",
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "content_type": [
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "object_pk": "2",
+        "user": [
+            "test"
+        ]
+    }
+},
+{
+    "model": "emp_main.datapoint",
+    "pk": 1,
+    "fields": {
+        "origin_id": null,
+        "short_name": "Dummy-DP_1",
+        "type": "sensor",
+        "data_format": "generic_numeric",
+        "description": "A dummy datapoint",
+        "allowed_values": null,
+        "min_value": null,
+        "max_value": null,
+        "unit": "°C",
+        "last_value": "5",
+        "last_value_timestamp": null,
+        "last_setpoint": null,
+        "last_setpoint_timestamp": null,
+        "last_schedule": null,
+        "last_schedule_timestamp": null
+    }
+},
+{
+    "model": "emp_main.datapoint",
+    "pk": 2,
+    "fields": {
+        "origin_id": "1",
+        "short_name": "Dummy-DP_2",
+        "type": "sensor",
+        "data_format": "continuous_numeric",
+        "description": "A dummy temperature like datapoint.",
+        "allowed_values": null,
+        "min_value": 19.0,
+        "max_value": 25.0,
+        "unit": "°C",
+        "last_value": "22.6",
+        "last_value_timestamp": "2022-04-19T18:22:19.738Z",
+        "last_setpoint": null,
+        "last_setpoint_timestamp": null,
+        "last_schedule": null,
+        "last_schedule_timestamp": null
+    }
+},
+{
+    "model": "emp_demo_ui_app.demoapppage",
+    "pk": 1,
+    "fields": {
+        "page_name": "1 - Page space",
+        "page_slug": "1-page-space",
+        "page_content": "The yellow area is the space you can fill with your app's page content.",
+        "page_background_color": "yellow",
+        "demo_datapoint": null,
+        "page_has_detail": false
+    }
+},
+{
+    "model": "emp_demo_ui_app.demoapppage",
+    "pk": 2,
+    "fields": {
+        "page_name": "2 - Permissions",
+        "page_slug": "2-permissions",
+        "page_content": "This page is only available for the user \"test\" (and for the admin of course).",
+        "page_background_color": "transparent",
+        "demo_datapoint": null,
+        "page_has_detail": false
+    }
+},
+{
+    "model": "emp_demo_ui_app.demoapppage",
+    "pk": 3,
+    "fields": {
+        "page_name": "3 - Datapoints",
+        "page_slug": "3-datapoints",
+        "page_content": "Datapoints allow displaying (and modification) of sensor/actuator values. Here is a dummy datapoint value that is being updated automatically as new data arrives.",
+        "page_background_color": "transparent",
+        "demo_datapoint": 2,
+        "page_has_detail": false
+    }
+},
+{
+    "model": "emp_demo_ui_app.demoapppage",
+    "pk": 4,
+    "fields": {
+        "page_name": "4 - Detail Pages",
+        "page_slug": "4-detail-pages",
+        "page_content": "It is possible to use pop overs (called details) to provide additional information to users. Click on the info button below to open the detail page.",
+        "page_background_color": "transparent",
+        "demo_datapoint": 2,
+        "page_has_detail": true
+    }
+}
+]

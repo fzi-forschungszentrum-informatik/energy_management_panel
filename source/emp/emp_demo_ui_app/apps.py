@@ -52,7 +52,7 @@ def get_app_nav_content_for_user(user):
     # anonymous user has access to.
     pages_user = get_objects_for_user(user, "emp_demo_ui_app.view_demoapppage")
     pages_anon = get_objects_for_user(anon, "emp_demo_ui_app.view_demoapppage")
-    pages_all = pages_user.union(pages_anon)
+    pages_all = pages_user.union(pages_anon).order_by("page_name")
 
     # Be sure to use slugs here for url components.
     # Also ensure that any user gets a copy of the pages the AU gets and

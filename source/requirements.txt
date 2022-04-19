@@ -1,18 +1,28 @@
-# Django itself plus addon packages. 
+# Django itself plus addon packages.
 Django==3.2.*
 channels==3.0.*
 django-guardian==2.4.*
 djangorestframework==3.13.*
+drf-spectacular==0.22.*  # Online Swagger-UI for REST schema
+django-filter==21.1
 
 # Additional dependencies required for the emp_evaluation_system. Note that
 # django-multiselectfield is apparently not maintained any more.
 #django-nested-admin==3.4.* #enables nested admin forms in djangos admin
 #django-multiselectfield==0.1.* #Includes Multiselect (multiple radio buttons) for djangos admin page
 
-drf-spectacular==0.22.*  # Online Swagger-UI for REST schema 
-
-django-filter==21.1
-
-# Other packages required for developing.
+# To allow running the tests.
+pytest
 pytest-django
 
+# Production servers.
+gunicorn==20.1.*
+uvicorn==0.17.*
+whitenoise==6.0.*
+
+# Database engines
+psycopg2-binary
+django-timescaledb==0.2.11
+
+# For exposing Prometheus metrics
+django-prometheus==2.2.*

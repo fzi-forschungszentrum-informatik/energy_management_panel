@@ -27,7 +27,7 @@ services:
             - DJANGO_SUPERUSER_USERNAME=emp
             - DJANGO_SUPERUSER_PASSWORD=emp
             - DJANGO_SUPERUSER_EMAIL=emp@example.com
-            - EMPDB_HOST=django-api-devl-db
+            - EMPDB_HOST=emp-devl-db
             - EMPDB_PORT=5432
             - EMPDB_USER=emp
             - EMPDB_PASSWORD=emp
