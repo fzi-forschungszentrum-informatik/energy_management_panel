@@ -1,12 +1,12 @@
-import json
-
 from django.db import models
-from django.core.exceptions import ValidationError
 
-from ems_utils.message_format.models import DatapointTemplate
-from ems_utils.message_format.models import DatapointValueTemplate
-from ems_utils.message_format.models import DatapointSetpointTemplate
-from ems_utils.message_format.models import DatapointScheduleTemplate
+from esg.django_models.datapoint import DatapointTemplate
+from esg.django_models.datapoint import ValueMessageTemplate
+from esg.django_models.datapoint import LastValueMessageTemplate
+from esg.django_models.datapoint import SetpointMessageTemplate
+from esg.django_models.datapoint import LastSetpointMessageTemplate
+from esg.django_models.datapoint import ScheduleMessageTemplate
+from esg.django_models.datapoint import LastScheduleMessageTemplate
 
 
 class ModelWithIterableFields(models.Model):
@@ -45,18 +45,13 @@ class Datapoint(DatapointTemplate, ModelWithIterableFields):
     __doc__ = DatapointTemplate.__doc__.strip()
 
 
-class DatapointValue(DatapointValueTemplate):
+class ValueMessage(ValueMessageTemplate):
     """
-    Similar to the generic DatapointValue model (see docstring in
-    DatapointValueTemplate for more information) but with the correct
+    Similar to the generic ValueMessage model (see docstring in
+    ValueMessageTemplate for more information) but with the correct
     Datapoint model linked to it.
     """
 
-    # Overload the docstring with the one of DatapointValueTemplate for
-    # the automatic generation of documentation in schema, as the original
-    # docstring contains more general descriptions.
-    __doc__ = DatapointValueTemplate.__doc__.strip()
-    #
     datapoint = models.ForeignKey(
         Datapoint,
         on_delete=models.CASCADE,
@@ -64,18 +59,28 @@ class DatapointValue(DatapointValueTemplate):
     )
 
 
-class DatapointSchedule(DatapointScheduleTemplate):
+class LastValueMessage(LastValueMessageTemplate):
     """
-    Similar to the generic DatapointSchedule model (see docstring in
-    DatapointScheduleTemplate for more information) but with the correct
+    Similar to the generic LastValueMessage model (see docstring in
+    LastValueMessageTemplate for more information) but with the correct
     Datapoint model linked to it.
     """
 
-    # Overload the docstring with the one of DatapointScheduleTemplate for
-    # the automatic generation of documentation in schema, as the original
-    # docstring contains more general descriptions.
-    __doc__ = DatapointScheduleTemplate.__doc__.strip()
-    #
+    datapoint = models.OneToOneField(
+        Datapoint,
+        on_delete=models.CASCADE,
+        related_name="last_value_message",
+        help_text=("The datapoint that the value message belongs to."),
+    )
+
+
+class ScheduleMessage(ScheduleMessageTemplate):
+    """
+    Similar to the generic ScheduleMessage model (see docstring in
+    ScheduleMessageTemplate for more information) but with the correct
+    Datapoint model linked to it.
+    """
+
     datapoint = models.ForeignKey(
         Datapoint,
         on_delete=models.CASCADE,
@@ -83,20 +88,45 @@ class DatapointSchedule(DatapointScheduleTemplate):
     )
 
 
-class DatapointSetpoint(DatapointSetpointTemplate):
+class LastScheduleMessage(LastScheduleMessageTemplate):
     """
-    Similar to the generic DatapointSetpoint model (see docstring in
-    DatapointSetpointTemplate for more information) but with the correct
+    Similar to the generic LastScheduleMessage model (see docstring in
+    LastScheduleMessageTemplate for more information) but with the correct
     Datapoint model linked to it.
     """
 
-    # Overload the docstring with the one of DatapointSetpointTemplate for
-    # the automatic generation of documentation in schema, as the original
-    # docstring contains more general descriptions.
-    __doc__ = DatapointSetpointTemplate.__doc__.strip()
-    #
+    datapoint = models.OneToOneField(
+        Datapoint,
+        on_delete=models.CASCADE,
+        related_name="last_schedule_message",
+        help_text=("The datapoint that the schedule message belongs to."),
+    )
+
+
+class SetpointMessage(SetpointMessageTemplate):
+    """
+    Similar to the generic SetpointMessage model (see docstring in
+    SetpointMessageTemplate for more information) but with the correct
+    Datapoint model linked to it.
+    """
+
     datapoint = models.ForeignKey(
         Datapoint,
         on_delete=models.CASCADE,
+        help_text=("The datapoint that the setpoint message belongs to."),
+    )
+
+
+class LastSetpointMessage(LastSetpointMessageTemplate):
+    """
+    Similar to the generic LastSetpointMessage model (see docstring in
+    LastSetpointMessageTemplate for more information) but with the correct
+    Datapoint model linked to it.
+    """
+
+    datapoint = models.OneToOneField(
+        Datapoint,
+        on_delete=models.CASCADE,
+        related_name="last_setpoint_message",
         help_text=("The datapoint that the setpoint message belongs to."),
     )

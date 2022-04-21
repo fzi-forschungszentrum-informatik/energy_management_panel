@@ -2,9 +2,10 @@
 Django==3.2.*
 channels==3.0.*
 django-guardian==2.4.*
-djangorestframework==3.13.*
-drf-spectacular==0.22.*  # Online Swagger-UI for REST schema
-django-filter==21.1
+#djangorestframework==3.13.*
+#drf-spectacular==0.22.*  # Online Swagger-UI for REST schema
+#django-filter==21.1
+django-ninja==0.17.*
 
 # Additional dependencies required for the emp_evaluation_system. Note that
 # django-multiselectfield is apparently not maintained any more.

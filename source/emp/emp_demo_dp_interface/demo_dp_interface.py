@@ -72,10 +72,14 @@ class DemoDPInterface:
         sleep(10)
 
         # This can only be loaded once all apps are initialized.
-        from emp_main.models import Datapoint
+        from emp_main.models import Datapoint, LastValueMessage
 
         # Updateing/Inserting metadata for a datapoint could look like this:
-        dp, created = Datapoint.objects.get_or_create(origin_id=1, type="sensor")
+        dp, created = Datapoint.objects.get_or_create(
+            origin="emp_demo_dp_interface",
+            origin_id="1",
+            type="sensor"
+        )
         dp.data_format = "continuous_numeric"
         dp.description = "A dummy temperature like datapoint."
         dp.min_value = 19.0
@@ -97,8 +101,9 @@ class DemoDPInterface:
             # the methods listening to post_save (e.g. consumers notifing the
             # user about new data) will expect a string.
             dp = Datapoint.objects.get(origin_id=1)
-            dp.last_value = str(value)
-            dp.last_value_timestamp = timestamp_as_dt
-            dp.save(update_fields=["last_value", "last_value_timestamp"])
+            lvm, _ = LastValueMessage.objects.get_or_create(datapoint=dp)
+            lvm.value = value
+            lvm.time = timestamp_as_dt
+            lvm.save()
 
             sleep(5)

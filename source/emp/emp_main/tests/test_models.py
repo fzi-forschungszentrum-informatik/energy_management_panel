@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.db.utils import IntegrityError
 
 from ..models import Datapoint
-from ems_utils.timestamp import datetime_from_timestamp
+from esg.utils.timestamp import datetime_from_timestamp
 
 
 class TestDatapoint(TestCase):
@@ -164,8 +164,16 @@ class TestDatapoint(TestCase):
 
         last_schedule = json.dumps(
             [
-                {"from_timestamp": None, "to_timestamp": 1564489613491, "value": 21},
-                {"from_timestamp": 1564489613491, "to_timestamp": None, "value": None},
+                {
+                    "from_timestamp": None,
+                    "to_timestamp": 1564489613491,
+                    "value": 21,
+                },
+                {
+                    "from_timestamp": 1564489613491,
+                    "to_timestamp": None,
+                    "value": None,
+                },
             ]
         )
         field_values.update({"last_schedule": last_schedule})

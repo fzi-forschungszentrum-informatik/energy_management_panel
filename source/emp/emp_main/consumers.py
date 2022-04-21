@@ -8,7 +8,7 @@ from channels.generic.websocket import JsonWebsocketConsumer
 
 from .models import Datapoint
 from .apps import EmpAppsCache
-from ems_utils.timestamp import datetime_to_pretty_str
+from esg.utils.timestamp import datetime_to_pretty_str
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,8 @@ class DatapointUpdate(JsonWebsocketConsumer):
         self.user = self.scope["user"]
         self.accept()
         logger.debug(
-            "DatapointUpdate consumer accepted connection from user=%s", self.user
+            "DatapointUpdate consumer accepted connection from user=%s",
+            self.user,
         )
 
         # Parse the set of requested datapoints from the query string.
@@ -76,7 +77,8 @@ class DatapointUpdate(JsonWebsocketConsumer):
         denied_ids = requested_dp_ids.difference(all_allowed_dp_ids)
         if denied_ids:
             logger.warning(
-                "DatapointUpdate consumer denied user=%s access to the" "datapoints=%s",
+                "DatapointUpdate consumer denied user=%s access to the"
+                "datapoints=%s",
                 *(self.user, denied_ids)
             )
 
@@ -130,4 +132,6 @@ class DatapointUpdate(JsonWebsocketConsumer):
             sender=Datapoint,
             dispatch_uid=self.post_save_uid,
         )
-        logger.debug("DatapointUpdate consumer disconnected for user=%s", self.user)
+        logger.debug(
+            "DatapointUpdate consumer disconnected for user=%s", self.user
+        )

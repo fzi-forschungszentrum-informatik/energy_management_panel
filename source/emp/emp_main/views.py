@@ -1,28 +1,33 @@
 import json
 import logging
-from collections import OrderedDict
+
+# from collections import OrderedDict
 
 from django.conf import settings
-from django.utils.text import slugify
+
+# from django.utils.text import slugify
 from django.views.generic import TemplateView
 from django.templatetags.static import static
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
+
+# from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
-from rest_framework.response import Response
+
+# from rest_framework.response import Response
 
 from emp_main.apps import EmpAppsCache
-from emp_main.models import Datapoint
-from emp_main.models import DatapointValue
-from emp_main.models import DatapointSchedule
-from emp_main.models import DatapointSetpoint
-from ems_utils.message_format.views import DatapointViewSetTemplate
-from ems_utils.message_format.views import DatapointValueViewSetTemplate
-from ems_utils.message_format.views import DatapointScheduleViewSetTemplate
-from ems_utils.message_format.views import DatapointSetpointViewSetTemplate
-from .serializers import DatapointSerializer
-from .filters import DatapointFilter, DatapointValueFilter
-from .filters import DatapointSetpointFilter, DatapointScheduleFilter
+
+# from emp_main.models import Datapoint
+# from emp_main.models import DatapointValue
+# from emp_main.models import DatapointSchedule
+# from emp_main.models import DatapointSetpoint
+# from ems_utils.message_format.views import DatapointViewSetTemplate
+# from ems_utils.message_format.views import DatapointValueViewSetTemplate
+# from ems_utils.message_format.views import DatapointScheduleViewSetTemplate
+# from ems_utils.message_format.views import DatapointSetpointViewSetTemplate
+# from .serializers import DatapointSerializer
+# from .filters import DatapointFilter, DatapointValueFilter
+# from .filters import DatapointSetpointFilter, DatapointScheduleFilter
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +61,11 @@ class EMPBaseView(TemplateView):
                 logger.info(
                     "EMPBaseView blocked request by user %s to access page %s. "
                     "Allowed pages are:\n%s",
-                    *(user, requested_url, json.dumps(sorted(allowed_urls), indent=2))
+                    *(
+                        user,
+                        requested_url,
+                        json.dumps(sorted(allowed_urls), indent=2),
+                    )
                 )
                 raise PermissionDenied
 
@@ -127,62 +136,62 @@ def emp_403_handler(*args, **kwargs):
     return response
 
 
-class DatapointViewSet(DatapointViewSetTemplate):
-    # TODO: Verify permissions of user.
-    __doc__ = DatapointViewSetTemplate.__doc__
-    datapoint_model = Datapoint
-    queryset = Datapoint.objects.all()
-    serializer_class = DatapointSerializer
-    filterset_class = DatapointFilter
-
-
-class DatapointValueViewSet(DatapointValueViewSetTemplate):
-    # TODO: Verify permissions of user.
-    # TODO: Create method should push to origin.
-    __doc__ = DatapointValue.__doc__.strip()
-    model = DatapointValue
-    datapoint_model = Datapoint
-    queryset = DatapointValue.objects.all()
-    # TODO: Set to True after switching from push to pulling the messages.
-    create_for_actuators_only = False
-    filterset_class = DatapointValueFilter
-
-
-class DatapointLastValueViewSet(DatapointValueViewSetTemplate):
-    # TODO: Verify permissions of user.
-    # TODO: Create method should push to origin.
-    __doc__ = DatapointValue.__doc__.strip()
-    model = DatapointValue
-    datapoint_model = Datapoint
-    queryset = DatapointValue.objects.all()
-    # TODO: Set to True after switching from push to pulling the messages.
-    create_for_actuators_only = False
-    filterset_class = DatapointValueFilter
-
-    def retrieve(self, request, dp_id):
-        datapoint = get_object_or_404(self.datapoint_model, id=dp_id)
-        object = self.queryset.filter(datapoint=datapoint).last()
-        serializer = self.serializer_class(object)
-        return Response(serializer.data)
-
-
-class DatapointScheduleViewSet(DatapointScheduleViewSetTemplate):
-    # TODO: Verify permissions of user.
-    # TODO: Create method should push to origin.
-    __doc__ = DatapointSchedule.__doc__.strip()
-    model = DatapointSchedule
-    datapoint_model = Datapoint
-    queryset = DatapointSchedule.objects.all()
-    # TODO: Set to True after switching from push to pulling the messages.
-    create_for_actuators_only = False
-
-
-class DatapointSetpointViewSet(DatapointSetpointViewSetTemplate):
-    # TODO: Verify permissions of user.
-    # TODO: Create method should push to origin.
-    __doc__ = DatapointSetpoint.__doc__.strip()
-    model = DatapointSetpoint
-    datapoint_model = Datapoint
-    queryset = DatapointSetpoint.objects.all()
-    # TODO: Set to True after switching from push to pulling the messages.
-    create_for_actuators_only = False
+# class DatapointViewSet(DatapointViewSetTemplate):
+#     # TODO: Verify permissions of user.
+#     __doc__ = DatapointViewSetTemplate.__doc__
+#     datapoint_model = Datapoint
+#     queryset = Datapoint.objects.all()
+#     serializer_class = DatapointSerializer
+#     filterset_class = DatapointFilter
+#
+#
+# class DatapointValueViewSet(DatapointValueViewSetTemplate):
+#     # TODO: Verify permissions of user.
+#     # TODO: Create method should push to origin.
+#     __doc__ = DatapointValue.__doc__.strip()
+#     model = DatapointValue
+#     datapoint_model = Datapoint
+#     queryset = DatapointValue.objects.all()
+#     # TODO: Set to True after switching from push to pulling the messages.
+#     create_for_actuators_only = False
+#     filterset_class = DatapointValueFilter
+#
+#
+# class DatapointLastValueViewSet(DatapointValueViewSetTemplate):
+#     # TODO: Verify permissions of user.
+#     # TODO: Create method should push to origin.
+#     __doc__ = DatapointValue.__doc__.strip()
+#     model = DatapointValue
+#     datapoint_model = Datapoint
+#     queryset = DatapointValue.objects.all()
+#     # TODO: Set to True after switching from push to pulling the messages.
+#     create_for_actuators_only = False
+#     filterset_class = DatapointValueFilter
+#
+#     def retrieve(self, request, dp_id):
+#         datapoint = get_object_or_404(self.datapoint_model, id=dp_id)
+#         object = self.queryset.filter(datapoint=datapoint).last()
+#         serializer = self.serializer_class(object)
+#         return Response(serializer.data)
+#
+#
+# class DatapointScheduleViewSet(DatapointScheduleViewSetTemplate):
+#     # TODO: Verify permissions of user.
+#     # TODO: Create method should push to origin.
+#     __doc__ = DatapointSchedule.__doc__.strip()
+#     model = DatapointSchedule
+#     datapoint_model = Datapoint
+#     queryset = DatapointSchedule.objects.all()
+#     # TODO: Set to True after switching from push to pulling the messages.
+#     create_for_actuators_only = False
+#
+#
+# class DatapointSetpointViewSet(DatapointSetpointViewSetTemplate):
+#     # TODO: Verify permissions of user.
+#     # TODO: Create method should push to origin.
+#     __doc__ = DatapointSetpoint.__doc__.strip()
+#     model = DatapointSetpoint
+#     datapoint_model = Datapoint
+#     queryset = DatapointSetpoint.objects.all()
+#     # TODO: Set to True after switching from push to pulling the messages.
+#     create_for_actuators_only = False
