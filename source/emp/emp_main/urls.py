@@ -24,6 +24,7 @@ from django.views.generic import RedirectView
 # from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from .views import EMPBaseView
+from .api import api
 
 # from .views import DatapointViewSet, DatapointValueViewSet
 # from .views import DatapointScheduleViewSet, DatapointSetpointViewSet
@@ -37,7 +38,7 @@ urlpatterns = [
     ),
     # These are the URLS for REST API.
     # path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    # path("api/", SpectacularSwaggerView.as_view(url_name="schema")),
+    path("api/", api.urls),
     # path(
     #     "api/datapoint/", DatapointViewSet.as_view({"get": "list", "post": "create",})
     # ),

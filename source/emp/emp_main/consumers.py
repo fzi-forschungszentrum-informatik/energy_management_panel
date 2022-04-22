@@ -1,10 +1,12 @@
+from asgiref.sync import async_to_sync
+from datetime import datetime
 import json
 import logging
 from urllib import parse as urlparse
-from datetime import datetime
 
-from django.db.models.signals import post_save
 from channels.generic.websocket import JsonWebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer
+from django.db.models.signals import post_save
 
 from .models import Datapoint
 from .apps import EmpAppsCache
@@ -134,4 +136,35 @@ class DatapointUpdate(JsonWebsocketConsumer):
         )
         logger.debug(
             "DatapointUpdate consumer disconnected for user=%s", self.user
+        )
+
+
+class DatapointLatestConsumer(WebsocketConsumer):
+
+    groups = ["datapoint.latest"]
+
+    def connect(self):
+        if "user" in self.scope:
+            self.user = self.scope["user"]
+        else:
+            logger.warning(
+                "No user in scope. Be alerted if this is not a "
+                "call from emp_main/tests/test_consumer.py!"
+            )
+            self.user = None
+
+        self.accept()
+
+        logger.debug(
+            "DatapointUpdate consumer accepted connection from user=%s",
+            self.user,
+        )
+
+    def datapoint_latest(self, message):
+        print("message", message)
+        self.send(message["text"])
+
+    def disconnect(self, close_code):
+        async_to_sync(self.channel_layer.group_discard)(
+            "datapoint.latest", self.channel_name
         )

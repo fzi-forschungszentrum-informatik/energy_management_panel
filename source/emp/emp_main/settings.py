@@ -129,6 +129,11 @@ TEMPLATES = [
 WSGI_APPLICATION = "emp_main.wsgi.application"
 ASGI_APPLICATION = "emp_main.asgi.application"
 
+# TODO: Replace this with Redis for Prod.
+CHANNEL_LAYERS = {
+    "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
+}
+
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 if os.getenv("EMPDB_HOST"):
