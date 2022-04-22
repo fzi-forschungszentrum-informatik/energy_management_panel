@@ -143,11 +143,11 @@ class DatapointAdmin(admin.ModelAdmin):
 
         data_format_specific_fields = []
         if obj is not None:
-            if "_numeric" in obj.data_format:
+            if " Numeric" in obj.data_format:
                 data_format_specific_fields.append("unit")
-            if "discrete_" in obj.data_format:
+            if "Discrete " in obj.data_format:
                 data_format_specific_fields.append("allowed_values")
-            if "continuous_numeric" in obj.data_format:
+            if "Continuous Numeric" in obj.data_format:
                 data_format_specific_fields.append("min_value")
                 data_format_specific_fields.append("max_value")
 
