@@ -6,6 +6,7 @@ from urllib import parse as urlparse
 
 from channels.generic.websocket import JsonWebsocketConsumer
 from channels.generic.websocket import WebsocketConsumer
+from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 
 from .models import Datapoint
@@ -140,8 +141,9 @@ class DatapointUpdate(JsonWebsocketConsumer):
 
 
 class DatapointLatestConsumer(WebsocketConsumer):
-
-    groups = ["datapoint.latest"]
+    """
+    TODO: Secure data access here!
+    """
 
     def connect(self):
         if "user" in self.scope:
@@ -151,18 +153,58 @@ class DatapointLatestConsumer(WebsocketConsumer):
                 "No user in scope. Be alerted if this is not a "
                 "call from emp_main/tests/test_consumer.py!"
             )
-            self.user = None
+            self.user = get_user_model().get_anonymous()
+
+        # Compute the requested channel layer groups.
+        # Remove leading `/ws/` and trailing `/`.
+        group_base_name = self.scope["path"][4:-1].replace("/", ".")
+
+        # Parse the set of requested datapoints from the query string.
+        try:
+            query_string = self.scope["query_string"].decode("utf8")
+            query_string_parsed = urlparse.parse_qs(query_string)
+            # if the query string looks like this: ?datapoint-ids=[1,2]"
+            # then the query_string_parsed object looks like this:
+            # {'datapoint-ids': ['[1,2]']}
+            datapoint_ids_qs_json = query_string_parsed["datapoint-ids"][0]
+            requested_dp_ids = set(json.loads(datapoint_ids_qs_json))
+        except:
+            logging.exception(
+                "DatapointUpdate consumer received object not translatable "
+                "into requested datapoint ids by user=%s.",
+                self.user,
+            )
+            raise
+
+        # TODO take over code that checks which IDs are actually allowed.
+
+        self.groups = []
+        for datapoint_id in requested_dp_ids:
+            group = "{}.{}".format(group_base_name, datapoint_id)
+
+            # Adding to group will automatically remove these on disconnect.
+            self.groups.append(group)
+
+            async_to_sync(self.channel_layer.group_add)(
+                group, self.channel_name
+            )
 
         self.accept()
-
-        logger.debug(
+        logger.info(
             "DatapointUpdate consumer accepted connection from user=%s",
             self.user,
         )
 
-    def datapoint_latest(self, message):
-        print("message", message)
-        self.send(message["text"])
+        groups_truncated = str(self.groups)[:60]
+        logger.info("Connected to channel groups %s...", groups_truncated)
+
+    def datapoint_related(self, message):
+        """
+        Publishes group message on Websocket.
+        Whatever you push here should already be in JSON.
+        """
+        print(message)
+        self.send(message["json"])
 
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(

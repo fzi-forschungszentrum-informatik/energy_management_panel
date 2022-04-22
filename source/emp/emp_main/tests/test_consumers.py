@@ -13,7 +13,7 @@ class TestDatapointLatestConsumer(TestCase):
     Tests for `emp_main.consumers.DatapointLatestConsumer`
     """
 
-    ws_url = "/ws/datapoint/latest/"
+    ws_url = "/ws/datapoint/latest/?datapoint-ids=[1,2]"
 
     async def test_update_received(self):
         """
@@ -29,11 +29,9 @@ class TestDatapointLatestConsumer(TestCase):
 
         channel_layer = get_channel_layer()
         await channel_layer.group_send(
-            "datapoint.latest", {"type": "datapoint.latest", "text": "test"},
+            "datapoint.latest.1", {"type": "datapoint.related", "json": "test"},
         )
 
         response = await communicator.receive_from()
 
         assert response == "test"
-
-        assert False
