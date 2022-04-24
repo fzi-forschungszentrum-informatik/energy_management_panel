@@ -140,7 +140,7 @@ class DatapointUpdate(JsonWebsocketConsumer):
         )
 
 
-class DatapointLatestConsumer(WebsocketConsumer):
+class DatapointMetadataLatestConsumer(WebsocketConsumer):
     """
     TODO: Secure data access here!
     """
@@ -203,7 +203,6 @@ class DatapointLatestConsumer(WebsocketConsumer):
         Publishes group message on Websocket.
         Whatever you push here should already be in JSON.
         """
-        print(message)
         self.send(message["json"])
 
     def disconnect(self, close_code):
