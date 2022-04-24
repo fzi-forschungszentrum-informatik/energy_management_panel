@@ -6,10 +6,17 @@ This API is all syncronous as the Django ORM and Middlewares are not async yet.
 Django recommends to limit switching from async to sync, and as the ASGI is
 used for access with keep it sync afterwards. See:
 https://docs.djangoproject.com/en/3.2/topics/async/
+
+As of April 2022 django Ninja doesn't support class based views.
+See: https://github.com/vitalik/django-ninja/issues/15
+However, we still want to make parts of the API calls reusable. The logic in
+this file is hence grouped in to `View` classes, quite similar to Django's
+class based views. However, due to the limitation in Ninja, patching up
+the methods to the NinjaAPI must happen outside this classes.
 """
-import json
+from datetime import datetime
 import logging
-from typing import List
+from typing import List, Union
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -18,65 +25,30 @@ from django.http import HttpResponse
 from ninja import NinjaAPI
 from ninja import Query
 from ninja import Schema
-from ninja.renderers import BaseRenderer
+from pydantic import Field
 
 from esg.models.datapoint import DatapointById
 from esg.models.datapoint import DatapointList
 from esg.models.datapoint import DatapointType
 from esg.models.datapoint import DatapointDataFormat
+from esg.models.datapoint import ValueMessageByDatapointId
 from esg.models.request import HTTPError
 from esg.services.base import RequestInducedException
 
 from .models import Datapoint as DatapointDb
+from emp_main.models import ValueMessage as ValueHistoryDb
+from emp_main.models import LastValueMessage as ValueLatestDb
 
 logger = logging.getLogger(__name__)
 
 
-class JSONRenderer(BaseRenderer):
-    media_type = "application/json"
-
-    def render(self, request, data, *, response_status):
-        return json.dumps(data)
+api = NinjaAPI(title="EMP API", version="v1", docs_url="/",)
 
 
-api = NinjaAPI(
-    title="EMP API", version="v1", docs_url="/", renderer=JSONRenderer()
-)
-
-
-class GenericDatapointRelatedView:
+class GenericAPIView:
     """
-    As of April 2022 django Ninja doesn't support class based views.
-    See: https://github.com/vitalik/django-ninja/issues/15
-
-    This is a simple class that encapuslates the generic logic.
+    Some generic stuff that should be relevant for all API endpoints.
     """
-
-    DatapointModel = DatapointDb
-    RelatedModel = None
-    list_response_model = None
-    list_latest_response_model = None
-    list_at_interval_response_model = None
-    create_response_model = None
-    update_response_model = None
-
-    class DatapointFilterParams(Schema):
-        """
-        Define filter possibilities for datapoints.
-        Note the keys must match something expect by `django.QuerySets.filter`.
-        See: https://docs.djangoproject.com/en/4.0/ref/models/querysets/#filter
-        """
-
-        id__in: List[int] = None
-        origin__exact: str = None
-        origin__regex: str = None
-        origin_id__in: List[str] = None
-        origin_id__regex: str = None
-        short_name__regex: str = None
-        type__exact: DatapointType = None
-        data_format__in: List[DatapointDataFormat] = None
-        description__regex: str = None
-        unit__regex: str = None
 
     def _handle_exceptions(method):
         """
@@ -111,6 +83,55 @@ class GenericDatapointRelatedView:
 
         return handle_exceptions
 
+
+class GenericDatapointAPIView(GenericAPIView):
+    """
+    Generic functionality for classes that interact with datapoints.
+
+    Attributes:
+    -----------
+    DatapointModel: django.db.models.Model
+        The django model used to fetch/write datapoint metadata from/to db.
+    DatapointFilterParams: ninja.Schema
+        Define filter possibilities for datapoints.
+        Note the keys must match something expect by `django.QuerySets.filter`.
+        See: https://docs.djangoproject.com/en/4.0/ref/models/querysets/#filter
+    """
+
+    DatapointModel = DatapointDb
+
+    class DatapointFilterParams(Schema):
+        id__in: List[int] = Field(None, description="`Datapoint.id` in list")
+        origin__exact: str = Field(
+            None, description="`Datapoint.origin` exact match"
+        )
+        origin__regex: str = Field(
+            None, description="`Datapoint.origin` regex match"
+        )
+        origin_id__in: List[str] = Field(
+            None, description="`Datapoint.origin_id` in list"
+        )
+        origin_id__regex: str = Field(
+            None, description="`Datapoint.origin_id` regex match"
+        )
+        short_name__regex: str = Field(
+            None, description="`Datapoint.short_name` regex match"
+        )
+        # Use in here instead of exact as the List[] makes the field
+        # not required in SwaggerUI.
+        type__in: List[DatapointType] = Field(
+            None, description="`Datapoint.type` in list"
+        )
+        data_format__in: List[DatapointDataFormat] = Field(
+            None, description="`Datapoint.data_format` in list"
+        )
+        description__regex: str = Field(
+            None, description="`Datapoint.description` regex match"
+        )
+        unit__regex: str = Field(
+            None, description="`Datapoint.unit` regex match"
+        )
+
     def get_filtered_datapoints(self, datapoint_filter_params):
         """
         Return a queryset of datapoints matching the requested filter
@@ -129,7 +150,140 @@ class GenericDatapointRelatedView:
         datapoints = self.DatapointModel.objects.all().filter(**active_filters)
         return datapoints
 
-    @_handle_exceptions
+
+class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
+    """
+    Generic code for API classes for data that is related to a datapoint,
+    e.g. by foreign key.
+
+    This class assumes that the related data is stored in two seperate tables,
+    one holding zero or one latest values per datapoint, and a second holding
+    the historic values of the data.
+
+    Subclass to use. Must set the following attributes.
+
+    Attriubtes:
+    -----------
+    RelatedDataLatestModel: django.db.models.Model
+        The django model that is used to save/load the latest known data
+        item per datapoint.
+    RelatedDataHistoryModel: django.db.models.Model
+        The django model that is used to save/load the historic data
+        items per datapoint.
+    list_latest_response_model: esg.models.base._BaseModel
+        The pydantic model that is used to serialize the latest data.
+        This model must have a Dict as __root__ element which is set to
+        the datapoint id.
+    list_history_response_model: esg.models.base._BaseModel
+        The pydantic model that is used to serialize the history data.
+        This model must have a Dict as __root__ element which is set to
+        the datapoint id.
+    update_latest_response_model: esg.models.base._BaseModel
+        The pydantic model that is used to serialize the cleaned and validated
+        data that is sent back as confirmation for any an PUT update latest
+        operation.
+    """
+
+    RelatedDataLatestModel = None
+    RelatedDataHistoryModel = None
+    list_latest_response_model = None
+    list_history_response_model = None
+    update_latest_response_model = None
+
+    def list_latest(
+        self, request, datapoint_filter_params, related_filter_params
+    ):
+        """
+        Returns the latest data item per datapoint.
+        """
+        datapoints = self.get_filtered_datapoints(datapoint_filter_params)
+
+        related_data = self.RelatedDataLatestModel.objects.filter(
+            datapoint__in=datapoints
+        )
+
+        # Group by datapoint ID.
+        content_as_dict = {}
+        for data_item in related_data:
+            content_as_dict[str(data_item.datapoint.id)] = model_to_dict(
+                data_item
+            )
+
+        # Convert to jsonable, skip validation.
+        content_pydantic = self.list_latest_response_model.construct_recursive(
+            __root__=content_as_dict
+        )
+
+        # At this point content contains additional fields (as extra fields
+        # are not removed due to skipped validation). This removes the
+        # extra fields, but may actually not be very nice.
+        content_pydantic = self.list_latest_response_model.parse_raw(
+            content_pydantic.json()
+        )
+
+        content = content_pydantic.json()
+
+        return HttpResponse(
+            content, status=200, content_type="application/json"
+        )
+
+
+##############################################################################
+# Datapoint Value Messages -> /datapoint/value/*
+##############################################################################
+
+
+class DatapointValueAPIView(GenericDatapointRelatedAPIView):
+    RelatedDataLatestModel = ValueLatestDb
+    list_latest_response_model = ValueMessageByDatapointId
+
+    # This is defined here every time to adapt the field descriptions.
+    class ValueFilterParams(Schema):
+        time__gte: datetime = Field(
+            None, description="`ValueMessage.time` greater or equal this value."
+        )
+        time__lt: datetime = Field(
+            None, description="`ValueMessage.time` less this value."
+        )
+
+
+dp_value_view = DatapointValueAPIView()
+
+
+@api.get(
+    "/datapoint/value/latest/",
+    response={200: ValueMessageByDatapointId, 400: HTTPError, 500: HTTPError},
+    tags=["Datapoint Value"],
+    summary=" ",  # Deactivate summary.
+)
+def get_datapoint_value_latest(
+    request,
+    datapoint_filter_params: dp_value_view.DatapointFilterParams = Query(...),
+    value_filter_params: dp_value_view.ValueFilterParams = Query(...),
+):
+    """
+    Return the latest values for datapoints targeted by the filter.
+    """
+
+    response = dp_value_view.list_latest(
+        request=request,
+        datapoint_filter_params=datapoint_filter_params,
+        related_filter_params=value_filter_params,
+    )
+    return response
+
+
+##############################################################################
+# Datapoint Metadata -> /datapoint/metadata/*
+##############################################################################
+
+
+class DatapointMetadataAPIView(GenericDatapointAPIView):
+    """
+    methods for handling calls to /datapoint/metadata/ endpoints.
+    """
+
+    @GenericAPIView._handle_exceptions
     def list_latest(self, request, datapoint_filter_params={}):
         """
         Return the latest state of metadata of zero or more datapoints matching
@@ -161,7 +315,7 @@ class GenericDatapointRelatedView:
             content, status=200, content_type="application/json"
         )
 
-    @_handle_exceptions
+    @GenericAPIView._handle_exceptions
     def update_latest(self, request, datapoints):
         """
         Update or create the latest state of datapoint metadata.
@@ -246,11 +400,7 @@ class GenericDatapointRelatedView:
         )
 
 
-class DatapointView(GenericDatapointRelatedView):
-    pass
-
-
-dp_view = DatapointView()
+dpm_view = DatapointMetadataAPIView()
 
 
 @api.get(
@@ -259,16 +409,16 @@ dp_view = DatapointView()
     tags=["Datapoint Metadata"],
     summary=" ",  # Deactivate summary.
 )
-def get_datapoint_latest(
+def get_datapoint_metadata_latest(
     request,
-    datapoint_filter_params: dp_view.DatapointFilterParams = Query(...),
+    datapoint_filter_params: dpm_view.DatapointFilterParams = Query(...),
 ):
     """
     Return a queryset of datapoints matching the requested filter
     parameters.
     """
 
-    response = dp_view.list_latest(
+    response = dpm_view.list_latest(
         request=request, datapoint_filter_params=datapoint_filter_params
     )
     return response
@@ -280,7 +430,7 @@ def get_datapoint_latest(
     tags=["Datapoint Metadata"],
     summary=" ",  # Deactivate summary.
 )
-def put_datapoint_latest(
+def put_datapoint_metadata_latest(
     request, datapoints: DatapointList,
 ):
     """
@@ -303,22 +453,5 @@ def put_datapoint_latest(
     **Finally note**: This operation is all or nothing. If you receive an
     error no data is written to DB.
     """
-    response = dp_view.update_latest(request=request, datapoints=datapoints)
+    response = dpm_view.update_latest(request=request, datapoints=datapoints)
     return response
-
-
-# @api.get(
-#     "/datapoint/", response={200: DatapointById},
-# )
-# def get_datapoint(
-#     request,
-#     datapoint_filter_params: dp_view.DatapointFilterParams = Query(...),
-# ):
-#     """
-#     Return the metadata of zero or more datapoints matching the
-#     requested filter parameters.
-#     """
-#     response = dp_view.list(
-#         request=request, datapoint_filter_params=datapoint_filter_params
-#     )
-#     return response

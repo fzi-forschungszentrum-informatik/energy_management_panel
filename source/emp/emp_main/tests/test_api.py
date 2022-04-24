@@ -3,6 +3,8 @@
 """
 import asyncio
 from copy import deepcopy
+from datetime import datetime
+from datetime import timezone
 import json
 from pprint import pformat
 
@@ -15,9 +17,11 @@ from django.test import TransactionTestCase
 from esg.models.datapoint import DatapointList
 from esg.services.base import RequestInducedException
 
-from emp_main.api import GenericDatapointRelatedView
+from emp_main.api import GenericAPIView
 from emp_main.consumers import DatapointMetadataLatestConsumer
 from emp_main.models import Datapoint as DatapointDb
+from emp_main.models import ValueMessage as ValueHistoryDb
+from emp_main.models import LastValueMessage as ValueLatestDb
 
 API_ROOT_PATH = "/api"
 
@@ -125,11 +129,59 @@ TEST_DATAPOINTS = [
         },
     },
 ]
+"""
+Define test datasets (i.e. one or more collections of data in different
+representations)for `GenericDatapointRelatedAPIViewTests`.
+
+Take care of the following:
+`TEST_DATASETS_*_LATEST` and  `TEST_DATASETS_*_HISTORY`:
+* Keys `Python_pre_update`, `Python` and `JSONable` exist.
+* `Python_pre_update` contains at least one item that is updated with an item
+  from `Python`.
+* `Python` contains at least one item that is newly created.
+
+`TEST_DATASETS_*_LATEST_INVALID` and  `TEST_DATASETS_*_HISTORY_INVALID`:
+* Keys `JSONable`, `status_code_must_be`, `detail_must_contain` exist.
+* Try to be as specific as possible with `detail_must_contain` to verify
+  that reason why a call failed is the one that was intended while
+  developing the tests.
+"""
+# Define one or more test cases (i.e. full sets of data at different stages
+# of processing.
+TEST_DATASETS_VALUES_LATEST = [
+    {
+        "Python_pre_update": [
+            {
+                "datapoint__id": 1,
+                "value": 20.5,
+                "time": datetime(2022, 4, 24, 23, 21, 0, tzinfo=timezone.utc),
+            },
+        ],
+        "Python": [
+            {
+                "datapoint__id": 1,
+                "value": 21.0,
+                "time": datetime(
+                    2022, 4, 24, 23, 21, 32, 100, tzinfo=timezone.utc
+                ),
+            },
+            {
+                "datapoint__id": 2,
+                "value": True,
+                "time": datetime(2022, 4, 24, 23, 21, 25, tzinfo=timezone.utc),
+            },
+        ],
+        "JSONable": {
+            "1": {"value": "21.0", "time": "2022-04-24T23:21:32.000100+00:00"},
+            "2": {"value": "true", "time": "2022-04-24T23:21:25+00:00"},
+        },
+    }
+]
 
 
-class TestGenericDatapointRelatedViewHandleException:
+class TestGenericAPIViewHandleException:
     """
-    Tests for emp_main.api.GenericDatapointRelatedView._handle_exceptions
+    Tests for emp_main.api.GenericAPIView._handle_exceptions
     """
 
     def test_non_exception_returned(self):
@@ -139,7 +191,7 @@ class TestGenericDatapointRelatedViewHandleException:
         """
 
         class Test:
-            @GenericDatapointRelatedView._handle_exceptions
+            @GenericAPIView._handle_exceptions
             def test_method(self):
                 return HttpResponse(
                     content="test content",
@@ -160,7 +212,7 @@ class TestGenericDatapointRelatedViewHandleException:
         """
 
         class Test:
-            @GenericDatapointRelatedView._handle_exceptions
+            @GenericAPIView._handle_exceptions
             def test_method(self, arg, kwarg):
                 return HttpResponse(
                     content="arg: {}, kwarg: {}".format(arg, kwarg),
@@ -182,7 +234,7 @@ class TestGenericDatapointRelatedViewHandleException:
         """
 
         class Test:
-            @GenericDatapointRelatedView._handle_exceptions
+            @GenericAPIView._handle_exceptions
             def test_method(self):
                 raise RequestInducedException(detail="test detail!")
 
@@ -199,7 +251,7 @@ class TestGenericDatapointRelatedViewHandleException:
         """
 
         class Test:
-            @GenericDatapointRelatedView._handle_exceptions
+            @GenericAPIView._handle_exceptions
             def test_method(self):
                 raise RuntimeError("Rare Exception")
 
@@ -215,7 +267,7 @@ class TestGenericDatapointRelatedViewHandleException:
         assert b"Rare Exception" not in response.content
 
 
-class TestDatapointMetadataEndpoints(TransactionTestCase):
+class TestDatapointMetadataAPIView(TransactionTestCase):
     """
     Tests for the the /datapoint/metadata/* endpoints.
     """
@@ -460,3 +512,119 @@ class TestDatapointMetadataEndpoints(TransactionTestCase):
 
         assert response1 == TEST_DATAPOINTS[0]["JSONable"]
         assert response2 == TEST_DATAPOINTS[1]["JSONable"]
+
+
+class GenericDatapointRelatedAPIViewTests(TransactionTestCase):
+    """
+    Similar to how `GenericDatapointRelatedAPIView` holds generic code
+    for derived APIView classes, this class holds generic tests to derive
+    the corresponding test classes.
+    """
+
+    RelatedDataLatestModel = None
+    RelatedDataHistoryModel = None
+
+    test_data_latest = None
+    test_data_history = None
+
+    unique_together_fields_latest = ["datapoint"]
+    unique_together_fields_history = ["datapoint__id", "time"]
+
+    def setUp(self):
+        """
+        Generic stuff required for all tests.
+        """
+        self.client = Client()
+
+        self.datapoints_by_id = {}
+        for test_datapoint in TEST_DATAPOINTS:
+            dp = DatapointDb.objects.create(**test_datapoint["Python"])
+            dp.save()
+            self.datapoints_by_id[dp.id] = dp
+
+    def tearDown(self):
+        """
+        Delete all datapoints after each tests to prevent unique constraints
+        from short_name.
+        """
+        DatapointDb.objects.all().delete()
+        self.RelatedDataLatestModel.objects.all().delete()
+        self.RelatedDataHistoryModel.objects.all().delete()
+
+    def _create_test_data_in_db(self, test_data, db_model):
+        """
+        helper function to prevent redundant code.
+        """
+        test_data = deepcopy(test_data)
+        for test_data_item in test_data:
+            # Replace datapoint id with datapoint object, as django wants that.
+            if "datapoint__id" in test_data_item:
+                datapoint_id = test_data_item.pop("datapoint__id")
+                datapoint = DatapointDb.objects.get(id=datapoint_id)
+                test_data_item["datapoint"] = datapoint
+
+            obj = db_model.objects.create(**test_data_item)
+            obj.save()
+
+    def _check_test_data_exists_in_db(
+        self, test_data, db_model, unique_together_fields
+    ):
+        """
+        another helper function to prevent redundant code.
+        """
+        test_data = deepcopy(test_data)
+        for test_data_item in test_data:
+            # Replace datapoint id with datapoint object, as django wants that.
+            if "datapoint__id" in test_data_item:
+                datapoint_id = test_data_item.pop("datapoint__id")
+                datapoint = DatapointDb.objects.get(id=datapoint_id)
+                test_data_item["datapoint"] = datapoint
+
+            get_args = {f: test_data_item[f] for f in unique_together_fields}
+            actual_data_obj = db_model.objects.get(**get_args)
+
+            for field, expected_value in test_data_item.items():
+
+                actual_value = getattr(actual_data_obj, field)
+
+                assert_msg = (
+                    "Error comparing field `{}` of expected data item \n{} "
+                    "\n\nwith actual item in db \n{}".format(
+                        field,
+                        pformat(test_data_item, indent=4),
+                        pformat(actual_data_obj.__dict__, indent=4),
+                    )
+                )
+
+                assert actual_value == expected_value, assert_msg
+
+
+class TestDatapointValueAPIView(GenericDatapointRelatedAPIViewTests):
+
+    RelatedDataLatestModel = ValueLatestDb
+    RelatedDataHistoryModel = ValueHistoryDb
+
+    test_datasets_latest = TEST_DATASETS_VALUES_LATEST
+
+    endpoint_url_latest = API_ROOT_PATH + "/datapoint/value/latest/"
+
+    def test_list_latest(self):
+        for test_dataset in self.test_datasets_latest:
+
+            self._create_test_data_in_db(
+                test_data=test_dataset["Python"],
+                db_model=self.RelatedDataLatestModel,
+            )
+
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python"],
+                db_model=self.RelatedDataLatestModel,
+                unique_together_fields=self.unique_together_fields_latest,
+            )
+
+            response = self.client.get(self.endpoint_url_latest)
+            assert response.status_code == 200
+
+            expected_jsonable = test_dataset["JSONable"]
+            actual_jsonable = response.json()
+            assert expected_jsonable == actual_jsonable
