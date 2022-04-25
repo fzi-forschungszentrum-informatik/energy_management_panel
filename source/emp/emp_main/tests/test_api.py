@@ -8,7 +8,6 @@ from datetime import timezone
 import json
 from pprint import pformat
 
-from asgiref.sync import sync_to_async
 from channels.testing import WebsocketCommunicator
 from django.http import HttpResponse
 from django.test import Client
@@ -22,8 +21,7 @@ from emp_main.consumers import DatapointMetadataLatestConsumer
 from emp_main.models import Datapoint as DatapointDb
 from emp_main.models import ValueMessage as ValueHistoryDb
 from emp_main.models import LastValueMessage as ValueLatestDb
-
-API_ROOT_PATH = "/api"
+from emp_main.urls import API_ROOT_PATH
 
 """
 Test data for all the tests. This is pretty redundant to esg.test.data but
@@ -146,8 +144,6 @@ Take care of the following:
   that reason why a call failed is the one that was intended while
   developing the tests.
 """
-# Define one or more test cases (i.e. full sets of data at different stages
-# of processing.
 TEST_DATASETS_VALUES_LATEST = [
     {
         "Python_pre_update": [
@@ -161,6 +157,8 @@ TEST_DATASETS_VALUES_LATEST = [
             {
                 "datapoint__id": 1,
                 "value": 21.0,
+                # This is a one time check here that the fields can store
+                # microseconds too.
                 "time": datetime(
                     2022, 4, 24, 23, 21, 32, 100, tzinfo=timezone.utc
                 ),
@@ -174,6 +172,56 @@ TEST_DATASETS_VALUES_LATEST = [
         "JSONable": {
             "1": {"value": "21.0", "time": "2022-04-24T23:21:32.000100+00:00"},
             "2": {"value": "true", "time": "2022-04-24T23:21:25+00:00"},
+        },
+    }
+]
+
+TEST_DATASETS_VALUES_HISTORY = [
+    {
+        "Python_pre_update": [
+            {
+                "datapoint__id": 1,
+                "value": 20.5,
+                "time": datetime(2022, 4, 24, 23, 21, tzinfo=timezone.utc),
+            },
+        ],
+        "Python": [
+            {
+                "datapoint__id": 1,
+                "value": 21.0,
+                # This ist the same time value as above and should update the
+                # value.
+                "time": datetime(2022, 4, 24, 23, 21, tzinfo=timezone.utc),
+            },
+            {
+                "datapoint__id": 1,
+                "value": 27.2,
+                # This is a one time check here that the fields can store
+                # microseconds too.
+                "time": datetime(
+                    2022, 4, 24, 23, 22, 0, 100, tzinfo=timezone.utc
+                ),
+            },
+            {
+                "datapoint__id": 2,
+                "value": True,
+                "time": datetime(2022, 4, 24, 23, 21, tzinfo=timezone.utc),
+            },
+            {
+                "datapoint__id": 2,
+                "value": "A string",
+                "time": datetime(2022, 4, 24, 23, 22, tzinfo=timezone.utc),
+            },
+        ],
+        "JSONable": {
+            "1": [
+                {"value": "21.0", "time": "2022-04-24T23:21:00+00:00"},
+                {"value": "27.2", "time": "2022-04-24T23:22:00.000100+00:00"},
+            ],
+            "2": [
+                {"value": "true", "time": "2022-04-24T23:21:00+00:00"},
+                {"value": '"A string"', "time": "2022-04-24T23:22:00+00:00"},
+            ],
         },
     }
 ]
@@ -333,7 +381,7 @@ class TestDatapointMetadataAPIView(TransactionTestCase):
         self._check_test_datapoints_in_db(test_datapoints=TEST_DATAPOINTS)
 
         response = self.client.get(
-            API_ROOT_PATH + "/datapoint/metadata/latest/"
+            "/" + API_ROOT_PATH + "datapoint/metadata/latest/"
         )
 
         assert response.status_code == 200
@@ -356,7 +404,7 @@ class TestDatapointMetadataAPIView(TransactionTestCase):
         )
         test_data = test_datapoints_pydantic.jsonable()
         response = self.client.put(
-            API_ROOT_PATH + "/datapoint/metadata/latest/",
+            "/" + API_ROOT_PATH + "datapoint/metadata/latest/",
             content_type="application/json",
             data=test_data,
         )
@@ -528,7 +576,7 @@ class GenericDatapointRelatedAPIViewTests(TransactionTestCase):
     test_data_history = None
 
     unique_together_fields_latest = ["datapoint"]
-    unique_together_fields_history = ["datapoint__id", "time"]
+    unique_together_fields_history = ["datapoint", "time"]
 
     def setUp(self):
         """
@@ -605,8 +653,10 @@ class TestDatapointValueAPIView(GenericDatapointRelatedAPIViewTests):
     RelatedDataHistoryModel = ValueHistoryDb
 
     test_datasets_latest = TEST_DATASETS_VALUES_LATEST
+    test_datasets_history = TEST_DATASETS_VALUES_HISTORY
 
-    endpoint_url_latest = API_ROOT_PATH + "/datapoint/value/latest/"
+    endpoint_url_latest = "/" + API_ROOT_PATH + "datapoint/value/latest/"
+    endpoint_url_history = "/" + API_ROOT_PATH + "datapoint/value/history/"
 
     def test_list_latest(self):
         for test_dataset in self.test_datasets_latest:
@@ -623,6 +673,27 @@ class TestDatapointValueAPIView(GenericDatapointRelatedAPIViewTests):
             )
 
             response = self.client.get(self.endpoint_url_latest)
+            assert response.status_code == 200
+
+            expected_jsonable = test_dataset["JSONable"]
+            actual_jsonable = response.json()
+            assert expected_jsonable == actual_jsonable
+
+    def test_list_history(self):
+        for test_dataset in self.test_datasets_history:
+
+            self._create_test_data_in_db(
+                test_data=test_dataset["Python"],
+                db_model=self.RelatedDataHistoryModel,
+            )
+
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python"],
+                db_model=self.RelatedDataHistoryModel,
+                unique_together_fields=self.unique_together_fields_history,
+            )
+
+            response = self.client.get(self.endpoint_url_history)
             assert response.status_code == 200
 
             expected_jsonable = test_dataset["JSONable"]

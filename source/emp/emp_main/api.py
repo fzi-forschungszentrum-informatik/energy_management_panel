@@ -16,7 +16,7 @@ the methods to the NinjaAPI must happen outside this classes.
 """
 from datetime import datetime
 import logging
-from typing import List, Union
+from typing import List
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -32,6 +32,7 @@ from esg.models.datapoint import DatapointList
 from esg.models.datapoint import DatapointType
 from esg.models.datapoint import DatapointDataFormat
 from esg.models.datapoint import ValueMessageByDatapointId
+from esg.models.datapoint import ValueMessageListByDatapointId
 from esg.models.request import HTTPError
 from esg.services.base import RequestInducedException
 
@@ -88,6 +89,13 @@ class GenericDatapointAPIView(GenericAPIView):
     """
     Generic functionality for classes that interact with datapoints.
 
+    NOTE: this class is not fully covered by the tests. Be extra careful
+          if you change something and manually test if the filters work as
+          expected afterwards.
+
+    TODO: Add tests for`get_filtered_datapoints`, `build_active_filter_dict`
+          and the `DatapointFilterParams` schema
+
     Attributes:
     -----------
     DatapointModel: django.db.models.Model
@@ -132,6 +140,30 @@ class GenericDatapointAPIView(GenericAPIView):
             None, description="`Datapoint.unit` regex match"
         )
 
+    def build_active_filter_dict(self, filter_params):
+        """
+        Build a dict that can be forwarded to `django.QuerySets.filter`
+
+        Arguments:
+        ----------
+        filter_params: instance of `ninja.Schema`
+            A schema instance defining filter operations and values.
+            E.g. `datapoint_filter_params` of `get_filtered_datapoints`
+
+        Returns:
+        --------
+        active_filters: dict
+            Has one key for every filter string for which the value is not
+            None. Create a `isnull` filter if you must filter for objects
+            with a None in a field.
+        """
+        active_filters = {}
+        for filter_key, filter_value in filter_params:
+            if filter_value is None:
+                continue
+            active_filters[filter_key] = filter_value
+        return active_filters
+
     def get_filtered_datapoints(self, datapoint_filter_params):
         """
         Return a queryset of datapoints matching the requested filter
@@ -142,11 +174,7 @@ class GenericDatapointAPIView(GenericAPIView):
         datapoint_filter_params: instance of `DatapointFilterParams`
             Defines the filters that should be applied to the datapoints.
         """
-        active_filters = {}
-        for filter_key, filter_value in datapoint_filter_params:
-            if filter_value is None:
-                continue
-            active_filters[filter_key] = filter_value
+        active_filters = self.build_active_filter_dict(datapoint_filter_params)
         datapoints = self.DatapointModel.objects.all().filter(**active_filters)
         return datapoints
 
@@ -196,11 +224,21 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         """
         Returns the latest data item per datapoint.
         """
+        # TODO: Add test that list calls this method to fetch filtered
+        #       datapoints, and of course that the query params are forewarded.
         datapoints = self.get_filtered_datapoints(datapoint_filter_params)
 
         related_data = self.RelatedDataLatestModel.objects.filter(
             datapoint__in=datapoints
         )
+
+        # Filter by query parameters.
+        # NOTE: If this filter is applied or not is not covered in the test.
+        #       If you change someting in this block be extra careful and test
+        #       manually afterwards.
+        # TODO: Add tests that filter is applied.
+        active_filters = self.build_active_filter_dict(related_filter_params)
+        related_data = related_data.filter(**active_filters)
 
         # Group by datapoint ID.
         content_as_dict = {}
@@ -227,6 +265,52 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
             content, status=200, content_type="application/json"
         )
 
+    def list_history(
+        self, request, datapoint_filter_params, related_filter_params
+    ):
+        """
+        Returns the historic data item per datapoint.
+        """
+        datapoints = self.get_filtered_datapoints(datapoint_filter_params)
+
+        related_data = self.RelatedDataHistoryModel.objects.filter(
+            datapoint__in=datapoints
+        )
+
+        # Filter by query parameters.
+        # NOTE: If this filter is applied or not is not covered in the test.
+        #       If you change someting in this block be extra careful and test
+        #       manually afterwards.
+        # TODO: Add tests that filter is applied.
+        active_filters = self.build_active_filter_dict(related_filter_params)
+        related_data = related_data.filter(**active_filters)
+
+        # Make a list of objects belonging to datapoint ID for each datapoint.
+        content_as_dict = {}
+        for data_item in related_data:
+            dp_id = str(data_item.datapoint.id)
+            data_items_datapoint = content_as_dict.get(dp_id, [])
+            data_items_datapoint.append(model_to_dict(data_item))
+            content_as_dict[dp_id] = data_items_datapoint
+
+        # Convert to jsonable, skip validation.
+        content_pydantic = self.list_history_response_model.construct_recursive(
+            __root__=content_as_dict
+        )
+
+        # At this point content contains additional fields (as extra fields
+        # are not removed due to skipped validation). This removes the
+        # extra fields, but may actually not be very nice.
+        content_pydantic = self.list_history_response_model.parse_raw(
+            content_pydantic.json()
+        )
+
+        content = content_pydantic.json()
+
+        return HttpResponse(
+            content, status=200, content_type="application/json"
+        )
+
 
 ##############################################################################
 # Datapoint Value Messages -> /datapoint/value/*
@@ -235,9 +319,12 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
 
 class DatapointValueAPIView(GenericDatapointRelatedAPIView):
     RelatedDataLatestModel = ValueLatestDb
+    RelatedDataHistoryModel = ValueHistoryDb
     list_latest_response_model = ValueMessageByDatapointId
+    list_history_response_model = ValueMessageListByDatapointId
 
     # This is defined here every time to adapt the field descriptions.
+    # TODO: Add test that these filters are applicable to the target model.
     class ValueFilterParams(Schema):
         time__gte: datetime = Field(
             None, description="`ValueMessage.time` greater or equal this value."
@@ -273,6 +360,33 @@ def get_datapoint_value_latest(
     return response
 
 
+@api.get(
+    "/datapoint/value/history/",
+    response={
+        200: ValueMessageListByDatapointId,
+        400: HTTPError,
+        500: HTTPError,
+    },
+    tags=["Datapoint Value"],
+    summary=" ",  # Deactivate summary.
+)
+def get_datapoint_value_history(
+    request,
+    datapoint_filter_params: dp_value_view.DatapointFilterParams = Query(...),
+    value_filter_params: dp_value_view.ValueFilterParams = Query(...),
+):
+    """
+    Return one or more value messages for datapoints targeted by the filter.
+    """
+
+    response = dp_value_view.list_history(
+        request=request,
+        datapoint_filter_params=datapoint_filter_params,
+        related_filter_params=value_filter_params,
+    )
+    return response
+
+
 ##############################################################################
 # Datapoint Metadata -> /datapoint/metadata/*
 ##############################################################################
@@ -298,6 +412,8 @@ class DatapointMetadataAPIView(GenericDatapointAPIView):
         http_response: django.http.HttpResponse
             The requested datapoints as JSON string.
         """
+        # TODO: Add test that list calls this method to fetch filtered
+        #       datapoints, and of course that the query params are forewarded.
         datapoints = self.get_filtered_datapoints(datapoint_filter_params)
 
         # Group by datapoint ID.

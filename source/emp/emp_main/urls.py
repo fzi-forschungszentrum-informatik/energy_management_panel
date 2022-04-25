@@ -21,14 +21,13 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
-# from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-
 from .views import EMPBaseView
 from .api import api
 
-# from .views import DatapointViewSet, DatapointValueViewSet
-# from .views import DatapointScheduleViewSet, DatapointSetpointViewSet
-# from .views import DatapointLastValueViewSet
+# This is the root for all API endpoints. This information is used
+# here and there, especially in consumers.py and tests.
+API_ROOT_PATH = "api/"
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -38,48 +37,7 @@ urlpatterns = [
     ),
     # These are the URLS for REST API.
     # path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/", api.urls),
-    # path(
-    #     "api/datapoint/", DatapointViewSet.as_view({"get": "list", "post": "create",})
-    # ),
-    # path(
-    #     "api/datapoint/<int:dp_id>/",
-    #     DatapointViewSet.as_view({"get": "retrieve", "put": "update",}),
-    # ),
-    # path(
-    #     "api/datapoint/<int:dp_id>/value/",
-    #     DatapointValueViewSet.as_view({"get": "list", "post": "create",}),
-    # ),
-    # path(
-    #     "api/datapoint/<int:dp_id>/last_value/",
-    #     DatapointLastValueViewSet.as_view({"get": "retrieve",}),
-    # ),
-    # path(
-    #     "api/datapoint/<int:dp_id>/value/<int:timestamp>/",
-    #     DatapointValueViewSet.as_view(
-    #         {"get": "retrieve", "put": "update", "delete": "destroy",}
-    #     ),
-    # ),
-    # path(
-    #     "api/datapoint/<int:dp_id>/schedule/",
-    #     DatapointScheduleViewSet.as_view({"get": "list", "post": "create",}),
-    # ),
-    # path(
-    #     "api/datapoint/<int:dp_id>/schedule/<int:timestamp>/",
-    #     DatapointScheduleViewSet.as_view(
-    #         {"get": "retrieve", "put": "update", "delete": "destroy",}
-    #     ),
-    # ),
-    # path(
-    #     "api/datapoint/<int:dp_id>/setpoint/",
-    #     DatapointSetpointViewSet.as_view({"get": "list", "post": "create",}),
-    # ),
-    # path(
-    #     "api/datapoint/<int:dp_id>/setpoint/<int:timestamp>/",
-    #     DatapointSetpointViewSet.as_view(
-    #         {"get": "retrieve", "put": "update", "delete": "destroy",}
-    #     ),
-    # ),
+    path(API_ROOT_PATH, api.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Add url paths for the emp apps.
