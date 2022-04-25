@@ -72,8 +72,12 @@ class DatapointAdmin(admin.ModelAdmin):
         "data_format",
         ("short_name", admin.EmptyFieldListFilter),
     )
+    # GOTCHA: Be aware that this setting also affects the search of the
+    # `autocomplete_fields` for any Admin page that autocomplete to select
+    # datapoints, e.g. like `ValueMessageAdmin` does.
     search_fields = (
         "origin_id",
+        "short_name",
         "description",
     )
     readonly_fields = (
@@ -272,6 +276,8 @@ class ValueMessageAdmin(admin.ModelAdmin):
     )
     list_filter = ("datapoint",)
     readonly_fields = ("id",)
+    fields = ("datapoint", "value", "time")
+    autocomplete_fields = ("datapoint",)
 
     def timestamp_pretty(self, obj):
         """
@@ -297,6 +303,8 @@ class SetpointMessageAdmin(admin.ModelAdmin):
     )
     list_filter = ("datapoint",)
     readonly_fields = ("id",)
+    fields = ("datapoint", "value", "setpoint")
+    autocomplete_fields = ("datapoint",)
 
     def timestamp_pretty(self, obj):
         """
@@ -322,6 +330,8 @@ class ScheduleMessageAdmin(admin.ModelAdmin):
     )
     list_filter = ("datapoint",)
     readonly_fields = ("id",)
+    fields = ("datapoint", "value", "schedule")
+    autocomplete_fields = ("datapoint",)
 
     def timestamp_pretty(self, obj):
         """
