@@ -9,6 +9,7 @@ from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 
+from .urls import API_ROOT_PATH
 from .models import Datapoint
 from .apps import EmpAppsCache
 from esg.utils.timestamp import datetime_to_pretty_str
@@ -140,8 +141,15 @@ class DatapointUpdate(JsonWebsocketConsumer):
         )
 
 
-class DatapointMetadataLatestConsumer(WebsocketConsumer):
+class DatapointRelatedLatestConsumer(WebsocketConsumer):
     """
+    Consumer that publishes updates to datapoints or datapoint related
+    objects on websocket.
+
+    Test this websocket interactively with:
+        ws = new WebSocket("ws://localhost:8080/ws/api/datapoint/value/latest/?datapoint-ids=[1,2]");
+        ws.onmessage = function(msg){console.log(JSON.parse(msg.data))}
+
     TODO: Secure data access here!
     """
 
@@ -156,8 +164,10 @@ class DatapointMetadataLatestConsumer(WebsocketConsumer):
             self.user = get_user_model().get_anonymous()
 
         # Compute the requested channel layer groups.
-        # Remove leading `/ws/` and trailing `/`.
-        group_base_name = self.scope["path"][4:-1].replace("/", ".")
+        group_base_name = self.scope["path"].split(API_ROOT_PATH)[1]
+        # Remove trailing `/` and replace slashes with dots
+        # no slashes allowed in group names
+        group_base_name = group_base_name[:-1].replace("/", ".")
 
         # Parse the set of requested datapoints from the query string.
         try:
@@ -204,8 +214,3 @@ class DatapointMetadataLatestConsumer(WebsocketConsumer):
         Whatever you push here should already be in JSON.
         """
         self.send(message["json"])
-
-    def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard)(
-            "datapoint.latest", self.channel_name
-        )

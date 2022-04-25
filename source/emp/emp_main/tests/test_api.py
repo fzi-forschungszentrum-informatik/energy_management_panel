@@ -17,10 +17,14 @@ from esg.models.datapoint import DatapointList
 from esg.services.base import RequestInducedException
 
 from emp_main.api import GenericAPIView
-from emp_main.consumers import DatapointMetadataLatestConsumer
+from emp_main.consumers import DatapointRelatedLatestConsumer
 from emp_main.models import Datapoint as DatapointDb
 from emp_main.models import ValueMessage as ValueHistoryDb
 from emp_main.models import LastValueMessage as ValueLatestDb
+from emp_main.models import ScheduleMessage as ScheduleHistoryDb
+from emp_main.models import LastScheduleMessage as ScheduleLatestDb
+from emp_main.models import SetpointMessage as SetpointHistoryDb
+from emp_main.models import LastSetpointMessage as SetpointLatestDb
 from emp_main.urls import API_ROOT_PATH
 
 """
@@ -127,19 +131,22 @@ TEST_DATAPOINTS = [
         },
     },
 ]
+
 """
 Define test datasets (i.e. one or more collections of data in different
 representations)for `GenericDatapointRelatedAPIViewTests`.
 
 Take care of the following:
 `TEST_DATASETS_*_LATEST` and  `TEST_DATASETS_*_HISTORY`:
-* Keys `Python_pre_update`, `Python` and `JSONable` exist.
+* Keys `Python_pre_update`, `Python`, `JSONable` and `PutSummary` exist.
 * `Python_pre_update` contains at least one item that is updated with an item
   from `Python`.
 * `Python` contains at least one item that is newly created.
 
 `TEST_DATASETS_*_LATEST_INVALID` and  `TEST_DATASETS_*_HISTORY_INVALID`:
 * Keys `JSONable`, `status_code_must_be`, `detail_must_contain` exist.
+* `JSONable` should have among invalid messages at least one valid message
+  to validate that partial updates are not carried out.
 * Try to be as specific as possible with `detail_must_contain` to verify
   that reason why a call failed is the one that was intended while
   developing the tests.
@@ -173,6 +180,7 @@ TEST_DATASETS_VALUES_LATEST = [
             "1": {"value": "21.0", "time": "2022-04-24T23:21:32.000100+00:00"},
             "2": {"value": "true", "time": "2022-04-24T23:21:25+00:00"},
         },
+        "PutSummary": {"objects_created": 1, "objects_updated": 1},
     }
 ]
 
@@ -223,6 +231,515 @@ TEST_DATASETS_VALUES_HISTORY = [
                 {"value": '"A string"', "time": "2022-04-24T23:22:00+00:00"},
             ],
         },
+        "PutSummary": {"objects_created": 3, "objects_updated": 1},
+    }
+]
+
+TEST_DATASETS_VALUES_LATEST_INVALID = [
+    # Update for non existing datapoint.
+    {
+        "JSONable": {
+            "1": {"value": "21.0", "time": "2022-04-24T23:21:32.000100+00:00"},
+            "421337": {"value": "true", "time": "2022-04-24T23:21:25+00:00"},
+        },
+        "status_code_must_be": 400,
+        "detail_must_contain": [
+            "['421337']",
+            "following datapoint ids do not exist",
+        ],
+    },
+    # Datapoint ID is not convertable to int.
+    {
+        "JSONable": {
+            "1": {"value": "21.0", "time": "2022-04-24T23:21:32.000100+00:00"},
+            "no number": {"value": "true", "time": "2022-04-24T23:21:25+00:00"},
+        },
+        "status_code_must_be": 400,
+        "detail_must_contain": [
+            "['no number']",
+            "following datapoint ids do not exist",
+        ],
+    },
+]
+
+TEST_DATASETS_VALUES_HISTORY_INVALID = [
+    # Update for non existing datapoint.
+    {
+        "JSONable": {
+            "1": [
+                {"value": "21.0", "time": "2022-04-24T23:21:00+00:00"},
+                {"value": "27.2", "time": "2022-04-24T23:22:00.000100+00:00"},
+            ],
+            "421337": [
+                {"value": "true", "time": "2022-04-24T23:21:00+00:00"},
+                {"value": '"A string"', "time": "2022-04-24T23:22:00+00:00"},
+            ],
+        },
+        "status_code_must_be": 400,
+        "detail_must_contain": [
+            "['421337']",
+            "following datapoint ids do not exist",
+        ],
+    },
+    # Datapoint ID is not convertable to int.
+    {
+        "JSONable": {
+            "1": [
+                {"value": "21.0", "time": "2022-04-24T23:21:00+00:00"},
+                {"value": "27.2", "time": "2022-04-24T23:22:00.000100+00:00"},
+            ],
+            "no number": [
+                {"value": "true", "time": "2022-04-24T23:21:00+00:00"},
+                {"value": '"A string"', "time": "2022-04-24T23:22:00+00:00"},
+            ],
+        },
+        "status_code_must_be": 400,
+        "detail_must_contain": [
+            "['no number']",
+            "following datapoint ids do not exist",
+        ],
+    },
+]
+
+_SMALL_SCHEDULE = {
+    "Python": [
+        {
+            "from_timestamp": datetime(2022, 2, 22, 3, 0, tzinfo=timezone.utc),
+            "to_timestamp": datetime(2022, 2, 22, 3, 15, tzinfo=timezone.utc),
+            "value": 21.0,
+        },
+    ],
+    "JSONable": [
+        {
+            "from_timestamp": "2022-02-22T03:00:00+00:00",
+            "to_timestamp": "2022-02-22T03:15:00+00:00",
+            "value": "21.0",
+        },
+    ],
+}
+_LARGE_SCHEDULE = {
+    "Python": [
+        {
+            "from_timestamp": None,
+            "to_timestamp": datetime(2022, 2, 22, 3, 0, tzinfo=timezone.utc),
+            "value": None,
+        },
+        {
+            "from_timestamp": datetime(2022, 2, 22, 3, 0, tzinfo=timezone.utc),
+            "to_timestamp": datetime(2022, 2, 22, 3, 15, tzinfo=timezone.utc),
+            "value": "true",
+        },
+        {
+            "from_timestamp": datetime(2022, 2, 22, 3, 15, tzinfo=timezone.utc),
+            "to_timestamp": None,
+            "value": False,
+        },
+    ],
+    "JSONable": [
+        {
+            "from_timestamp": None,
+            "to_timestamp": "2022-02-22T03:00:00+00:00",
+            "value": "null",
+        },
+        {
+            "from_timestamp": "2022-02-22T03:00:00+00:00",
+            "to_timestamp": "2022-02-22T03:15:00+00:00",
+            "value": '"true"',
+        },
+        {
+            "from_timestamp": "2022-02-22T03:15:00+00:00",
+            "to_timestamp": None,
+            "value": "false",
+        },
+    ],
+}
+
+TEST_DATASETS_SCHEDULES_LATEST = [
+    {
+        "Python_pre_update": [
+            {
+                "datapoint__id": 1,
+                "schedule": [],
+                "time": datetime(2022, 4, 24, 23, 21, 0, tzinfo=timezone.utc),
+            },
+        ],
+        "Python": [
+            {
+                "datapoint__id": 1,
+                "schedule": _SMALL_SCHEDULE["Python"],
+                # This is a one time check here that the fields can store
+                # microseconds too.
+                "time": datetime(
+                    2022, 4, 24, 23, 21, 32, 100, tzinfo=timezone.utc
+                ),
+            },
+            {
+                "datapoint__id": 2,
+                "schedule": _LARGE_SCHEDULE["Python"],
+                "time": datetime(2022, 4, 24, 23, 21, 25, tzinfo=timezone.utc),
+            },
+        ],
+        "JSONable": {
+            "1": {
+                "schedule": _SMALL_SCHEDULE["JSONable"],
+                "time": "2022-04-24T23:21:32.000100+00:00",
+            },
+            "2": {
+                "schedule": _LARGE_SCHEDULE["JSONable"],
+                "time": "2022-04-24T23:21:25+00:00",
+            },
+        },
+        "PutSummary": {"objects_created": 1, "objects_updated": 1},
+    }
+]
+
+TEST_DATASETS_SCHEDULES_HISTORY = [
+    {
+        "Python_pre_update": [
+            {
+                "datapoint__id": 1,
+                "schedule": [],
+                "time": datetime(2022, 4, 24, 23, 21, tzinfo=timezone.utc),
+            },
+        ],
+        "Python": [
+            {
+                "datapoint__id": 1,
+                "schedule": _SMALL_SCHEDULE["Python"],
+                # This ist the same time value as above and should update the
+                # value.
+                "time": datetime(2022, 4, 24, 23, 21, tzinfo=timezone.utc),
+            },
+            {
+                "datapoint__id": 1,
+                "schedule": _LARGE_SCHEDULE["Python"],
+                # This is a one time check here that the fields can store
+                # microseconds too.
+                "time": datetime(
+                    2022, 4, 24, 23, 22, 0, 100, tzinfo=timezone.utc
+                ),
+            },
+            {
+                "datapoint__id": 2,
+                "schedule": _SMALL_SCHEDULE["Python"],
+                "time": datetime(2022, 4, 24, 23, 21, tzinfo=timezone.utc),
+            },
+            {
+                "datapoint__id": 2,
+                "schedule": _LARGE_SCHEDULE["Python"],
+                "time": datetime(2022, 4, 24, 23, 22, tzinfo=timezone.utc),
+            },
+        ],
+        "JSONable": {
+            "1": [
+                {
+                    "schedule": _SMALL_SCHEDULE["JSONable"],
+                    "time": "2022-04-24T23:21:00+00:00",
+                },
+                {
+                    "schedule": _LARGE_SCHEDULE["JSONable"],
+                    "time": "2022-04-24T23:22:00.000100+00:00",
+                },
+            ],
+            "2": [
+                {
+                    "schedule": _SMALL_SCHEDULE["JSONable"],
+                    "time": "2022-04-24T23:21:00+00:00",
+                },
+                {
+                    "schedule": _LARGE_SCHEDULE["JSONable"],
+                    "time": "2022-04-24T23:22:00+00:00",
+                },
+            ],
+        },
+        "PutSummary": {"objects_created": 3, "objects_updated": 1},
+    }
+]
+
+TEST_DATASETS_SCHEDULES_LATEST_INVALID = [
+    # Update for non existing datapoint.
+    {
+        "JSONable": {
+            "1": {
+                "schedule": _SMALL_SCHEDULE["JSONable"],
+                "time": "2022-04-24T23:21:32.000100+00:00",
+            },
+            "421337": {
+                "schedule": _LARGE_SCHEDULE["JSONable"],
+                "time": "2022-04-24T23:21:25+00:00",
+            },
+        },
+        "status_code_must_be": 400,
+        "detail_must_contain": [
+            "421337",
+            "following datapoint ids do not exist",
+        ],
+    }
+]
+
+TEST_DATASETS_SCHEDULES_HISTORY_INVALID = [
+    # Update for non existing datapoint.
+    {
+        "JSONable": {
+            "1": [
+                {
+                    "schedule": _SMALL_SCHEDULE["JSONable"],
+                    "time": "2022-04-24T23:21:00+00:00",
+                },
+                {
+                    "schedule": _LARGE_SCHEDULE["JSONable"],
+                    "time": "2022-04-24T23:22:00.000100+00:00",
+                },
+            ],
+            "421337": [
+                {
+                    "schedule": _SMALL_SCHEDULE["JSONable"],
+                    "time": "2022-04-24T23:21:00+00:00",
+                },
+                {
+                    "schedule": _LARGE_SCHEDULE["JSONable"],
+                    "time": "2022-04-24T23:22:00+00:00",
+                },
+            ],
+        },
+        "status_code_must_be": 400,
+        "detail_must_contain": [
+            "421337",
+            "following datapoint ids do not exist",
+        ],
+    }
+]
+
+_SMALL_SETPOINT = {
+    "Python": [
+        {
+            "from_timestamp": datetime(2022, 2, 22, 3, 0, tzinfo=timezone.utc),
+            "to_timestamp": datetime(2022, 2, 22, 3, 15, tzinfo=timezone.utc),
+            "preferred_value": 21.0,
+            "acceptable_values": None,
+            "min_value": 17.4,
+            "max_value": 23.2,
+        },
+    ],
+    "JSONable": [
+        {
+            "from_timestamp": "2022-02-22T03:00:00+00:00",
+            "to_timestamp": "2022-02-22T03:15:00+00:00",
+            "preferred_value": "21.0",
+            "acceptable_values": None,
+            "min_value": 17.4,
+            "max_value": 23.2,
+        },
+    ],
+}
+_LARGE_SETPOINT = {
+    "Python": [
+        {
+            "from_timestamp": None,
+            "to_timestamp": datetime(2022, 2, 22, 3, 0, tzinfo=timezone.utc),
+            "preferred_value": None,
+            "acceptable_values": None,
+            "min_value": None,
+            "max_value": None,
+        },
+        {
+            "from_timestamp": datetime(2022, 2, 22, 3, 0, tzinfo=timezone.utc),
+            "to_timestamp": datetime(2022, 2, 22, 3, 15, tzinfo=timezone.utc),
+            "preferred_value": "true",
+            "acceptable_values": ["true", "other string"],
+            "min_value": None,
+            "max_value": None,
+        },
+        {
+            "from_timestamp": datetime(2022, 2, 22, 3, 15, tzinfo=timezone.utc),
+            "to_timestamp": None,
+            "preferred_value": False,
+            "acceptable_values": [True, False],
+            "min_value": None,
+            "max_value": None,
+        },
+    ],
+    "JSONable": [
+        {
+            "from_timestamp": None,
+            "to_timestamp": "2022-02-22T03:00:00+00:00",
+            "preferred_value": "null",
+            "acceptable_values": None,
+            "min_value": None,
+            "max_value": None,
+        },
+        {
+            "from_timestamp": "2022-02-22T03:00:00+00:00",
+            "to_timestamp": "2022-02-22T03:15:00+00:00",
+            "preferred_value": '"true"',
+            "acceptable_values": ['"true"', '"other string"'],
+            "min_value": None,
+            "max_value": None,
+        },
+        {
+            "from_timestamp": "2022-02-22T03:15:00+00:00",
+            "to_timestamp": None,
+            "preferred_value": "false",
+            "acceptable_values": ["true", "false"],
+            "min_value": None,
+            "max_value": None,
+        },
+    ],
+}
+
+TEST_DATASETS_SETPOINTS_LATEST = [
+    {
+        "Python_pre_update": [
+            {
+                "datapoint__id": 1,
+                "setpoint": [],
+                "time": datetime(2022, 4, 24, 23, 21, 0, tzinfo=timezone.utc),
+            },
+        ],
+        "Python": [
+            {
+                "datapoint__id": 1,
+                "setpoint": _SMALL_SETPOINT["Python"],
+                # This is a one time check here that the fields can store
+                # microseconds too.
+                "time": datetime(
+                    2022, 4, 24, 23, 21, 32, 100, tzinfo=timezone.utc
+                ),
+            },
+            {
+                "datapoint__id": 2,
+                "setpoint": _LARGE_SETPOINT["Python"],
+                "time": datetime(2022, 4, 24, 23, 21, 25, tzinfo=timezone.utc),
+            },
+        ],
+        "JSONable": {
+            "1": {
+                "setpoint": _SMALL_SETPOINT["JSONable"],
+                "time": "2022-04-24T23:21:32.000100+00:00",
+            },
+            "2": {
+                "setpoint": _LARGE_SETPOINT["JSONable"],
+                "time": "2022-04-24T23:21:25+00:00",
+            },
+        },
+        "PutSummary": {"objects_created": 1, "objects_updated": 1},
+    }
+]
+
+TEST_DATASETS_SETPOINTS_HISTORY = [
+    {
+        "Python_pre_update": [
+            {
+                "datapoint__id": 1,
+                "setpoint": [],
+                "time": datetime(2022, 4, 24, 23, 21, tzinfo=timezone.utc),
+            },
+        ],
+        "Python": [
+            {
+                "datapoint__id": 1,
+                "setpoint": _SMALL_SETPOINT["Python"],
+                # This ist the same time value as above and should update the
+                # value.
+                "time": datetime(2022, 4, 24, 23, 21, tzinfo=timezone.utc),
+            },
+            {
+                "datapoint__id": 1,
+                "setpoint": _LARGE_SETPOINT["Python"],
+                # This is a one time check here that the fields can store
+                # microseconds too.
+                "time": datetime(
+                    2022, 4, 24, 23, 22, 0, 100, tzinfo=timezone.utc
+                ),
+            },
+            {
+                "datapoint__id": 2,
+                "setpoint": _SMALL_SETPOINT["Python"],
+                "time": datetime(2022, 4, 24, 23, 21, tzinfo=timezone.utc),
+            },
+            {
+                "datapoint__id": 2,
+                "setpoint": _LARGE_SETPOINT["Python"],
+                "time": datetime(2022, 4, 24, 23, 22, tzinfo=timezone.utc),
+            },
+        ],
+        "JSONable": {
+            "1": [
+                {
+                    "setpoint": _SMALL_SETPOINT["JSONable"],
+                    "time": "2022-04-24T23:21:00+00:00",
+                },
+                {
+                    "setpoint": _LARGE_SETPOINT["JSONable"],
+                    "time": "2022-04-24T23:22:00.000100+00:00",
+                },
+            ],
+            "2": [
+                {
+                    "setpoint": _SMALL_SETPOINT["JSONable"],
+                    "time": "2022-04-24T23:21:00+00:00",
+                },
+                {
+                    "setpoint": _LARGE_SETPOINT["JSONable"],
+                    "time": "2022-04-24T23:22:00+00:00",
+                },
+            ],
+        },
+        "PutSummary": {"objects_created": 3, "objects_updated": 1},
+    }
+]
+
+TEST_DATASETS_SETPOINTS_LATEST_INVALID = [
+    # Update for non existing datapoint.
+    {
+        "JSONable": {
+            "1": {
+                "setpoint": _SMALL_SETPOINT["JSONable"],
+                "time": "2022-04-24T23:21:32.000100+00:00",
+            },
+            "421337": {
+                "setpoint": _LARGE_SETPOINT["JSONable"],
+                "time": "2022-04-24T23:21:25+00:00",
+            },
+        },
+        "status_code_must_be": 400,
+        "detail_must_contain": [
+            "421337",
+            "following datapoint ids do not exist",
+        ],
+    }
+]
+
+TEST_DATASETS_SETPOINTS_HISTORY_INVALID = [
+    # Update for non existing datapoint.
+    {
+        "JSONable": {
+            "1": [
+                {
+                    "setpoint": _SMALL_SETPOINT["JSONable"],
+                    "time": "2022-04-24T23:21:00+00:00",
+                },
+                {
+                    "setpoint": _LARGE_SETPOINT["JSONable"],
+                    "time": "2022-04-24T23:22:00.000100+00:00",
+                },
+            ],
+            "421337": [
+                {
+                    "setpoint": _SMALL_SETPOINT["JSONable"],
+                    "time": "2022-04-24T23:21:00+00:00",
+                },
+                {
+                    "setpoint": _LARGE_SETPOINT["JSONable"],
+                    "time": "2022-04-24T23:22:00+00:00",
+                },
+            ],
+        },
+        "status_code_must_be": 400,
+        "detail_must_contain": [
+            "421337",
+            "following datapoint ids do not exist",
+        ],
     }
 ]
 
@@ -541,9 +1058,13 @@ class TestDatapointMetadataAPIView(TransactionTestCase):
         self._check_test_datapoints_in_db(test_datapoints=TEST_DATAPOINTS_MIN)
 
         # Connect to the intended websocket.
-        ws_url = "/ws/datapoint/metadata/latest/?datapoint-ids=[1,2]"
+        ws_url = (
+            "/ws/"
+            + API_ROOT_PATH
+            + "datapoint/metadata/latest/?datapoint-ids=[1,2]"
+        )
         communicator = WebsocketCommunicator(
-            DatapointMetadataLatestConsumer.as_asgi(), ws_url
+            DatapointRelatedLatestConsumer.as_asgi(), ws_url
         )
 
         connected, _ = event_loop.run_until_complete(communicator.connect())
@@ -567,13 +1088,24 @@ class GenericDatapointRelatedAPIViewTests(TransactionTestCase):
     Similar to how `GenericDatapointRelatedAPIView` holds generic code
     for derived APIView classes, this class holds generic tests to derive
     the corresponding test classes.
+
+    NOTE: For some strange reason this class is executed as Test class
+          too, although it does't obey the pyetest convention, i.e. doesn't
+          start with `Test*`. All the tests of this base class should pass
+          usually, however that doesn't mean stuff works as expected.
+          Just ignore it.
     """
 
     RelatedDataLatestModel = None
     RelatedDataHistoryModel = None
 
-    test_data_latest = None
-    test_data_history = None
+    test_datasets_latest = []
+    test_datasets_history = []
+    test_datasets_latest_invalid = []
+    test_datasets_history_invalid = []
+
+    endpoint_url_latest = None
+    endpoint_url_history = None
 
     unique_together_fields_latest = ["datapoint"]
     unique_together_fields_history = ["datapoint", "time"]
@@ -596,8 +1128,10 @@ class GenericDatapointRelatedAPIViewTests(TransactionTestCase):
         from short_name.
         """
         DatapointDb.objects.all().delete()
-        self.RelatedDataLatestModel.objects.all().delete()
-        self.RelatedDataHistoryModel.objects.all().delete()
+        if self.RelatedDataLatestModel is not None:
+            self.RelatedDataLatestModel.objects.all().delete()
+        if self.RelatedDataLatestModel is not None:
+            self.RelatedDataHistoryModel.objects.all().delete()
 
     def _create_test_data_in_db(self, test_data, db_model):
         """
@@ -646,19 +1180,10 @@ class GenericDatapointRelatedAPIViewTests(TransactionTestCase):
 
                 assert actual_value == expected_value, assert_msg
 
-
-class TestDatapointValueAPIView(GenericDatapointRelatedAPIViewTests):
-
-    RelatedDataLatestModel = ValueLatestDb
-    RelatedDataHistoryModel = ValueHistoryDb
-
-    test_datasets_latest = TEST_DATASETS_VALUES_LATEST
-    test_datasets_history = TEST_DATASETS_VALUES_HISTORY
-
-    endpoint_url_latest = "/" + API_ROOT_PATH + "datapoint/value/latest/"
-    endpoint_url_history = "/" + API_ROOT_PATH + "datapoint/value/history/"
-
     def test_list_latest(self):
+        """
+        Verify the it is possible to retrieve data from the latest endpoint.
+        """
         for test_dataset in self.test_datasets_latest:
 
             self._create_test_data_in_db(
@@ -680,6 +1205,9 @@ class TestDatapointValueAPIView(GenericDatapointRelatedAPIViewTests):
             assert expected_jsonable == actual_jsonable
 
     def test_list_history(self):
+        """
+        Verify the it is possible to retrieve data from the latest endpoint.
+        """
         for test_dataset in self.test_datasets_history:
 
             self._create_test_data_in_db(
@@ -699,3 +1227,225 @@ class TestDatapointValueAPIView(GenericDatapointRelatedAPIViewTests):
             expected_jsonable = test_dataset["JSONable"]
             actual_jsonable = response.json()
             assert expected_jsonable == actual_jsonable
+
+    def test_update_latest_creates_and_updates(self):
+        """
+        Check that calling PUT on the latest endpoint overwrites and/or
+        updates existing data. This method assumes that the test data is
+        set up accordingly, to test both create and update.
+        """
+        for test_dataset in self.test_datasets_latest:
+
+            self._create_test_data_in_db(
+                test_data=test_dataset["Python_pre_update"],
+                db_model=self.RelatedDataLatestModel,
+            )
+
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python_pre_update"],
+                db_model=self.RelatedDataLatestModel,
+                unique_together_fields=self.unique_together_fields_latest,
+            )
+
+            response = self.client.put(
+                self.endpoint_url_latest,
+                content_type="application/json",
+                data=test_dataset["JSONable"],
+            )
+
+            assert response.status_code == 200
+
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python"],
+                db_model=self.RelatedDataLatestModel,
+                unique_together_fields=self.unique_together_fields_latest,
+            )
+
+            expected_put_summary = test_dataset["PutSummary"]
+            actual_put_summary = response.json()
+            assert actual_put_summary == expected_put_summary
+
+    def test_update_latest_publishes_on_channel_group(self):
+        """
+        Verify that an update send over the channels group is received on
+        websocket.
+        """
+        event_loop = asyncio.get_event_loop()
+
+        for test_dataset in self.test_datasets_latest:
+
+            # These are the datapoint IDs for whcih we expect updates.
+            expected_datapoint_ids = []
+            for dp_id in test_dataset["JSONable"].keys():
+                expected_datapoint_ids.append(int(dp_id))
+
+            # Connect to the intended websocket.
+            query_param = "?datapoint-ids={}".format(
+                json.dumps(expected_datapoint_ids)
+            )
+            ws_url = "/ws" + self.endpoint_url_latest + query_param
+            communicator = WebsocketCommunicator(
+                DatapointRelatedLatestConsumer.as_asgi(), ws_url
+            )
+
+            connected, _ = event_loop.run_until_complete(communicator.connect())
+            assert connected
+
+            response = self.client.put(
+                self.endpoint_url_latest,
+                content_type="application/json",
+                data=test_dataset["JSONable"],
+            )
+
+            assert response.status_code == 200
+
+            # Expect one message on websocket per datapoint id
+            actual_ws_messages = []
+            for _ in expected_datapoint_ids:
+                response = json.loads(
+                    event_loop.run_until_complete(communicator.receive_from())
+                )
+                actual_ws_messages.append(response)
+
+            for dp_id, dp_msg in test_dataset["JSONable"].items():
+                expected_ws_message = {dp_id: dp_msg}
+                assert expected_ws_message in actual_ws_messages
+
+    def test_invalid_updates_fail_gracefully_for_latest(self):
+        """
+        This tests that invalid requests return the expected error messages.
+        This also tests that update doesn't carry out partial updates, at least
+        if the test data contains at least one valid entry.
+        """
+        for test_dataset in self.test_datasets_latest_invalid:
+
+            # Expect no data in DB before we begin.
+            assert self.RelatedDataLatestModel.objects.count() == 0
+
+            response = self.client.put(
+                self.endpoint_url_latest,
+                content_type="application/json",
+                data=test_dataset["JSONable"],
+            )
+
+            expected_status_code = test_dataset["status_code_must_be"]
+            actual_status_code = response.status_code
+            assert actual_status_code == expected_status_code
+
+            # Check all exepcted payload is in the error message.
+            error_msg = response.json()
+            assert "detail" in error_msg
+            for expected_str in test_dataset["detail_must_contain"]:
+                assert expected_str in error_msg["detail"]
+
+            # Expect no partial updates, hence still no data in DB.
+            assert self.RelatedDataLatestModel.objects.count() == 0
+
+    def test_update_history_creates_and_updates(self):
+        """
+        Check that calling PUT on the history endpoint overwrites and/or
+        updates existing data. This method assumes that the test data is
+        set up accordingly, to test both create and update.
+        """
+        for test_dataset in self.test_datasets_history:
+
+            self._create_test_data_in_db(
+                test_data=test_dataset["Python_pre_update"],
+                db_model=self.RelatedDataHistoryModel,
+            )
+
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python_pre_update"],
+                db_model=self.RelatedDataHistoryModel,
+                unique_together_fields=self.unique_together_fields_history,
+            )
+
+            response = self.client.put(
+                self.endpoint_url_history,
+                content_type="application/json",
+                data=test_dataset["JSONable"],
+            )
+
+            assert response.status_code == 200
+
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python"],
+                db_model=self.RelatedDataHistoryModel,
+                unique_together_fields=self.unique_together_fields_history,
+            )
+
+            expected_put_summary = test_dataset["PutSummary"]
+            actual_put_summary = response.json()
+            assert actual_put_summary == expected_put_summary
+
+    def test_invalid_updates_fail_gracefully_for_history(self):
+        """
+        This tests that invalid requests return the expected error messages.
+        This also tests that update doesn't carry out partial updates, at least
+        if the test data contains at least one valid entry.
+        """
+        for test_dataset in self.test_datasets_history_invalid:
+
+            # Expect no data in DB before we begin.
+            assert self.RelatedDataHistoryModel.objects.count() == 0
+
+            response = self.client.put(
+                self.endpoint_url_history,
+                content_type="application/json",
+                data=test_dataset["JSONable"],
+            )
+
+            expected_status_code = test_dataset["status_code_must_be"]
+            actual_status_code = response.status_code
+            assert actual_status_code == expected_status_code
+
+            # Check all exepcted payload is in the error message.
+            error_msg = response.json()
+            assert "detail" in error_msg
+            for expected_str in test_dataset["detail_must_contain"]:
+                assert expected_str in error_msg["detail"]
+
+            # Expect no partial updates, hence still no data in DB.
+            assert self.RelatedDataHistoryModel.objects.count() == 0
+
+
+class TestDatapointValueAPIView(GenericDatapointRelatedAPIViewTests):
+
+    RelatedDataLatestModel = ValueLatestDb
+    RelatedDataHistoryModel = ValueHistoryDb
+
+    test_datasets_latest = TEST_DATASETS_VALUES_LATEST
+    test_datasets_history = TEST_DATASETS_VALUES_HISTORY
+    test_datasets_latest_invalid = TEST_DATASETS_VALUES_LATEST_INVALID
+    test_datasets_history_invalid = TEST_DATASETS_VALUES_HISTORY_INVALID
+
+    endpoint_url_latest = "/" + API_ROOT_PATH + "datapoint/value/latest/"
+    endpoint_url_history = "/" + API_ROOT_PATH + "datapoint/value/history/"
+
+
+class TestDatapointScheduleAPIView(GenericDatapointRelatedAPIViewTests):
+
+    RelatedDataLatestModel = ScheduleLatestDb
+    RelatedDataHistoryModel = ScheduleHistoryDb
+
+    test_datasets_latest = TEST_DATASETS_SCHEDULES_LATEST
+    test_datasets_history = TEST_DATASETS_SCHEDULES_HISTORY
+    test_datasets_latest_invalid = TEST_DATASETS_SCHEDULES_LATEST_INVALID
+    test_datasets_history_invalid = TEST_DATASETS_SCHEDULES_HISTORY_INVALID
+
+    endpoint_url_latest = "/" + API_ROOT_PATH + "datapoint/schedule/latest/"
+    endpoint_url_history = "/" + API_ROOT_PATH + "datapoint/schedule/history/"
+
+
+class TestDatapointSetpointAPIView(GenericDatapointRelatedAPIViewTests):
+
+    RelatedDataLatestModel = SetpointLatestDb
+    RelatedDataHistoryModel = SetpointHistoryDb
+
+    test_datasets_latest = TEST_DATASETS_SETPOINTS_LATEST
+    test_datasets_history = TEST_DATASETS_SETPOINTS_HISTORY
+    test_datasets_latest_invalid = TEST_DATASETS_SETPOINTS_LATEST_INVALID
+    test_datasets_history_invalid = TEST_DATASETS_SETPOINTS_HISTORY_INVALID
+
+    endpoint_url_latest = "/" + API_ROOT_PATH + "datapoint/setpoint/latest/"
+    endpoint_url_history = "/" + API_ROOT_PATH + "datapoint/setpoint/history/"

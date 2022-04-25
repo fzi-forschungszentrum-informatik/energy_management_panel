@@ -5,15 +5,15 @@ from django.test import TestCase
 from channels.layers import get_channel_layer
 from channels.testing import WebsocketCommunicator
 
-from emp_main.consumers import DatapointMetadataLatestConsumer
+from emp_main.consumers import DatapointRelatedLatestConsumer
 
 
-class TestDatapointMetadataLatestConsumer(TestCase):
+class TestDatapointRelatedLatestConsumer(TestCase):
     """
-    Tests for `emp_main.consumers.DatapointLatestConsumer`
+    Tests for `emp_main.consumers.DatapointRelatedLatestConsumer`
     """
 
-    ws_url = "/ws/datapoint/metadata/latest/?datapoint-ids=[1,2]"
+    ws_url = "/ws/api/datapoint/metadata/latest/?datapoint-ids=[1,2]"
 
     async def test_update_received(self):
         """
@@ -21,7 +21,7 @@ class TestDatapointMetadataLatestConsumer(TestCase):
         websocket.
         """
         communicator = WebsocketCommunicator(
-            DatapointMetadataLatestConsumer.as_asgi(), self.ws_url
+            DatapointRelatedLatestConsumer.as_asgi(), self.ws_url
         )
 
         connected, _ = await communicator.connect()
