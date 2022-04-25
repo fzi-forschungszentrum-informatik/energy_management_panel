@@ -277,7 +277,7 @@ class ValueMessageAdmin(admin.ModelAdmin):
         """
         Displays a prettier timestamp format.
         """
-        ts = obj.timestamp
+        ts = obj.time
         if ts is None:
             return "-"
         return datetime_to_pretty_str(ts)
@@ -302,7 +302,7 @@ class SetpointMessageAdmin(admin.ModelAdmin):
         """
         Displays a prettier timestamp format.
         """
-        ts = obj.timestamp
+        ts = obj.time
         if ts is None:
             return "-"
         return datetime_to_pretty_str(ts)
@@ -327,7 +327,7 @@ class ScheduleMessageAdmin(admin.ModelAdmin):
         """
         Displays a prettier timestamp format.
         """
-        ts = obj.timestamp
+        ts = obj.time
         if ts is None:
             return "-"
         return datetime_to_pretty_str(ts)
