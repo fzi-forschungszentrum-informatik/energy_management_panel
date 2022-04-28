@@ -38,6 +38,8 @@ from esg.models.datapoint import ScheduleMessageByDatapointId
 from esg.models.datapoint import ScheduleMessageListByDatapointId
 from esg.models.datapoint import SetpointMessageByDatapointId
 from esg.models.datapoint import SetpointMessageListByDatapointId
+from esg.models.metadata import Plant
+from esg.models.metadata import PlantList
 from esg.models.request import HTTPError
 from esg.services.base import RequestInducedException
 
@@ -48,6 +50,7 @@ from emp_main.models import ScheduleMessage as ScheduleHistoryDb
 from emp_main.models import LastScheduleMessage as ScheduleLatestDb
 from emp_main.models import SetpointMessage as SetpointHistoryDb
 from emp_main.models import LastSetpointMessage as SetpointLatestDb
+from emp_main.models import Plant as PlantDb
 
 logger = logging.getLogger(__name__)
 
@@ -1073,4 +1076,236 @@ def put_datapoint_setpoint_history(
     response = dp_setpoint_view.update_history(
         request=request, related_data=setpoint_messages_by_datapoint_id,
     )
+    return response
+
+
+##############################################################################
+# Datapoint Metadata -> /datapoint/metadata/*
+##############################################################################
+
+
+class DatapointMetadataAPIView(GenericDatapointAPIView):
+    """
+    methods for handling calls to /datapoint/metadata/ endpoints.
+    """
+
+    @GenericAPIView._handle_exceptions
+    def list_latest(self, request, datapoint_filter_params={}):
+        """
+        Return the latest state of metadata of zero or more datapoints matching
+        the requested filter parameters.
+
+        Arguments:
+        ----------
+        datapoint_filter_params: instance of `DatapointFilterParams`
+            Defines the filters that should be applied to the datapoints.
+        Returns:
+        --------
+        http_response: django.http.HttpResponse
+            The requested datapoints as JSON string.
+        """
+        # TODO: Add test that list calls this method to fetch filtered
+        #       datapoints, and of course that the query params are forewarded.
+        datapoints = self.get_filtered_datapoints(datapoint_filter_params)
+
+        # Group by datapoint ID.
+        content_as_dict = {}
+        for datapoint in datapoints:
+            content_as_dict[str(datapoint.id)] = model_to_dict(datapoint)
+
+        # Convert to jsonable, skip validation.
+        content_pydantic = DatapointById.construct_recursive(
+            __root__=content_as_dict
+        )
+        content = content_pydantic.json()
+
+        return HttpResponse(
+            content, status=200, content_type="application/json"
+        )
+
+    @GenericAPIView._handle_exceptions
+    def update_latest(self, request, datapoints):
+        """
+        Update or create the latest state of datapoint metadata.
+
+        The matching between the provided data and the existing datapoints is
+        the following:
+        * If the ID field of a `Datapoint` object is not `null` it is
+          assumed that the datapoint with this ID should be updated.
+        """
+        created_datapoints = []
+        non_existing_datapoint_ids = []
+        for datapoint in datapoints.__root__:
+            dp_dict = datapoint.dict()
+            if dp_dict["id"]:
+                # If `id` is not None assume there is a datapoint that should
+                # be updated.
+                try:
+                    dp_db = DatapointDb.objects.get(id=dp_dict["id"])
+                except DatapointDb.DoesNotExist:
+                    non_existing_datapoint_ids.append(dp_dict["id"])
+                    continue
+            elif dp_dict["origin"] and dp_dict["origin_id"]:
+                # If `id` is None but both `origin` and `origin_id` fields
+                # are not None we use these fields to check for an existing
+                # datapoint and create a new one if that doesn't exist.
+                try:
+                    dp_db = DatapointDb.objects.get(
+                        origin=dp_dict["origin"], origin_id=dp_dict["origin_id"]
+                    )
+                except DatapointDb.DoesNotExist:
+                    dp_db = DatapointDb(**dp_dict)
+
+            else:
+                # As a last resort: Create a new datapoint if we have neither
+                # `id` nor `origin` and `origin_id`.
+                dp_db = DatapointDb(**dp_dict)
+
+            # Now update all the fields for the case that the datapoint
+            # existed already. This shouldn't be too expensive in case the
+            # datapoint has been created, as everything is still in memory.
+            for field, value in dp_dict.items():
+                # Don't update `id`, it would be set to None in certain
+                # conditions which causes unique constraint failures.
+                if field == "id":
+                    continue
+                setattr(dp_db, field, value)
+
+            created_datapoints.append(dp_db)
+
+        if non_existing_datapoint_ids:
+            raise RequestInducedException(
+                detail=(
+                    "Aborting update/create due to unknown datapoint IDs: {}"
+                    "".format(non_existing_datapoint_ids)
+                )
+            )
+
+        # Now we know all datapoints are all right, save and prepare output.
+        created_datapoints_by_id = {}
+        for dp_db in created_datapoints:
+            dp_db.save()
+            created_datapoints_by_id[str(dp_db.id)] = model_to_dict(dp_db)
+
+        created_datapoints_pydantic = DatapointById.construct_recursive(
+            __root__=created_datapoints_by_id
+        )
+
+        # Publish updated datapoints in channel layer.
+        # TODO: Make this parallel
+        for dp_id in created_datapoints_pydantic.__root__:
+            dp_pydantic = created_datapoints_pydantic.__root__[dp_id]
+            dp_json = dp_pydantic.json()
+            async_to_sync(self.channel_layer.group_send)(
+                "datapoint.metadata.latest." + dp_id,
+                {"type": "datapoint.related", "json": dp_json},
+            )
+
+        created_datapoints_json = created_datapoints_pydantic.json()
+        return HttpResponse(
+            created_datapoints_json, status=200, content_type="application/json"
+        )
+
+
+dpm_view = DatapointMetadataAPIView()
+
+
+@api.get(
+    "/datapoint/metadata/latest/",
+    response={200: DatapointById, 400: HTTPError, 500: HTTPError},
+    tags=["Datapoint Metadata"],
+    summary=" ",  # Deactivate summary.
+)
+def get_datapoint_metadata_latest(
+    request,
+    datapoint_filter_params: dpm_view.DatapointFilterParams = Query(...),
+):
+    """
+    Return a queryset of datapoints matching the requested filter
+    parameters.
+    """
+
+    response = dpm_view.list_latest(
+        request=request, datapoint_filter_params=datapoint_filter_params
+    )
+    return response
+
+
+@api.put(
+    "/datapoint/metadata/latest/",
+    response={200: DatapointList},
+    tags=["Datapoint Metadata"],
+    summary=" ",  # Deactivate summary.
+)
+def put_datapoint_metadata_latest(
+    request, datapoints: DatapointList,
+):
+    """
+    Update or create the latest state of datapoint metadata.
+
+    The matching between the provided data and the existing datapoints is
+    the following:
+    * If the `id` field of a `Datapoint` object **is not** `null` it is
+      assumed that the datapoint with this ID should be updated.
+    * If the `id` field of a `Datapoint` object **is** `null` the combination
+      of `origin` and `origin_id` is used look up a datapoint with identical
+      values. If such a datapoint exists it is updated, else it is created.
+    * If neither `id` nor **both** `origin` and `origin_id` are provided for a
+      datapoint the datapoint is created.
+
+    The following situations will result in an error (400):
+    * If the `id` field of a `Datapoint` object **is not** `null` but no
+      datapoint with that ID exists.
+
+    **Finally note**: This operation is all or nothing. If you receive an
+    error no data is written to DB.
+    """
+    response = dpm_view.update_latest(request=request, datapoints=datapoints)
+    return response
+
+
+##############################################################################
+# Plant Messages -> /plant/*
+##############################################################################
+
+
+class PlantAPIView(GenericAPIView):
+    @GenericAPIView._handle_exceptions
+    def list_latest(self, request, datapoint_filter_params={}):
+        """
+        List latest state of plants.
+        """
+        plants_qs = PlantDb.objects.all()
+
+        plants_as_dict = []
+        for plant in plants_qs:
+            plants_as_dict.append(plant.load_to_dict())
+
+        plants_pydantic = PlantList.construct_recursive(__root__=plants_as_dict)
+
+        plants_json = plants_pydantic.json()
+
+        return HttpResponse(
+            content=plants_json, status=200, content_type="application/json"
+        )
+
+
+plant_view = PlantAPIView()
+
+
+@api.get(
+    "/plant/latest/",
+    response={200: PlantList, 400: HTTPError, 500: HTTPError},
+    tags=["Plant"],
+    summary=" ",  # Deactivate summary.
+)
+def get_plant_latest(request,):
+    """
+    Return the latest state of the Plant objects.
+
+    Plants define the metadata necessary to compute optimized schedules or
+    forecasts for a physical entities, e.g. PV plants or a buildings.
+    """
+
+    response = plant_view.list_latest(request=request,)
     return response

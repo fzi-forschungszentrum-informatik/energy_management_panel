@@ -7,6 +7,8 @@ from esg.django_models.datapoint import SetpointMessageTemplate
 from esg.django_models.datapoint import LastSetpointMessageTemplate
 from esg.django_models.datapoint import ScheduleMessageTemplate
 from esg.django_models.datapoint import LastScheduleMessageTemplate
+from esg.django_models.metadata import GeographicPositionTemplate
+from esg.django_models.metadata import PlantTemplate
 
 
 class ModelWithIterableFields(models.Model):
@@ -129,4 +131,22 @@ class LastSetpointMessage(LastSetpointMessageTemplate):
         on_delete=models.CASCADE,
         related_name="last_setpoint_message",
         help_text=("The datapoint that the setpoint message belongs to."),
+    )
+
+
+class Plant(PlantTemplate):
+    """
+    Create instance of model template.
+    """
+
+    pass
+
+
+class GeographicPosition(GeographicPositionTemplate):
+    """
+    Create instance of model template.
+    """
+
+    plant = models.OneToOneField(
+        Plant, on_delete=models.CASCADE, related_name="_geographic_position"
     )

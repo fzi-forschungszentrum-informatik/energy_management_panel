@@ -8,6 +8,8 @@ from .models import SetpointMessage
 from .models import LastSetpointMessage
 from .models import ScheduleMessage
 from .models import LastScheduleMessage
+from .models import GeographicPosition
+from .models import Plant
 from esg.utils.timestamp import datetime_to_pretty_str
 
 
@@ -344,3 +346,13 @@ class ScheduleMessageAdmin(admin.ModelAdmin):
 
     timestamp_pretty.admin_order_field = "timestamp"
     timestamp_pretty.short_description = "Timestamp"
+
+
+class GeographicPositionInline(admin.TabularInline):
+    model = GeographicPosition
+    verbose_name_plural = "Geographic Position"
+
+
+@admin.register(Plant)
+class PlantAdmin(admin.ModelAdmin):
+    inlines = [GeographicPositionInline]
