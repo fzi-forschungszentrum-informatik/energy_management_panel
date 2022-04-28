@@ -15,6 +15,8 @@ services:
         tty: true  # This must be set to colorize output.
         volumes:
             - ./source/emp/:/source/emp/
+            # Activate this volume if you develop on energy_service_generics in parallel. 
+            - ../energy_service_generics/source/esg/:/opt/conda/lib/python3.8/site-packages/esg/
         user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
         ports:
             - 8080:8080
@@ -22,18 +24,18 @@ services:
             - LOGLEVEL=INFO
             - DJANGO_DEBUG=TRUE
             - DJANGO_ADMINS=
-            - DJANGO_SECRET_KEY=
+            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
             - DJANGO_ALLOWED_HOSTS=
             - DJANGO_SUPERUSER_USERNAME=emp
             - DJANGO_SUPERUSER_PASSWORD=emp
             - DJANGO_SUPERUSER_EMAIL=emp@example.com
-            - EMPDB_HOST=emp-devl-db
+            # - EMPDB_HOST=emp-devl-db
             - EMPDB_PORT=5432
             - EMPDB_USER=emp
             - EMPDB_PASSWORD=emp
             - EMPDB_DBNAME=emp
             - N_WORKER_PROCESSES=1
-            
+
     emp-devl-db:
         container_name: emp-devl-db
         image: timescale/timescaledb:2.4.1-pg13
