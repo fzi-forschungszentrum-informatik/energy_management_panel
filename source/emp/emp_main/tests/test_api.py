@@ -4,6 +4,7 @@
 import asyncio
 from copy import deepcopy
 from datetime import datetime
+from datetime import timedelta
 from datetime import timezone
 import json
 from pprint import pformat
@@ -14,6 +15,7 @@ from django.test import Client
 from django.test import TransactionTestCase
 
 from esg.models.datapoint import DatapointList
+from esg.models.metadata import GeographicPosition
 from esg.services.base import RequestInducedException
 
 from emp_main.api import GenericAPIView
@@ -25,12 +27,18 @@ from emp_main.models import ScheduleMessage as ScheduleHistoryDb
 from emp_main.models import LastScheduleMessage as ScheduleLatestDb
 from emp_main.models import SetpointMessage as SetpointHistoryDb
 from emp_main.models import LastSetpointMessage as SetpointLatestDb
+from emp_main.models import Product
+from emp_main.models import Plant
 from emp_main.urls import API_ROOT_PATH
 
 """
 Test data for all the tests. This is pretty redundant to esg.test.data but
 kept divided to prevent nasty side effects when changing data in the esg
 package.
+
+TODO: Reformulate this testdata here as pydantic models, because that is what
+      we actually receive from the request. The Python stuff will never reach
+      reach the Views, right?
 """
 # The minimum amount of information forming valid datapoints.
 # There here are basically there to have something to update in the tests.
@@ -743,6 +751,186 @@ TEST_DATASETS_SETPOINTS_HISTORY_INVALID = [
     }
 ]
 
+TEST_PRODUCTS_LATEST = [
+    {
+        "Python_pre_update": [
+            {
+                "id": 1,
+                "name": "Update me",
+                "service_url": "http://google.com",
+                "coverage_from": timedelta(days=0),
+                "coverage_to": timedelta(days=0),
+            },
+        ],
+        "Python": [
+            {
+                "id": 1,
+                "name": "PVForecast",
+                "service_url": "http://example.com/product_service/v1/",
+                "coverage_from": timedelta(days=0),
+                "coverage_to": timedelta(days=1),
+            },
+            {
+                "id": 2,
+                "name": "PVForecast2",
+                "service_url": "http://example.com/product_service/v2/",
+                # This is `-P0DT0H15M0S` might be realistic for PVForecast.
+                "coverage_from": timedelta(days=0, seconds=-4500),
+                # This is `P1DT0H59M0S` might be realistic for PVForecast.
+                "coverage_to": timedelta(days=1, seconds=3540),
+            },
+        ],
+        "JSONable": [
+            {
+                "id": 1,
+                "name": "PVForecast",
+                "service_url": "http://example.com/product_service/v1/",
+                "coverage_from": 0.0,
+                "coverage_to": 86400.0,
+            },
+            {
+                "id": 2,
+                "name": "PVForecast2",
+                "service_url": "http://example.com/product_service/v2/",
+                "coverage_from": -4500.0,
+                "coverage_to": 89940.0,
+            },
+        ],
+        "PutSummary": {"objects_created": 1, "objects_updated": 1},
+    }
+]
+
+TEST_PRODUCTS_LATEST_INVALID = [
+    # Check that normal validation errors are returned back to the user.
+    # Furthermore check that updates are applied all or nothing by using one
+    # valid and one invalid dataset (invalid URL).
+    {
+        "JSONable": [
+            {
+                "id": 1,
+                "name": "PVForecast",
+                "service_url": "Definitly not a URL",
+                "coverage_from": 0.0,
+                "coverage_to": 86400,
+            },
+            {
+                "id": 2,
+                "name": "PVForecast2",
+                "service_url": "http://example.com/product_service/v2/",
+                "coverage_from": -4500,
+                "coverage_to": 89940,
+            },
+        ],
+        "status_code_must_be": 422,
+        # This will raise the standard pydantic error.
+        "detail_must_contain": [],
+    },
+    # This should fail because of non unique names.
+    {
+        "JSONable": [
+            {
+                "name": "PVForecast",
+                "service_url": "http://example.com/product_service/v2/",
+                "coverage_from": 0.0,
+                "coverage_to": 86400,
+            },
+            {
+                "id": 2,
+                "name": "PVForecast",
+                "service_url": "http://example.com/product_service/v2/",
+                "coverage_from": -4500,
+                "coverage_to": 89940,
+            },
+        ],
+        "status_code_must_be": 400,
+        "detail_must_contain": [
+            # We expect a reason including the field name that failed.
+            "UNIQUE constraint failed: emp_main_product.name",
+            # .. and the field values, at least the ID and the value of the
+            # field that was not unique.
+            '"id": 2',
+            '"name": "PVForecast"',
+        ],
+    },
+]
+
+TEST_PLANTS_LATEST = [
+    # fmt: off
+    {
+
+        "Python_pre_update": [
+            {
+                "id": 1,
+                "name": "Update me",
+                "product_names": [],
+            },
+        ],
+        # fmt: on
+        "Python": [
+            {
+                "id": 1,
+                "name": "Test Plant 1",
+                "product_names": ["PV Forecast"],
+            },
+            {
+                "id": 2,
+                "name": "Test Plant 2",
+                "geographic_position": GeographicPosition(
+                    latitude=49.01365,
+                    longitude=8.40444,
+                    height=None,
+                )
+            },
+        ],
+        "JSONable": [
+            {
+                "id": 1,
+                "name": "Test Plant 1",
+                "product_names": ["PV Forecast"],
+                "geographic_position": None,
+            },
+            {
+                "id": 2,
+                "name": "Test Plant 2",
+                "product_names": [],
+                "geographic_position": {
+                    "latitude": 49.01365,
+                    "longitude": 8.40444,
+                    "height": None,
+                }
+            },
+        ],
+        "PutSummary": {"objects_created": 1, "objects_updated": 1},
+    }
+]
+
+TEST_PLANTS_LATEST_INVALID = [
+    # This should fail because it uses a non defined product name.
+    # As usual one valid and one invalid request so we can test all or nothing.
+    {
+        "JSONable": [
+            {
+                "id": 1,
+                "name": "Test Plant 1",
+                "product_names": ["PV Forecast2"],
+                "geographic_position": None,
+            },
+            {
+                "id": 2,
+                "name": "Test Plant 2",
+                "product_names": [],
+                "geographic_position": {
+                    "latitude": 49.01365,
+                    "longitude": 8.40444,
+                    "height": None,
+                },
+            },
+        ],
+        "status_code_must_be": 400,
+        "detail_must_contain": ["PV Forecast2", "no product with such name"],
+    },
+]
+
 
 class TestGenericAPIViewHandleException:
     """
@@ -830,6 +1018,184 @@ class TestGenericAPIViewHandleException:
         # Exception details should not be forwarded to the user.
         assert b"RuntimeError" not in response.content
         assert b"Rare Exception" not in response.content
+
+
+class GenericAPIViewTests(TransactionTestCase):
+    """
+    Similar to how `GenericAPIView` holds generic code for derived APIView
+    classes, this class holds generic tests to derive the corresponding
+    test classes.
+
+    NOTE: For some strange reason this class is executed as Test class
+          too, although it does't obey the pyetest convention, i.e. doesn't
+          start with `Test*`. All the tests of this base class should pass
+          usually, however that doesn't mean stuff works as expected.
+          Just ignore it.
+    """
+
+    DbModelLatest = None
+
+    test_datasets_latest = []
+    test_datasets_latest_invalid = []
+
+    endpoint_url_latest = None
+
+    unique_together_fields_latest = ["name"]
+    pre_save_fields = []
+
+    def setUp(self):
+        """
+        Generic stuff required for all tests.
+        """
+        self.client = Client()
+
+    def tearDown(self):
+        """
+        Delete all datapoints after each tests to prevent unique constraints
+        from short_name.
+        """
+        if self.DbModelLatest is not None:
+            self.DbModelLatest.objects.all().delete()
+
+    def _create_test_data_in_db(self, test_data, db_model, pre_save_fields=[]):
+        """
+        helper function to prevent redundant code.
+        """
+        test_data = deepcopy(test_data)
+        for test_data_item in test_data:
+            # Some fields, like ManyToMany can only be set after the model
+            # has been saved for the first time.
+            pre_save_field_values = {}
+            for pre_save_field in self.pre_save_fields:
+                if pre_save_field in test_data_item:
+                    pre_save_field_values[pre_save_field] = test_data_item.pop(
+                        pre_save_field
+                    )
+
+            obj = db_model.objects.create(**test_data_item)
+            obj.save()
+
+            for pre_save_field in pre_save_field_values:
+                pre_save_field_value = pre_save_field_values[pre_save_field]
+                setattr(obj, pre_save_field, pre_save_field_value)
+            if pre_save_field_values:
+                obj.save()
+
+    def _check_test_data_exists_in_db(
+        self, test_data, db_model, unique_together_fields
+    ):
+        """
+        another helper function to prevent redundant code.
+        """
+        test_data = deepcopy(test_data)
+        for test_data_item in test_data:
+            get_args = {f: test_data_item[f] for f in unique_together_fields}
+            actual_data_obj = db_model.objects.get(**get_args)
+
+            for field, expected_value in test_data_item.items():
+
+                actual_value = getattr(actual_data_obj, field)
+
+                assert_msg = (
+                    "Error comparing field `{}` of expected data item \n{} "
+                    "\n\nwith actual item in db \n{}".format(
+                        field,
+                        pformat(test_data_item, indent=4),
+                        pformat(actual_data_obj.__dict__, indent=4),
+                    )
+                )
+
+                assert actual_value == expected_value, assert_msg
+
+    def test_list_latest(self):
+        """
+        Verify the it is possible to retrieve data from the latest endpoint.
+        """
+        for test_dataset in self.test_datasets_latest:
+
+            self._create_test_data_in_db(
+                test_data=test_dataset["Python"], db_model=self.DbModelLatest,
+            )
+
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python"],
+                db_model=self.DbModelLatest,
+                unique_together_fields=self.unique_together_fields_latest,
+            )
+
+            response = self.client.get(self.endpoint_url_latest)
+            assert response.status_code == 200
+
+            expected_jsonable = test_dataset["JSONable"]
+            actual_jsonable = response.json()
+            assert expected_jsonable == actual_jsonable
+
+    def test_update_latest_creates_and_updates(self):
+        """
+        Check that calling PUT on the latest endpoint overwrites and/or
+        updates existing data. This method assumes that the test data is
+        set up accordingly, to test both create and update.
+        """
+        for test_dataset in self.test_datasets_latest:
+
+            self._create_test_data_in_db(
+                test_data=test_dataset["Python_pre_update"],
+                db_model=self.DbModelLatest,
+            )
+
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python_pre_update"],
+                db_model=self.DbModelLatest,
+                unique_together_fields=self.unique_together_fields_latest,
+            )
+
+            response = self.client.put(
+                self.endpoint_url_latest,
+                content_type="application/json",
+                data=test_dataset["JSONable"],
+            )
+
+            assert response.status_code == 200
+
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python"],
+                db_model=self.DbModelLatest,
+                unique_together_fields=self.unique_together_fields_latest,
+            )
+
+            expected_put_summary = test_dataset["PutSummary"]
+            actual_put_summary = response.json()
+            assert actual_put_summary == expected_put_summary
+
+    def test_invalid_updates_fail_gracefully_for_latest(self):
+        """
+        This tests that invalid requests return the expected error messages.
+        This also tests that update doesn't carry out partial updates, at least
+        if the test data contains at least one valid entry.
+        """
+        for test_dataset in self.test_datasets_latest_invalid:
+
+            # Expect no data in DB before we begin.
+            assert self.DbModelLatest.objects.count() == 0
+
+            response = self.client.put(
+                self.endpoint_url_latest,
+                content_type="application/json",
+                data=test_dataset["JSONable"],
+            )
+
+            expected_status_code = test_dataset["status_code_must_be"]
+            actual_status_code = response.status_code
+            assert actual_status_code == expected_status_code
+
+            # Check all exepcted payload is in the error message.
+            error_msg = response.json()
+            assert "detail" in error_msg
+            for expected_str in test_dataset["detail_must_contain"]:
+                assert expected_str in error_msg["detail"]
+
+            # Expect no partial updates, hence still no data in DB.
+            assert self.DbModelLatest.objects.count() == 0
 
 
 class TestDatapointMetadataAPIView(TransactionTestCase):
@@ -1449,3 +1815,47 @@ class TestDatapointSetpointAPIView(GenericDatapointRelatedAPIViewTests):
 
     endpoint_url_latest = "/" + API_ROOT_PATH + "datapoint/setpoint/latest/"
     endpoint_url_history = "/" + API_ROOT_PATH + "datapoint/setpoint/history/"
+
+
+class TestProductAPIView(GenericAPIViewTests):
+
+    DbModelLatest = Product
+
+    test_datasets_latest = TEST_PRODUCTS_LATEST
+    test_datasets_latest_invalid = TEST_PRODUCTS_LATEST_INVALID
+
+    endpoint_url_latest = "/" + API_ROOT_PATH + "product/latest/"
+
+
+class TestPlantAPIView(GenericAPIViewTests, TransactionTestCase):
+
+    DbModelLatest = Plant
+
+    test_datasets_latest = TEST_PLANTS_LATEST
+    test_datasets_latest_invalid = TEST_PLANTS_LATEST_INVALID
+
+    endpoint_url_latest = "/" + API_ROOT_PATH + "plant/latest/"
+    pre_save_fields = ["product_names", "geographic_position"]
+
+    #
+    def setUp(self):
+        """
+        Apart from the usual client, also create a product entry  in DB,
+        so we can check update/create relates to this item.
+        """
+        self.client = Client()
+
+        test_product = Product.objects.create(
+            name="PV Forecast",
+            service_url="http://example.com/product_service/v1/",
+            coverage_from=timedelta(days=0),
+            coverage_to=timedelta(days=1),
+        )
+        test_product.save()
+
+
+#
+#     def tearDown(self):
+#         Product.objects.all().delete()
+#         if self.DbModelLatest is not None:
+#             self.DbModelLatest.objects.all().delete()

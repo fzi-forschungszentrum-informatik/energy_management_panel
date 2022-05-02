@@ -102,6 +102,15 @@ class TestProduct(TestCase, GenericDjangoModelTestMixin):
     msgs_as_jsonable = [m["JSONable"] for m in td.products]
     invalid_msgs_as_python = [m["Python"] for m in td.invalid_products]
 
+    def prepare_messages(self, msgs, msg_name):
+        """
+        Add IDs to test data as test output will have an ID.
+        """
+        msgs = deepcopy(msgs)
+        for i, msg in enumerate(msgs):
+            msg["id"] = i
+        return msgs
+
 
 class TestPlant(TestCase, GenericDjangoModelTestMixin):
     Plant = PlantDb
