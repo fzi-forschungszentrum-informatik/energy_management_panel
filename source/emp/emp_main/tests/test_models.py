@@ -95,6 +95,14 @@ class TestDatapoint(TestCase, GenericDjangoModelTestMixin):
         self.generic_field_value_test(field_values=field_values)
 
 
+class TestProduct(TestCase, GenericDjangoModelTestMixin):
+    Product = ProductDb
+    model_name = "Product"
+    msgs_as_python = [m["Python"] for m in td.products]
+    msgs_as_jsonable = [m["JSONable"] for m in td.products]
+    invalid_msgs_as_python = [m["Python"] for m in td.invalid_products]
+
+
 class TestPlant(TestCase, GenericDjangoModelTestMixin):
     Plant = PlantDb
     model_name = "Plant"
