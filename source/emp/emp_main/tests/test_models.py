@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import timedelta
 
 from django.test import TestCase
 from django.db.utils import IntegrityError
@@ -7,6 +8,8 @@ from esg.test import data as td
 
 from ..models import Datapoint as DatapointDb
 from ..models import Plant as PlantDb
+from ..models import Product as ProductDb
+from ..models import GeographicPosition as GeographicPositionDb
 
 
 class TestDatapoint(TestCase, GenericDjangoModelTestMixin):
@@ -21,7 +24,7 @@ class TestDatapoint(TestCase, GenericDjangoModelTestMixin):
 
     def prepare_messages(self, msgs, msg_name):
         """
-        Add foreign keys to positions.
+        Add IDs, as all objects have IDs once returned by the DB.
         """
         msgs = deepcopy(msgs)
         for i, msg in enumerate(msgs):
@@ -99,24 +102,44 @@ class TestPlant(TestCase, GenericDjangoModelTestMixin):
     msgs_as_jsonable = [m["JSONable"] for m in td.plants]
     invalid_msgs_as_python = [m["Python"] for m in td.invalid_plants]
 
+    def prepare_messages(self, msgs, msg_name):
+        """
+        Add IDs and add the required mocks for products.
+        """
+        msgs = deepcopy(msgs)
+        for i, msg in enumerate(msgs):
+            msg["id"] = i
 
-# class TestGeographicPosition(
-#     TestCase, GenericDjangoModelTestMixin
-# ):
-#
-#     model_name = "GeographicPosition"
-#     msgs_as_python = [m["Python"] for m in td.geographic_positions]
-#     msgs_as_jsonable = [m["JSONable"] for m in td.geographic_positions]
-#     invalid_msgs_as_python = [
-#         m["Python"] for m in td.invalid_geographic_positions
-#     ]
-#
-#     def prepare_messages(self, msgs):
-#         """
-#         Add foreign keys to positions.
-#         """
-#         msgs = deepcopy(msgs)
-#         for i, msg in enumerate(msgs):
-#             msg["plant"] = self.Plant(name="test_plant_{}".format(i))
-#             msg["plant"].save()
-#         return msgs
+            # Create dummy products for all entries existing in the test data.
+            if "product_names" in msg:
+                for product_name in msg["product_names"]:
+                    product, _ = ProductDb.objects.get_or_create(
+                        name=product_name,
+                        service_url="https://google.com",
+                        coverage_from=timedelta(days=0),
+                        coverage_to=timedelta(days=1),
+                    )
+                    product.save()
+        return msgs
+
+
+class TestGeographicPosition(TestCase, GenericDjangoModelTestMixin):
+    Plant = PlantDb
+    GeographicPosition = GeographicPositionDb
+    model_name = "GeographicPosition"
+    msgs_as_python = [m["Python"] for m in td.geographic_positions]
+    msgs_as_jsonable = [m["JSONable"] for m in td.geographic_positions]
+    invalid_msgs_as_python = [
+        m["Python"] for m in td.invalid_geographic_positions
+    ]
+
+    def prepare_messages(self, msgs, msg_name):
+        """
+        Add foreign keys to positions.
+        """
+        if msg_name in ["msgs_as_python"]:
+            msgs = deepcopy(msgs)
+            for i, msg in enumerate(msgs):
+                msg["plant"] = self.Plant(name="test_plant_{}".format(i))
+                msg["plant"].save()
+        return msgs

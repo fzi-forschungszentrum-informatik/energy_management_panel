@@ -9,6 +9,7 @@ from esg.django_models.datapoint import ScheduleMessageTemplate
 from esg.django_models.datapoint import LastScheduleMessageTemplate
 from esg.django_models.metadata import GeographicPositionTemplate
 from esg.django_models.metadata import PlantTemplate
+from esg.django_models.metadata import ProductTemplate
 
 
 class ModelWithIterableFields(models.Model):
@@ -134,12 +135,22 @@ class LastSetpointMessage(LastSetpointMessageTemplate):
     )
 
 
-class Plant(PlantTemplate):
+class Product(ProductTemplate):
     """
     Create instance of model template.
     """
 
     pass
+
+
+class Plant(PlantTemplate):
+    """
+    Create instance of model template.
+    """
+
+    products = models.ManyToManyField(
+        Product, blank=True, related_name="_plants"
+    )
 
 
 class GeographicPosition(GeographicPositionTemplate):

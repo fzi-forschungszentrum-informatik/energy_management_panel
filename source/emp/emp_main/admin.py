@@ -10,6 +10,7 @@ from .models import ScheduleMessage
 from .models import LastScheduleMessage
 from .models import GeographicPosition
 from .models import Plant
+from .models import Product
 from esg.utils.timestamp import datetime_to_pretty_str
 
 
@@ -355,4 +356,18 @@ class GeographicPositionInline(admin.TabularInline):
 
 @admin.register(Plant)
 class PlantAdmin(admin.ModelAdmin):
+    autocomplete_fields = ("products",)
+    search_fields = ("name",)
     inlines = [GeographicPositionInline]
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+        "service_url",
+    )
+    list_display_links = ("name",)
+    # This is used by PlantAdmin.
+    search_fields = ("name",)
