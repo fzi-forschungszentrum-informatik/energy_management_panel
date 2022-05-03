@@ -862,7 +862,7 @@ TEST_PLANTS_LATEST = [
             {
                 "id": 1,
                 "name": "Update me",
-                "product_names": [],
+                "product_ids": [],
             },
         ],
         # fmt: on
@@ -870,7 +870,7 @@ TEST_PLANTS_LATEST = [
             {
                 "id": 1,
                 "name": "Test Plant 1",
-                "product_names": ["PV Forecast"],
+                "product_ids": [1],
             },
             {
                 "id": 2,
@@ -886,13 +886,13 @@ TEST_PLANTS_LATEST = [
             {
                 "id": 1,
                 "name": "Test Plant 1",
-                "product_names": ["PV Forecast"],
+                "product_ids": [1],
                 "geographic_position": None,
             },
             {
                 "id": 2,
                 "name": "Test Plant 2",
-                "product_names": [],
+                "product_ids": [],
                 "geographic_position": {
                     "latitude": 49.01365,
                     "longitude": 8.40444,
@@ -905,20 +905,20 @@ TEST_PLANTS_LATEST = [
 ]
 
 TEST_PLANTS_LATEST_INVALID = [
-    # This should fail because it uses a non defined product name.
+    # This should fail because it uses a non defined product id.
     # As usual one valid and one invalid request so we can test all or nothing.
     {
         "JSONable": [
             {
                 "id": 1,
                 "name": "Test Plant 1",
-                "product_names": ["PV Forecast2"],
+                "product_ids": [1001],
                 "geographic_position": None,
             },
             {
                 "id": 2,
                 "name": "Test Plant 2",
-                "product_names": [],
+                "product_ids": [],
                 "geographic_position": {
                     "latitude": 49.01365,
                     "longitude": 8.40444,
@@ -927,7 +927,7 @@ TEST_PLANTS_LATEST_INVALID = [
             },
         ],
         "status_code_must_be": 400,
-        "detail_must_contain": ["PV Forecast2", "no product with such name"],
+        "detail_must_contain": ["1001", "no product with such id"],
     },
 ]
 
@@ -1835,7 +1835,7 @@ class TestPlantAPIView(GenericAPIViewTests, TransactionTestCase):
     test_datasets_latest_invalid = TEST_PLANTS_LATEST_INVALID
 
     endpoint_url_latest = "/" + API_ROOT_PATH + "plant/latest/"
-    pre_save_fields = ["product_names", "geographic_position"]
+    pre_save_fields = ["product_ids", "geographic_position"]
 
     #
     def setUp(self):
@@ -1846,6 +1846,7 @@ class TestPlantAPIView(GenericAPIViewTests, TransactionTestCase):
         self.client = Client()
 
         test_product = Product.objects.create(
+            id=1,
             name="PV Forecast",
             service_url="http://example.com/product_service/v1/",
             coverage_from=timedelta(days=0),

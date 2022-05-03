@@ -41,6 +41,7 @@ from esg.models.datapoint import ScheduleMessageListByDatapointId
 from esg.models.datapoint import SetpointMessageByDatapointId
 from esg.models.datapoint import SetpointMessageListByDatapointId
 from esg.models.metadata import ProductList
+from esg.models.metadata import ProductRunList
 from esg.models.metadata import PlantList
 from esg.models.request import HTTPError
 from esg.services.base import RequestInducedException
@@ -53,6 +54,7 @@ from emp_main.models import LastScheduleMessage as ScheduleLatestDb
 from emp_main.models import SetpointMessage as SetpointHistoryDb
 from emp_main.models import LastSetpointMessage as SetpointLatestDb
 from emp_main.models import Product as ProductDb
+from emp_main.models import ProductRun as ProductRunDb
 from emp_main.models import Plant as PlantDb
 
 logger = logging.getLogger(__name__)
@@ -1230,6 +1232,57 @@ def put_product_latest(request, objects_pydantic: ProductList):
 
 
 ##############################################################################
+# Product Run Messages -> /product_run/*
+##############################################################################
+
+
+class ProductRunAPIView(GenericAPIView):
+    PydanticModel = ProductRunList
+    DBModel = ProductRunDb
+
+
+product_run_view = ProductRunAPIView()
+
+
+@api.get(
+    "/product_run/latest/",
+    response={200: ProductRunList, 400: HTTPError, 500: HTTPError},
+    tags=["Product Run"],
+    summary=" ",  # Deactivate summary.
+)
+def get_product_run_latest(request):
+    """
+    Return the latest state of the `Product` objects.
+
+    Each entry specifies the metadata necessary (alongside with `Plant`) to
+    trigger requests to a defined product service, like e.g. a PV Forecast.
+    """
+
+    response = product_run_view.list_latest(request=request)
+    return response
+
+
+@api.put(
+    "/product_run/latest/",
+    response={200: PutSummary, 400: HTTPError, 500: HTTPError},
+    tags=["Product Run"],
+    summary=" ",  # Deactivate summary.
+)
+def put_product_run_latest(request, objects_pydantic: ProductRunList):
+    """
+    Update the latest state of one or more `Product` objects.
+
+    Each entry specifies the metadata necessary (alongside with `Plant`) to
+    trigger requests to a defined product service, like e.g. a PV Forecast.
+    """
+
+    response = product_run_view.update_latest(
+        request=request, objects_pydantic=objects_pydantic
+    )
+    return response
+
+
+##############################################################################
 # Plant Messages -> /plant/*
 ##############################################################################
 
@@ -1239,12 +1292,9 @@ class PlantAPIView(GenericAPIView):
     DBModel = PlantDb
 
     class PlantFilterParams(Schema):
-        products__name__exact: str = Field(
+        product__id__in: str = Field(
             None,
-            description=(
-                "Matches `Plant` objects with this exact entry "
-                "in `product_names`."
-            ),
+            description=("Matches `Plant` with `product_ids` in this list."),
         )
 
 

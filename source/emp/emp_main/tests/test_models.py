@@ -128,10 +128,11 @@ class TestPlant(TestCase, GenericDjangoModelTestMixin):
             msg["id"] = i
 
             # Create dummy products for all entries existing in the test data.
-            if "product_names" in msg:
-                for product_name in msg["product_names"]:
+            if "product_ids" in msg:
+                for product_id in msg["product_ids"]:
                     product, _ = ProductDb.objects.get_or_create(
-                        name=product_name,
+                        id=product_id,
+                        name="product_name" + str(product_id),
                         service_url="https://google.com",
                         coverage_from=timedelta(days=0),
                         coverage_to=timedelta(days=1),

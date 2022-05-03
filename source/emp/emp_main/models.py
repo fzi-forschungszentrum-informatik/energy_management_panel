@@ -10,6 +10,7 @@ from esg.django_models.datapoint import LastScheduleMessageTemplate
 from esg.django_models.metadata import GeographicPositionTemplate
 from esg.django_models.metadata import PlantTemplate
 from esg.django_models.metadata import ProductTemplate
+from esg.django_models.metadata import ProductRunTemplate
 
 
 class ModelWithIterableFields(models.Model):
@@ -161,3 +162,37 @@ class GeographicPosition(GeographicPositionTemplate):
     plant = models.OneToOneField(
         Plant, on_delete=models.CASCADE, related_name="_geographic_position"
     )
+
+
+class ProductRun(ProductRunTemplate):
+    """
+    Create instance of model template.
+    """
+
+    _product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        # Must allow null as field will be null for a short time
+        # during saving with `save_from_pydantic`
+        null=True,
+        related_name="product_runs",
+    )
+    _plant = models.ForeignKey(
+        Plant, on_delete=models.CASCADE, null=True, related_name="product_runs",
+    )
+
+    @property
+    def product_id(self):
+        return self.get_fk_id_from_field(self._product)
+
+    @product_id.setter
+    def product_id(self, value):
+        self._product = self.set_fk_obj_by_id(value, Product)
+
+    @property
+    def plant_id(self):
+        return self.get_fk_id_from_field(self._plant)
+
+    @plant_id.setter
+    def plant_id(self, value):
+        self._plant = self.set_fk_obj_by_id(value, Plant)

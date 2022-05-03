@@ -11,6 +11,7 @@ from .models import LastScheduleMessage
 from .models import GeographicPosition
 from .models import Plant
 from .models import Product
+from .models import ProductRun
 from esg.utils.timestamp import datetime_to_pretty_str
 
 
@@ -371,3 +372,8 @@ class ProductAdmin(admin.ModelAdmin):
     list_display_links = ("name",)
     # This is used by PlantAdmin.
     search_fields = ("name",)
+
+
+@admin.register(ProductRun)
+class ProductRunAdmin(admin.ModelAdmin):
+    pass
