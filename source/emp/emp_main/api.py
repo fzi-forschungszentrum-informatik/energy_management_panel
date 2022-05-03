@@ -297,6 +297,58 @@ class GenericDatapointAPIView(GenericAPIView):
         datapoints = self.DatapointModel.objects.all().filter(**active_filters)
         return datapoints
 
+    def get_datapoints_by_ids(self, datapoint_ids_as_str):
+        """
+        Fetches datapoint objects given a list of IDs.
+
+        Arguments:
+        ----------
+        datapoint_ids_as_str: list of str.
+            This is a list of IDs as str because OpenAPI models use
+            strs as dict keys and we need to check some edge cases here,
+            like that the ID is not an int.
+
+        Returns:
+        --------
+        datapoints_db_by_id = dict {str : datapoint object}
+            The found datapoint object for the IDs.
+
+        Raises:
+        -------
+        RequestInducedException:
+            If datapoints could not be found for one or more IDs
+        """
+        datapoint_ids = []
+        for id in datapoint_ids_as_str:
+            try:
+                datapoint_ids.append(int(id))
+            except ValueError:
+                # Ignore any ID that can't be converted to ID, it can't
+                # be in DB anyways and the check below should raise an
+                # appropriate error.
+                pass
+
+        datapoints_db = self.DatapointModel.objects.filter(id__in=datapoint_ids)
+
+        datapoints_db_by_id = {}
+        for datapoint_db in datapoints_db:
+            datapoints_db_by_id[str(datapoint_db.id)] = datapoint_db
+
+        # Check if some datapoints are not available in DB.
+        # Note that we must compare strings here, to also raise
+        # errors for IDs that have failed conversion to int above.
+        expected_dp_ids = set([id for id in datapoint_ids_as_str])
+        actual_dp_ids = set([id for id in datapoints_db_by_id.keys()])
+        if expected_dp_ids != actual_dp_ids:
+            raise RequestInducedException(
+                detail=(
+                    "The following datapoint ids do not exist: {}"
+                    "".format(list(expected_dp_ids - actual_dp_ids))
+                )
+            )
+
+        return datapoints_db_by_id
+
 
 class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
     """
@@ -454,32 +506,9 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         related_data_dict = related_data.dict()["__root__"]
 
         # Fetch the datapoint objects belonging to the data.
-        datapoint_ids = []
-        for id in related_data_dict:
-            try:
-                datapoint_ids.append(int(id))
-            except ValueError:
-                # Ignore any ID that can't be converted to ID, it can't
-                # be in DB anyways and the check below should raise an
-                # appropriate error.
-                pass
-        datapoints_db = DatapointDb.objects.filter(id__in=datapoint_ids)
-        datapoints_db_by_id = {}
-        for datapoint_db in datapoints_db:
-            datapoints_db_by_id[datapoint_db.id] = datapoint_db
-
-        # Check if some datapoints are not available in DB.
-        # Note that we must compare strings here, to also raise
-        # errors for IDs that have failed conversion to int above.
-        expected_dp_ids = set([id for id in related_data_dict])
-        actual_dp_ids = set([str(id) for id in datapoints_db_by_id.keys()])
-        if expected_dp_ids != actual_dp_ids:
-            raise RequestInducedException(
-                detail=(
-                    "The following datapoint ids do not exist: {}"
-                    "".format(list(expected_dp_ids - actual_dp_ids))
-                )
-            )
+        datapoints_db_by_id = self.get_datapoints_by_ids(
+            datapoint_ids_as_str=related_data_dict.keys()
+        )
 
         # Iterate over all messages, check if those message exist already,
         # update if yes, and create new if not.
@@ -489,7 +518,7 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
             unique_field_values = {}
             for field_name in self.unique_together_fields_latest:
                 if field_name == "datapoint":
-                    field_value = datapoints_db_by_id[int(datapoint_id_str)]
+                    field_value = datapoints_db_by_id[datapoint_id_str]
                 else:
                     field_value = related_data_item[field_name]
                 unique_field_values[field_name] = field_value
@@ -555,32 +584,9 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         related_data_dict = related_data.dict()["__root__"]
 
         # Fetch the datapoint objects belonging to the data.
-        datapoint_ids = []
-        for id in related_data_dict:
-            try:
-                datapoint_ids.append(int(id))
-            except ValueError:
-                # Ignore any ID that can't be converted to ID, it can't
-                # be in DB anyways and the check below should raise an
-                # appropriate error.
-                pass
-        datapoints_db = DatapointDb.objects.filter(id__in=datapoint_ids)
-        datapoints_db_by_id = {}
-        for datapoint_db in datapoints_db:
-            datapoints_db_by_id[datapoint_db.id] = datapoint_db
-
-        # Check if some datapoints are not available in DB.
-        # Note that we must compare strings here, to also raise
-        # errors for IDs that have failed conversion to int above.
-        expected_dp_ids = set([id for id in related_data_dict])
-        actual_dp_ids = set([str(id) for id in datapoints_db_by_id.keys()])
-        if expected_dp_ids != actual_dp_ids:
-            raise RequestInducedException(
-                detail=(
-                    "The following datapoint ids do not exist: {}"
-                    "".format(list(expected_dp_ids - actual_dp_ids))
-                )
-            )
+        datapoints_db_by_id = self.get_datapoints_by_ids(
+            datapoint_ids_as_str=related_data_dict.keys()
+        )
 
         # Iterate over all messages, check if those message exist already,
         # update if yes, and create new if not.
@@ -590,7 +596,7 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
                 unique_field_values = {}
                 for field_name in self.unique_together_fields_history:
                     if field_name == "datapoint":
-                        field_value = datapoints_db_by_id[int(datapoint_id_str)]
+                        field_value = datapoints_db_by_id[datapoint_id_str]
                     else:
                         field_value = related_data_item[field_name]
                     unique_field_values[field_name] = field_value
