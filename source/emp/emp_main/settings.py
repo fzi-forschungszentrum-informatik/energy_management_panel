@@ -65,10 +65,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "guardian",
-    #    "rest_framework",
-    #    "rest_framework.authtoken",
-    #    "drf_spectacular",
-    #    "django_filters",
     "ninja",
     "emp_main.apps.EmpMainConfig",
     "emp_demo_ui_app.apps.EmpDemoUiAppConfig",
@@ -246,24 +242,6 @@ STATIC_URL = "/static/"
 MEDIA_ROOT = BASE_DIR.parent / "media"
 MEDIA_URL = "/media/"
 
-# ------------------------------------------------------------------------------
-# Special settings for REST API
-# ------------------------------------------------------------------------------
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.BasicAuthentication",
-        "emp_main.authentication.TokenAuthenticationBearer",
-    ],
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-
-SPECTACULAR_SETTINGS = {
-    "TITLE": "EMP API",
-    "LICENSE": {"name": "Licensed under MIT"},
-    "VERSION": "0.1.0",
-}
 
 # ------------------------------------------------------------------------------
 # Here the EMP specific settings.
