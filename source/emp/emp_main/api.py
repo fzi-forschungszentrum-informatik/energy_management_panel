@@ -24,7 +24,10 @@ from django.db import IntegrityError
 from django.db import transaction
 from django.forms.models import model_to_dict
 from django.http import HttpResponse
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
+from ninja import Path
 from ninja import Query
 from ninja import Schema
 from pydantic import Field
@@ -40,6 +43,7 @@ from esg.models.datapoint import ScheduleMessageByDatapointId
 from esg.models.datapoint import ScheduleMessageListByDatapointId
 from esg.models.datapoint import SetpointMessageByDatapointId
 from esg.models.datapoint import SetpointMessageListByDatapointId
+from esg.models.datapoint import ForecastMessageListByDatapointId
 from esg.models.metadata import ProductList
 from esg.models.metadata import ProductRunList
 from esg.models.metadata import PlantList
@@ -53,6 +57,7 @@ from emp_main.models import ScheduleMessage as ScheduleHistoryDb
 from emp_main.models import LastScheduleMessage as ScheduleLatestDb
 from emp_main.models import SetpointMessage as SetpointHistoryDb
 from emp_main.models import LastSetpointMessage as SetpointLatestDb
+from emp_main.models import ForecastMessage as ForecastMessageDb
 from emp_main.models import Product as ProductDb
 from emp_main.models import ProductRun as ProductRunDb
 from emp_main.models import Plant as PlantDb
@@ -97,6 +102,14 @@ class GenericAPIView:
                     status=400,
                     content_type="application/json",
                 )
+            except Http404 as exception:
+                http_error = HTTPError(detail=str(exception))
+                return HttpResponse(
+                    http_error.json(),
+                    status=404,
+                    content_type="application/json",
+                )
+                raise
             except Exception:
                 logger.exception("Caught exception during handling request.")
                 http_error = HTTPError(
@@ -369,6 +382,8 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
     RelatedDataHistoryModel: django.db.models.Model
         The django model that is used to save/load the historic data
         items per datapoint.
+    RelatedDataHistoryModel : django.db.models.Model
+        A second model that is related apart from Datapoint.
     list_latest_response_model: esg.models.base._BaseModel
         The pydantic model that is used to serialize the latest data.
         This model must have a Dict as __root__ element which is set to
@@ -386,22 +401,31 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         table. This is used to check if an entry is updated or created.
     unique_together_fields_history: list of str
         Like `unique_together_fields_latest` but for `RelatedDataHistoryModel`.
+    second_related_field_name : str
+        The field name of the second related field.
     channel_group_base_name: str
         The the non datapoint id dependend part of the channels group name.
+
     """
 
     RelatedDataLatestModel = None
     RelatedDataHistoryModel = None
+    SecondRelatedModel = None
     list_latest_response_model = None
     list_history_response_model = None
     update_latest_response_model = None
     unique_together_fields_latest = ["datapoint"]
     unique_together_fields_history = ["datapoint", "time"]
+    second_related_field_name = None
     channel_group_base_name = None
 
     @GenericAPIView._handle_exceptions
     def list_latest(
-        self, request, datapoint_filter_params, related_filter_params
+        self,
+        request,
+        datapoint_filter_params,
+        related_filter_params,
+        second_related_filter_params=None,
     ):
         """
         Returns the latest data item per datapoint.
@@ -410,7 +434,7 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         #       datapoints, and of course that the query params are forewarded.
         datapoints = self.get_filtered_datapoints(datapoint_filter_params)
 
-        related_data = self.RelatedDataLatestModel.objects.filter(
+        related_objects = self.RelatedDataLatestModel.objects.filter(
             datapoint__in=datapoints
         )
 
@@ -420,88 +444,104 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         #       manually afterwards.
         # TODO: Add tests that filter is applied.
         active_filters = self.build_active_filter_dict(related_filter_params)
-        related_data = related_data.filter(**active_filters)
+        if self.SecondRelatedModel is not None:
+            # Add some additional filter if a second related object is defined.
+            active_filters_second = self.build_active_filter_dict(
+                second_related_filter_params
+            )
+            active_filters.update(active_filters_second)
+        related_objects = related_objects.filter(**active_filters)
 
         # Group by datapoint ID.
-        content_as_dict = {}
-        for data_item in related_data:
-            content_as_dict[str(data_item.datapoint.id)] = model_to_dict(
-                data_item
-            )
+        related_objects_as_dict = {}
+        for obj in related_objects:
+            related_objects_as_dict[str(obj.datapoint.id)] = obj.load_to_dict()
 
         # Convert to jsonable, skip validation.
-        content_pydantic = self.list_latest_response_model.construct_recursive(
-            __root__=content_as_dict
+        output_pydantic_model = self.list_latest_response_model
+        related_objects_as_pydantic = output_pydantic_model.construct_recursive(
+            __root__=related_objects_as_dict
         )
 
-        # At this point content contains additional fields (as extra fields
-        # are not removed due to skipped validation). This removes the
-        # extra fields, but may actually not be very nice.
-        content_pydantic = self.list_latest_response_model.parse_raw(
-            content_pydantic.json()
-        )
-
-        content = content_pydantic.json()
+        related_objects_as_json = related_objects_as_pydantic.json()
 
         return HttpResponse(
-            content, status=200, content_type="application/json"
+            content=related_objects_as_json,
+            status=200,
+            content_type="application/json",
         )
 
     @GenericAPIView._handle_exceptions
     def list_history(
-        self, request, datapoint_filter_params, related_filter_params
+        self,
+        request,
+        datapoint_filter_params,
+        related_filter_params,
+        second_related_filter_params=None,
     ):
         """
         Returns the historic data item per datapoint.
         """
         datapoints = self.get_filtered_datapoints(datapoint_filter_params)
 
-        related_data = self.RelatedDataHistoryModel.objects.filter(
+        related_objects = self.RelatedDataHistoryModel.objects.filter(
             datapoint__in=datapoints
         )
 
         # Filter by query parameters.
         # NOTE: If this filter is applied or not is not covered in the test.
-        #       If you change someting in this block be extra careful and test
+        #       If you change something in this block be extra careful and test
         #       manually afterwards.
         # TODO: Add tests that filter is applied.
         active_filters = self.build_active_filter_dict(related_filter_params)
-        related_data = related_data.filter(**active_filters)
+        if self.SecondRelatedModel is not None:
+            # Add some additional filter if a second related object is defined.
+            active_filters_second = self.build_active_filter_dict(
+                second_related_filter_params
+            )
+            active_filters.update(active_filters_second)
+        related_objects = related_objects.filter(**active_filters)
 
         # Make a list of objects belonging to datapoint ID for each datapoint.
-        content_as_dict = {}
-        for data_item in related_data:
-            dp_id = str(data_item.datapoint.id)
-            data_items_datapoint = content_as_dict.get(dp_id, [])
-            data_items_datapoint.append(model_to_dict(data_item))
-            content_as_dict[dp_id] = data_items_datapoint
+        related_objects_as_dict = {}
+        for obj in related_objects:
+            dp_id = str(obj.datapoint.id)
+            objects_datapoint = related_objects_as_dict.get(dp_id, [])
+            objects_datapoint.append(obj.load_to_dict())
+            related_objects_as_dict[dp_id] = objects_datapoint
 
         # Convert to jsonable, skip validation.
-        content_pydantic = self.list_history_response_model.construct_recursive(
-            __root__=content_as_dict
+        output_pydantic_model = self.list_history_response_model
+        related_objects_as_pydantic = output_pydantic_model.construct_recursive(
+            __root__=related_objects_as_dict
         )
 
-        # At this point content contains additional fields (as extra fields
-        # are not removed due to skipped validation). This removes the
-        # extra fields, but may actually not be very nice.
-        content_pydantic = self.list_history_response_model.parse_raw(
-            content_pydantic.json()
-        )
-
-        content = content_pydantic.json()
+        related_objects_as_json = related_objects_as_pydantic.json()
 
         return HttpResponse(
-            content, status=200, content_type="application/json"
+            content=related_objects_as_json,
+            status=200,
+            content_type="application/json",
         )
 
     @GenericAPIView._handle_exceptions
-    def update_latest(self, request, related_data):
+    def update_latest(
+        self, request, related_data, second_related_filter_params=None
+    ):
         """
         Update or create the latest state of the data items.
         """
         # Statistics for the return value.
         objects_created = 0
         objects_updated = 0
+
+        if self.SecondRelatedModel is not None:
+            active_filters_second = self.build_active_filter_dict(
+                second_related_filter_params
+            )
+            second_related_object = get_object_or_404(
+                self.SecondRelatedModel, **active_filters_second
+            )
 
         related_data_dict = related_data.dict()["__root__"]
 
@@ -516,6 +556,11 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         for datapoint_id_str, related_data_item in related_data_dict.items():
 
             unique_field_values = {}
+
+            if self.SecondRelatedModel is not None:
+                field_name = self.second_related_field_name
+                unique_field_values[field_name] = second_related_object
+
             for field_name in self.unique_together_fields_latest:
                 if field_name == "datapoint":
                     field_value = datapoints_db_by_id[datapoint_id_str]
@@ -573,13 +618,23 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         )
 
     @GenericAPIView._handle_exceptions
-    def update_history(self, request, related_data):
+    def update_history(
+        self, request, related_data, second_related_filter_params=None,
+    ):
         """
         Update or create the latest state of the data items.
         """
         # Statistics for the return value.
         objects_created = 0
         objects_updated = 0
+
+        if self.SecondRelatedModel is not None:
+            active_filters_second = self.build_active_filter_dict(
+                second_related_filter_params
+            )
+            second_related_object = get_object_or_404(
+                self.SecondRelatedModel, **active_filters_second
+            )
 
         related_data_dict = related_data.dict()["__root__"]
 
@@ -593,7 +648,13 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         related_data_objs = []
         for datapoint_id_str, related_data_list in related_data_dict.items():
             for related_data_item in related_data_list:
+
                 unique_field_values = {}
+
+                if self.SecondRelatedModel is not None:
+                    field_name = self.second_related_field_name
+                    unique_field_values[field_name] = second_related_object
+
                 for field_name in self.unique_together_fields_history:
                     if field_name == "datapoint":
                         field_value = datapoints_db_by_id[datapoint_id_str]
@@ -1182,6 +1243,103 @@ def put_datapoint_setpoint_history(
 
     response = dp_setpoint_view.update_history(
         request=request, related_data=setpoint_messages_by_datapoint_id,
+    )
+    return response
+
+
+##############################################################################
+# Datapoint Forecast Messages -> /datapoint/forecasts/*
+##############################################################################
+
+
+class DatapointForecastAPIView(GenericDatapointRelatedAPIView):
+    """
+    NOTE: Actually, this model only provides a latest endpoint as we currently
+          only track the latest version of the results of a product run (and
+          not changes from updates for a product run). However, we nevertheless
+          use the history endpoints of `GenericDatapointRelatedAPIView` as
+          this one can handle list of items per datapoint, which is the case
+          here. This is fine as long we are not interested in pushing
+          updates via websocket.
+    """
+
+    RelatedDataHistoryModel = ForecastMessageDb
+    list_history_response_model = ForecastMessageListByDatapointId
+    SecondRelatedModel = ProductRunDb
+    second_related_field_name = "product_run"
+
+    class ForecastFilterParams(Schema):
+        time__gte: datetime = Field(
+            None,
+            description="`ForecastMessage.time` greater or equal this value.",
+        )
+        time__lt: datetime = Field(
+            None, description="`ForecastMessage.time` less this value."
+        )
+
+    class PathParams(Schema):
+        id: int = Field(
+            ...,
+            description=(
+                "`ProductRun.id` to which the forecast messages belong to."
+            ),
+        )
+
+
+dp_forecast_view = DatapointForecastAPIView()
+
+
+@api.get(
+    "/datapoint/forecast/latest/{id}/",
+    response={
+        200: ForecastMessageListByDatapointId,
+        400: HTTPError,
+        404: HTTPError,
+        500: HTTPError,
+    },
+    tags=["Datapoint Forecast"],
+    summary=" ",  # Deactivate summary.
+)
+def get_datapoint_forecast_latest(
+    request,
+    product_run_filter_params: dp_forecast_view.PathParams = Path(...),
+    datapoint_filter_params: dp_forecast_view.DatapointFilterParams = Query(
+        ...
+    ),
+    forecast_filter_params: dp_forecast_view.ForecastFilterParams = Query(...),
+):
+    """
+    Return the latest setpoints for datapoints targeted by the filter.
+    """
+
+    response = dp_forecast_view.list_history(
+        request=request,
+        datapoint_filter_params=datapoint_filter_params,
+        related_filter_params=forecast_filter_params,
+        second_related_filter_params=product_run_filter_params,
+    )
+    return response
+
+
+@api.put(
+    "/datapoint/forecast/latest/{id}/",
+    response={200: PutSummary, 400: HTTPError, 404: HTTPError, 500: HTTPError},
+    tags=["Datapoint Forecast"],
+    summary=" ",  # Deactivate summary.
+)
+def put_datapoint_forecast_latest(
+    request,
+    forecast_messages_by_datapoint_id: ForecastMessageListByDatapointId,
+    product_run_filter_params: dp_forecast_view.PathParams = Path(...),
+):
+    """
+    Return the historic setpoint for datapoints targeted by the filter.
+    """
+
+    response = dp_forecast_view.update_history(
+        request=request,
+        related_data=forecast_messages_by_datapoint_id,
+        second_related_filter_params=product_run_filter_params,
     )
     return response
 

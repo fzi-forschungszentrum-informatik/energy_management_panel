@@ -12,6 +12,7 @@ from .models import GeographicPosition
 from .models import Plant
 from .models import Product
 from .models import ProductRun
+from .models import ForecastMessage
 from esg.utils.timestamp import datetime_to_pretty_str
 
 
@@ -376,4 +377,58 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductRun)
 class ProductRunAdmin(admin.ModelAdmin):
-    pass
+
+    list_filter = ("_product", "_plant")
+    fields = (
+        "_product",
+        "_plant",
+        "started_at",
+        "available_at",
+        "coverage_from",
+        "coverage_to",
+    )
+    autocomplete_fields = ("_product", "_plant")
+    search_fields = ("started_at", "available_at", "_plant__name")
+
+
+@admin.register(ForecastMessage)
+class ForecastMessageAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "datapoint",
+        "timestamp_pretty",
+        "mean",
+        "std",
+    )
+    list_filter = ("datapoint",)
+    readonly_fields = ("id",)
+    # This is just to order fields.
+    fields = (
+        "id",
+        "datapoint",
+        "product_run",
+        "time",
+        "mean",
+        "std",
+        "p05",
+        "p10",
+        "p25",
+        "p50",
+        "p75",
+        "p90",
+        "p95",
+    )
+    autocomplete_fields = ("datapoint", "product_run")
+
+    def timestamp_pretty(self, obj):
+        """
+        Displays a prettier timestamp format.
+        """
+        ts = obj.time
+        if ts is None:
+            return "-"
+        return datetime_to_pretty_str(ts)
+
+    timestamp_pretty.admin_order_field = "timestamp"
+    timestamp_pretty.short_description = "Timestamp"

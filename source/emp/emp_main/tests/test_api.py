@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+TODO: Add tests for ProductRun and ForecastMessage endpoints.
 """
 import asyncio
 from copy import deepcopy
@@ -11,6 +12,7 @@ from pprint import pformat
 
 from channels.testing import WebsocketCommunicator
 from django.http import HttpResponse
+from django.http import Http404
 from django.test import Client
 from django.test import TransactionTestCase
 
@@ -997,6 +999,25 @@ class TestGenericAPIViewHandleException:
         assert response.status_code == 400
         assert response.headers["Content-Type"] == "application/json"
         assert response.content == b'{"detail": "test detail!"}'
+
+    def test_404_passed_trough(self):
+        """
+        Check that `_handle_exceptions` returns a HttpResponse with code 404
+        if a method raises `django.http.Http404`.
+        """
+
+        class Test:
+            @GenericAPIView._handle_exceptions
+            def test_method(self):
+                raise Http404("ProductRun matching query does not exist.")
+
+        response = Test().test_method()
+
+        assert isinstance(response, HttpResponse)
+        assert response.status_code == 404
+        assert response.headers["Content-Type"] == "application/json"
+        ed = b'{"detail": "ProductRun matching query does not exist."}'
+        assert response.content == ed
 
     def test_other_exceptions_yield_500(self):
         """

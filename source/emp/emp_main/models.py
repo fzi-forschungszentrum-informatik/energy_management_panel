@@ -7,6 +7,7 @@ from esg.django_models.datapoint import SetpointMessageTemplate
 from esg.django_models.datapoint import LastSetpointMessageTemplate
 from esg.django_models.datapoint import ScheduleMessageTemplate
 from esg.django_models.datapoint import LastScheduleMessageTemplate
+from esg.django_models.datapoint import ForecastMessageTemplate
 from esg.django_models.metadata import GeographicPositionTemplate
 from esg.django_models.metadata import PlantTemplate
 from esg.django_models.metadata import ProductTemplate
@@ -196,3 +197,31 @@ class ProductRun(ProductRunTemplate):
     @plant_id.setter
     def plant_id(self, value):
         self._plant = self.set_fk_obj_by_id(value, Plant)
+
+
+class ForecastMessage(ForecastMessageTemplate):
+    """
+    Django representation of `esg.models.datapoint.ForecastMessage` for
+    storing these messages in DB. Subclass to use.
+    """
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["datapoint", "time", "product_run"],
+                name="Forecast Message Unique.",
+            )
+        ]
+
+    datapoint = models.ForeignKey(
+        Datapoint,
+        on_delete=models.CASCADE,
+        related_name="forecast_messages",
+        help_text=("The datapoint that the forecast message belongs to."),
+    )
+    product_run = models.ForeignKey(
+        ProductRun,
+        on_delete=models.CASCADE,
+        related_name="forecast_messages",
+        help_text=("The product run that has generated the forecast message."),
+    )
