@@ -1648,6 +1648,12 @@ class GenericDatapointRelatedAPIViewTests(TransactionTestCase):
                 unique_together_fields=self.unique_together_fields_latest,
             )
 
+            self._check_test_data_exists_in_db(
+                test_data=test_dataset["Python"],
+                db_model=self.RelatedDataHistoryModel,
+                unique_together_fields=self.unique_together_fields_history,
+            )
+
             expected_put_summary = test_dataset["PutSummary"]
             actual_put_summary = response.json()
             assert actual_put_summary == expected_put_summary

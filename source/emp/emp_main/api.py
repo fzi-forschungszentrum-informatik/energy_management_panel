@@ -531,9 +531,6 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         """
         Update or create the latest state of the data items.
         """
-        # Statistics for the return value.
-        objects_created = 0
-        objects_updated = 0
 
         if self.SecondRelatedModel is not None:
             active_filters_second = self.build_active_filter_dict(
@@ -550,58 +547,48 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
             datapoint_ids_as_str=related_data_dict.keys()
         )
 
-        # Iterate over all messages, check if those message exist already,
-        # update if yes, and create new if not.
-        related_data_objs = []
-        for datapoint_id_str, related_data_item in related_data_dict.items():
-
-            unique_field_values = {}
-
-            if self.SecondRelatedModel is not None:
-                field_name = self.second_related_field_name
-                unique_field_values[field_name] = second_related_object
-
-            for field_name in self.unique_together_fields_latest:
-                if field_name == "datapoint":
-                    field_value = datapoints_db_by_id[datapoint_id_str]
-                else:
-                    field_value = related_data_item[field_name]
-                unique_field_values[field_name] = field_value
-
-            try:
-                related_data_obj = self.RelatedDataLatestModel.objects.get(
-                    **unique_field_values
-                )
-                objects_updated += 1
-            except self.RelatedDataLatestModel.DoesNotExist:
-                related_data_obj = self.RelatedDataLatestModel(
-                    **unique_field_values
-                )
-                objects_created += 1
-
-            # Update fields but don't save yet. That way we can abort
-            # if an error should be thrown during objection creation.
-            # This should happen as the data has been validated with the
-            # pydantic model, but better save right?
-            for field_name, field_value in related_data_item.items():
-                setattr(related_data_obj, field_name, field_value)
-
-            related_data_objs.append(related_data_obj)
-
-        # Now all validation should have passed, save to DB.
-        for related_data_obj in related_data_objs:
-            related_data_obj.save()
-
-        # Publish updated data on channel layer.
-        # TODO: Make this parallel
+        # Now we have passed all validation (the validation of the input
+        # model, the validation that all datapoints exist and maybe
+        # the check that the second related model exists) we can savely
+        # create the content for the channels layer.
+        # NOTE: This must be done before we modify the related data items
+        # below.
+        related_data_json_by_id = {}
         for dp_id in related_data_dict:
             single_dp_dict = {dp_id: related_data_dict[dp_id]}
-            pydantic_model = self.update_latest_websocket_model
+            pydantic_model = self.list_latest_response_model
             single_dp_pydantic = pydantic_model.construct_recursive(
                 __root__=single_dp_dict
             )
             single_dp_json = single_dp_pydantic.json()
+            related_data_json_by_id[dp_id] = single_dp_json
 
+        # Flatten to prepare for bulk update.
+        # TODO: This is actually stupid, we flatten here and bulk_update
+        # sorts back by datapoint id.
+        related_data_items = []
+        for datapoint_id_str, related_data_item in related_data_dict.items():
+            related_data_item["datapoint"] = datapoints_db_by_id[
+                datapoint_id_str
+            ]
+            if self.SecondRelatedModel is not None:
+                field_name = self.second_related_field_name
+                related_data_item[field_name] = second_related_object
+            related_data_items.append(related_data_item)
+
+        # Write into latest table.
+        summary = self.RelatedDataLatestModel.bulk_update_or_create(
+            self.RelatedDataLatestModel, related_data_items
+        )
+
+        # Also write into history table.
+        _ = self.RelatedDataHistoryModel.bulk_update_or_create(
+            self.RelatedDataHistoryModel, related_data_items
+        )
+
+        # Publish updated data on channel layer.
+        # TODO: Make this parallel
+        for dp_id, single_dp_json in related_data_json_by_id.items():
             async_to_sync(self.channel_layer.group_send)(
                 self.channel_group_base_name + dp_id,
                 {"type": "datapoint.related", "json": single_dp_json},
@@ -609,7 +596,7 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
 
         # Finally report, the stats
         content_pydantic = PutSummary(
-            objects_created=objects_created, objects_updated=objects_updated,
+            objects_created=summary[0], objects_updated=summary[1],
         )
         content = content_pydantic.json()
 
@@ -624,10 +611,6 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         """
         Update or create the latest state of the data items.
         """
-        # Statistics for the return value.
-        objects_created = 0
-        objects_updated = 0
-
         if self.SecondRelatedModel is not None:
             active_filters_second = self.build_active_filter_dict(
                 second_related_filter_params
@@ -643,52 +626,27 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
             datapoint_ids_as_str=related_data_dict.keys()
         )
 
-        # Iterate over all messages, check if those message exist already,
-        # update if yes, and create new if not.
-        related_data_objs = []
+        # Flatten to prepare for bulk update.
+        # TODO: This is actually stupid, we flatten here and bulk_update
+        # sorts back by datapoint id.
+        related_data_items = []
         for datapoint_id_str, related_data_list in related_data_dict.items():
             for related_data_item in related_data_list:
-
-                unique_field_values = {}
-
+                related_data_item["datapoint"] = datapoints_db_by_id[
+                    datapoint_id_str
+                ]
                 if self.SecondRelatedModel is not None:
                     field_name = self.second_related_field_name
-                    unique_field_values[field_name] = second_related_object
+                    related_data_item[field_name] = second_related_object
+                related_data_items.append(related_data_item)
 
-                for field_name in self.unique_together_fields_history:
-                    if field_name == "datapoint":
-                        field_value = datapoints_db_by_id[datapoint_id_str]
-                    else:
-                        field_value = related_data_item[field_name]
-                    unique_field_values[field_name] = field_value
-
-                try:
-                    related_data_obj = self.RelatedDataHistoryModel.objects.get(
-                        **unique_field_values
-                    )
-                    objects_updated += 1
-                except self.RelatedDataHistoryModel.DoesNotExist:
-                    related_data_obj = self.RelatedDataHistoryModel(
-                        **unique_field_values
-                    )
-                    objects_created += 1
-
-                # Update fields but don't save yet. That way we can abort
-                # if an error should be thrown during objection creation.
-                # This should happen as the data has been validated with the
-                # pydantic model, but better save right?
-                for field_name, field_value in related_data_item.items():
-                    setattr(related_data_obj, field_name, field_value)
-
-                related_data_objs.append(related_data_obj)
-
-        # Now all validation should have passed, save to DB.
-        for related_data_obj in related_data_objs:
-            related_data_obj.save()
+        summary = self.RelatedDataHistoryModel.bulk_update_or_create(
+            self.RelatedDataHistoryModel, related_data_items
+        )
 
         # Finally report, the stats
         content_pydantic = PutSummary(
-            objects_created=objects_created, objects_updated=objects_updated,
+            objects_created=summary[0], objects_updated=summary[1],
         )
         content = content_pydantic.json()
 
