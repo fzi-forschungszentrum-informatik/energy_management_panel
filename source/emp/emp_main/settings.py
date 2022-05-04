@@ -26,7 +26,8 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if not os.getenv("DJANGO_SECRET_KEY"):
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
     # This generates a new random key every time we start the application or
     # run anything from manage.py. This also invalidates all cookies which
     # makes users login again. Thus, it is a good idea to fix the key in
@@ -43,8 +44,7 @@ if not os.getenv("DJANGO_SECRET_KEY"):
             "DJANGO_SECRET_KEY must be set explicitly if django-api is "
             "run with N_WORKER_PROCESSES > 1."
         )
-else:
-    SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -68,7 +68,6 @@ INSTALLED_APPS = [
     "ninja",
     "emp_main.apps.EmpMainConfig",
     "emp_demo_ui_app.apps.EmpDemoUiAppConfig",
-    "emp_demo_dp_interface.apps.EmpDemoDpInterfaceConfig",
     "emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig",
     # Uncomment to activate the emp_evaluation_system app.
     # Note that additional depedencies must be installed too.
@@ -84,7 +83,6 @@ INSTALLED_APPS = [
 # the conventions shown in emp_demo_ui_app.
 EMP_APPS = [
     "emp_demo_ui_app",
-    "emp_demo_dp_interface",
     "emp_django_authenticator",
     # "emp_evaluation_system",
 ]
@@ -218,6 +216,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # with Django Admin. See also:
 # https://docs.djangoproject.com/en/3.1/ref/settings/#data-upload-max-number-fields
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+
+# Don't attempt to auto correct URLs. This will cause nasty 500 errors
+# on put endpoints, while the actual problem is a 404.
+APPEND_SLASH = False
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/

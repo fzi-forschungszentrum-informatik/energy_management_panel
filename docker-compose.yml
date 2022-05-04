@@ -9,7 +9,7 @@ services:
     emp-devl:
         container_name: emp-devl
         build:
-            context: ./source
+            context: ./source/emp
         restart: unless-stopped
         init: true  # Faster shutdown.
         tty: true  # This must be set to colorize output.
@@ -25,7 +25,7 @@ services:
             - DJANGO_DEBUG=TRUE
             - DJANGO_ADMINS=
             - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-            - DJANGO_ALLOWED_HOSTS=
+            - DJANGO_ALLOWED_HOSTS=["emp-devl","localhost"]
             - DJANGO_SUPERUSER_USERNAME=emp
             - DJANGO_SUPERUSER_PASSWORD=emp
             - DJANGO_SUPERUSER_EMAIL=emp@example.com
@@ -48,3 +48,17 @@ services:
             - POSTGRES_USER=emp
             - POSTGRES_PASSWORD=emp
             - POSTGRES_DB=emp
+            
+    emp-devl-demp-dp-interface:
+        container_name: emp-devl-demp-dp-interface
+        build:
+            context: ./source/demo_datapoint_interface
+        restart: unless-stopped
+        init: true  # Faster shutdown.
+        tty: true  # This must be set to colorize output.
+        volumes:
+            - ./source/demo_datapoint_interface/:/source/demo_datapoint_interface/
+            # Activate this volume if you develop on energy_service_generics in parallel. 
+            - ../energy_service_generics/source/esg/:/opt/conda/lib/python3.8/site-packages/esg/
+        environment:
+            - EMP_API_URL=http://emp-devl:8080/api

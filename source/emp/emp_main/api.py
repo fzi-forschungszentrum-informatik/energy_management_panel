@@ -969,7 +969,7 @@ def put_datapoint_value_latest(
     request, value_messages_by_datapoint_id: ValueMessageByDatapointId,
 ):
     """
-    Return the historic values for datapoints targeted by the filter.
+    Update or create the latest value messages for one or more datapoints.
     """
 
     response = dp_value_view.update_latest(
@@ -988,7 +988,8 @@ def put_datapoint_value_history(
     request, value_messages_by_datapoint_id: ValueMessageListByDatapointId,
 ):
     """
-    Return the latest values for datapoints targeted by the filter.
+    Update or create one or more historic value messages for each of one
+    or more datapoints.
     """
 
     response = dp_value_view.update_history(
