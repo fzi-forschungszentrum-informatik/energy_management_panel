@@ -25,6 +25,8 @@ class DemoDPInterface:
         Configure datapoint interface.
         """
         logger.info("Starting up DemoDPInterface")
+        # Give the EMP some time to boot.
+        sleep(15)
 
         self.api_url = os.getenv("EMP_API_URL")
         self.emp_client = EmpClient(base_url=self.api_url)
