@@ -203,21 +203,29 @@
         "/ws/datapoint-update/?datapoint-ids=" + requested_datapoints
       );
       ws.onmessage = function (msg) {
-        let datapoint = JSON.parse(msg.data);
-        // console.log(datapoint);
+        {% comment "Optional note" %}
+          This is currently slightly broken and updates only value messages.
+        {% endcomment %}
+        let msg_by_datapoint_id = JSON.parse(msg.data);
+        //console.log(msg_by_datapoint_id);
         // Get all class labels used for this datapoint and iterate over them.
-        class_labels = datapoint_update_map[datapoint.id];
-        for ( let class_label of class_labels ){
-          let field_name = class_label.split("__").slice(1).join("__");
-          let field_value = datapoint[field_name];
-          if ( field_value === null ) {
-            // Makes dislay identical to the inital field value from ORM.
-            field_value = "None"
-          }
-          // Get the elements in DOM using that class name and update them.
-          let elements = document.getElementsByClassName(class_label);
-          for ( let element of elements ) {
-              element.innerText = field_value;
+        for ( let datapoint_id in msg_by_datapoint_id ){
+          class_labels = datapoint_update_map[datapoint_id];
+          for ( let class_label of class_labels ){
+            let field_name = class_label.split(".").slice(1).join(".");
+            if ( ! field_name in msg_by_datapoint_id[datapoint_id] ){
+              continue;
+            };
+            let field_value = msg_by_datapoint_id[datapoint_id][field_name];
+            if ( field_value === null ) {
+              // Makes dislay identical to the inital field value from ORM.
+              field_value = "None"
+            }
+            // Get the elements in DOM using that class name and update them.
+            let elements = document.getElementsByClassName(class_label);
+            for ( let element of elements ) {
+                element.innerText = field_value;
+              };
             };
           };
         };

@@ -392,10 +392,6 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         The pydantic model that is used to serialize the history data.
         This model must have a Dict as __root__ element which is set to
         the datapoint id.
-    update_latest_response_model: esg.models.base._BaseModel
-        The pydantic model that is used to serialize the cleaned and validated
-        data that is sent back as confirmation for any an PUT update latest
-        operation.
     unique_together_fields_latest: list of str
         A list of field names that identify a unqiue message in the latest
         table. This is used to check if an entry is updated or created.
@@ -413,7 +409,6 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
     SecondRelatedModel = None
     list_latest_response_model = None
     list_history_response_model = None
-    update_latest_response_model = None
     unique_together_fields_latest = ["datapoint"]
     unique_together_fields_history = ["datapoint", "time"]
     second_related_field_name = None
@@ -850,7 +845,6 @@ class DatapointValueAPIView(GenericDatapointRelatedAPIView):
     RelatedDataHistoryModel = ValueHistoryDb
     list_latest_response_model = ValueMessageByDatapointId
     list_history_response_model = ValueMessageListByDatapointId
-    update_latest_websocket_model = ValueMessageByDatapointId
     channel_group_base_name = "datapoint.value.latest."
 
     # This is defined here every time to adapt the field descriptions.
@@ -966,7 +960,6 @@ class DatapointScheduleAPIView(GenericDatapointRelatedAPIView):
     RelatedDataHistoryModel = ScheduleHistoryDb
     list_latest_response_model = ScheduleMessageByDatapointId
     list_history_response_model = ScheduleMessageListByDatapointId
-    update_latest_websocket_model = ScheduleMessageByDatapointId
     channel_group_base_name = "datapoint.schedule.latest."
 
     # This is defined here every time to adapt the field descriptions.
@@ -1091,7 +1084,6 @@ class DatapointSetpointAPIView(GenericDatapointRelatedAPIView):
     RelatedDataHistoryModel = SetpointHistoryDb
     list_latest_response_model = SetpointMessageByDatapointId
     list_history_response_model = SetpointMessageListByDatapointId
-    update_latest_websocket_model = SetpointMessageByDatapointId
     channel_group_base_name = "datapoint.setpoint.latest."
 
     # This is defined here every time to adapt the field descriptions.

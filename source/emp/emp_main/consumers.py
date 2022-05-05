@@ -164,7 +164,11 @@ class DatapointRelatedLatestConsumer(WebsocketConsumer):
             self.user = get_user_model().get_anonymous()
 
         # Compute the requested channel layer groups.
-        group_base_name = self.scope["path"].split(API_ROOT_PATH)[1]
+        if "datapoint-update" in self.scope["path"]:
+            # Support the legacy Websocket URL.
+            group_base_name = "datapoint.value.latest."
+        else:
+            group_base_name = self.scope["path"].split(API_ROOT_PATH)[1]
         # Remove trailing `/` and replace slashes with dots
         # no slashes allowed in group names
         group_base_name = group_base_name[:-1].replace("/", ".")

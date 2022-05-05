@@ -15,22 +15,30 @@ def dp_field_value(datapoint, field_name, field_collector=None):
     Returns a field value of a datapoint incl. an class label that allows
     dynamic updateing of the value via websocket.
     """
-    if not hasattr(datapoint, field_name):
-        field_value = 'Error! Datapoint has no field name "%s"' % field_name
-    else:
-        field_value = getattr(datapoint, field_name)
+    # Allows to fetch values from a nested model too.
+    field_name_parts = field_name.split(".")
+    field_name_this_model = field_name_parts[0]
+    related_field_name = ".".join(field_name_parts[1:])
 
-    if (field_name == "last_value") and (
-        getattr(datapoint, "data_format") == "discrete_numeric"
-    ):
-        field_value = bool(field_value)
+    if not hasattr(datapoint, field_name_this_model):
+        field_value = (
+            'Error! Datapoint has no field name "%s"' % field_name_this_model
+        )
+    elif related_field_name:
+        field_value = getattr(
+            getattr(datapoint, field_name_this_model), related_field_name
+        )
+    else:
+        field_value = getattr(datapoint, field_name_this_model)
 
     if not hasattr(datapoint, "id"):
         emsg = "Datapoint %s has no id." % datapoint
         raise ValueError(emsg)
 
     class_label = "dp%s__%s" % (datapoint.id, field_name)
-    field_html = format_html("<span class={}>{}</span>", class_label, field_value)
+    field_html = format_html(
+        "<span class={}>{}</span>", class_label, field_value
+    )
 
     if field_collector is not None:
         if datapoint.id not in field_collector:
