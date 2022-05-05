@@ -213,7 +213,7 @@
           class_labels = datapoint_update_map[datapoint_id];
           for ( let class_label of class_labels ){
             let field_name = class_label.split(".").slice(1).join(".");
-            if ( ! field_name in msg_by_datapoint_id[datapoint_id] ){
+            if ( ( ! field_name in msg_by_datapoint_id[datapoint_id] ) || ( field_name === "" ) ){
               continue;
             };
             let field_value = msg_by_datapoint_id[datapoint_id][field_name];

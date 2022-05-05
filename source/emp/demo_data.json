@@ -96,8 +96,8 @@
     "model": "emp_main.datapoint",
     "pk": 1,
     "fields": {
-        "origin": "emp_demo_dp_interface",
-        "origin_id": "1",
+        "origin": "DemoDPInterface",
+        "origin_id": "42",
         "short_name": null,
         "type": "Sensor",
         "data_format": "Continuous Numeric",
