@@ -9,6 +9,7 @@ from esg.django_models.datapoint import ScheduleMessageTemplate
 from esg.django_models.datapoint import LastScheduleMessageTemplate
 from esg.django_models.datapoint import ForecastMessageTemplate
 from esg.django_models.metadata import GeographicPositionTemplate
+from esg.django_models.metadata import PVSystemTemplate
 from esg.django_models.metadata import PlantTemplate
 from esg.django_models.metadata import ProductTemplate
 from esg.django_models.metadata import ProductRunTemplate
@@ -162,6 +163,16 @@ class GeographicPosition(GeographicPositionTemplate):
 
     plant = models.OneToOneField(
         Plant, on_delete=models.CASCADE, related_name="_geographic_position"
+    )
+
+
+class PVSystem(PVSystemTemplate):
+    """
+    Create instance of model template.
+    """
+
+    plant = models.OneToOneField(
+        Plant, on_delete=models.CASCADE, related_name="_pv_system",
     )
 
 

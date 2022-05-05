@@ -9,6 +9,7 @@ from .models import LastSetpointMessage
 from .models import ScheduleMessage
 from .models import LastScheduleMessage
 from .models import GeographicPosition
+from .models import PVSystem
 from .models import Plant
 from .models import Product
 from .models import ProductRun
@@ -356,11 +357,16 @@ class GeographicPositionInline(admin.TabularInline):
     verbose_name_plural = "Geographic Position"
 
 
+class PVSystemInline(admin.TabularInline):
+    model = PVSystem
+    verbose_name_plural = "PV System"
+
+
 @admin.register(Plant)
 class PlantAdmin(admin.ModelAdmin):
     autocomplete_fields = ("products",)
     search_fields = ("name",)
-    inlines = [GeographicPositionInline]
+    inlines = [GeographicPositionInline, PVSystemInline]
 
 
 @admin.register(Product)
