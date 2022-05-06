@@ -189,9 +189,7 @@ class ProductRun(ProductRunTemplate):
         null=True,
         related_name="product_runs",
     )
-    _plant = models.ForeignKey(
-        Plant, on_delete=models.CASCADE, null=True, related_name="product_runs",
-    )
+    plants = models.ManyToManyField(Plant, related_name="product_runs")
 
     @property
     def product_id(self):
@@ -200,14 +198,6 @@ class ProductRun(ProductRunTemplate):
     @product_id.setter
     def product_id(self, value):
         self._product = self.set_fk_obj_by_id(value, Product)
-
-    @property
-    def plant_id(self):
-        return self.get_fk_id_from_field(self._plant)
-
-    @plant_id.setter
-    def plant_id(self, value):
-        self._plant = self.set_fk_obj_by_id(value, Plant)
 
 
 class ForecastMessage(ForecastMessageTemplate):

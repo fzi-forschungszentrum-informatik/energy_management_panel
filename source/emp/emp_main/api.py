@@ -1407,7 +1407,7 @@ class PlantAPIView(GenericAPIView):
     DBModel = PlantDb
 
     class PlantFilterParams(Schema):
-        product__id__in: str = Field(
+        products__id__in: str = Field(
             None,
             description=("Matches `Plant` with `product_ids` in this list."),
         )

@@ -384,16 +384,16 @@ class ProductAdmin(admin.ModelAdmin):
 @admin.register(ProductRun)
 class ProductRunAdmin(admin.ModelAdmin):
 
-    list_filter = ("_product", "_plant")
+    list_filter = ("_product", "plants")
     fields = (
         "_product",
-        "_plant",
+        "plants",
         "started_at",
         "available_at",
         "coverage_from",
         "coverage_to",
     )
-    autocomplete_fields = ("_product", "_plant")
+    autocomplete_fields = ("_product", "plants")
     search_fields = ("started_at", "available_at", "_plant__name")
 
 
