@@ -20,7 +20,7 @@ build:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - echo Building docker image $DOCKER_IMAGE
-    - docker build ./source -t $DOCKER_IMAGE
+    - docker build ./source/emp -t $DOCKER_IMAGE
     - docker push $DOCKER_IMAGE
 
 test:
