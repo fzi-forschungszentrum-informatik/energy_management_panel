@@ -798,7 +798,6 @@ TEST_PRODUCTS_LATEST = [
                 "coverage_to": 89940.0,
             },
         ],
-        "PutSummary": {"objects_created": 1, "objects_updated": 1},
     }
 ]
 
@@ -904,7 +903,6 @@ TEST_PLANTS_LATEST = [
                 "pv_system": None,
             },
         ],
-        "PutSummary": {"objects_created": 1, "objects_updated": 1},
     }
 ]
 
@@ -1186,9 +1184,9 @@ class GenericAPIViewTests(TransactionTestCase):
                 unique_together_fields=self.unique_together_fields_latest,
             )
 
-            expected_put_summary = test_dataset["PutSummary"]
-            actual_put_summary = response.json()
-            assert actual_put_summary == expected_put_summary
+            expected_response_json = test_dataset["JSONable"]
+            actual_response_json = response.json()
+            assert actual_response_json == expected_response_json
 
     def test_invalid_updates_fail_gracefully_for_latest(self):
         """

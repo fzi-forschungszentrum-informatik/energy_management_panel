@@ -13,6 +13,7 @@ from esg.django_models.metadata import PVSystemTemplate
 from esg.django_models.metadata import PlantTemplate
 from esg.django_models.metadata import ProductTemplate
 from esg.django_models.metadata import ProductRunTemplate
+from esg.services.base import RequestInducedException
 
 
 class ModelWithIterableFields(models.Model):
@@ -174,6 +175,34 @@ class PVSystem(PVSystemTemplate):
     plant = models.OneToOneField(
         Plant, on_delete=models.CASCADE, related_name="_pv_system",
     )
+    _power_datapoint = models.OneToOneField(
+        Datapoint,
+        on_delete=models.CASCADE,
+        # Note this must be nullable to allow saving with a new instance
+        # with `esg.django_models.base.DjangoBaseModel.save_from_pydantic()`
+        null=True,
+        related_name="_pv_system",
+    )
+
+    @property
+    def power_datapoint_id(self):
+        return self._power_datapoint.id
+
+    @power_datapoint_id.setter
+    def power_datapoint_id(self, value):
+        try:
+            datapoint = Datapoint.objects.get(id=value)
+        except Datapoint.DoesNotExist:
+            # This Exception is request related and does usually
+            # not belong in the model. However, it is much simpler
+            # to raise here, then to reconstruct the reason later.
+            raise RequestInducedException(
+                detail=(
+                    "Cannot link pv_system to datapoint `{}`, no datapoint "
+                    "with such id.".format(value)
+                )
+            )
+        self._power_datapoint = datapoint
 
 
 class ProductRun(ProductRunTemplate):

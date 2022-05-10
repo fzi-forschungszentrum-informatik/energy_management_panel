@@ -15,6 +15,7 @@ class based views. However, due to the limitation in Ninja, patching up
 the methods to the NinjaAPI must happen outside this classes.
 """
 from datetime import datetime
+import json
 import logging
 from typing import List
 
@@ -190,10 +191,6 @@ class GenericAPIView:
             This method expects a model with a list as root element and
             list items which correspond each to one object in `self.DbModel`.
         """
-        # Statistics for the return value.
-        objects_created = 0
-        objects_updated = 0
-
         # Fetch objects that are updated and create new ones.
         objects_db_pydantic = []
         for object_pydantic in objects_pydantic.__root__:
@@ -205,10 +202,8 @@ class GenericAPIView:
 
             try:
                 object_db = self.DBModel.objects.get(**unique_field_values)
-                objects_updated += 1
             except self.DBModel.DoesNotExist:
                 object_db = self.DBModel(**unique_field_values)
-                objects_created += 1
 
             objects_db_pydantic.append((object_db, object_pydantic))
 
@@ -224,11 +219,13 @@ class GenericAPIView:
                 )
             )
 
-        # Finally report, the stats
-        content_pydantic = PutSummary(
-            objects_created=objects_created, objects_updated=objects_updated,
-        )
-        content = content_pydantic.json()
+        # Finally, report the saved objects. This is particular relevant
+        # when we need the ID of the saved object in a subsequent call.
+        objects_jsonable = []
+        for object_db, _ in objects_db_pydantic:
+            objects_jsonable.append(object_db.load_to_pydantic().jsonable())
+
+        content = json.dumps(objects_jsonable)
 
         return HttpResponse(
             content, status=200, content_type="application/json"
@@ -1304,6 +1301,12 @@ class ProductAPIView(GenericAPIView):
     PydanticModel = ProductList
     DBModel = ProductDb
 
+    class ProductFilterParams(Schema):
+        id__in: List[int] = Field(
+            None,
+            description=("Matches `Product` items with `id` in this list."),
+        )
+
 
 product_view = ProductAPIView()
 
@@ -1314,7 +1317,9 @@ product_view = ProductAPIView()
     tags=["Product"],
     summary=" ",  # Deactivate summary.
 )
-def get_product_latest(request):
+def get_product_latest(
+    request, filter_params: product_view.ProductFilterParams = Query(...),
+):
     """
     Return the latest state of the `Product` objects.
 
@@ -1322,13 +1327,15 @@ def get_product_latest(request):
     trigger requests to a defined product service, like e.g. a PV Forecast.
     """
 
-    response = product_view.list_latest(request=request)
+    response = product_view.list_latest(
+        request=request, filter_params=filter_params
+    )
     return response
 
 
 @api.put(
     "/product/latest/",
-    response={200: PutSummary, 400: HTTPError, 500: HTTPError},
+    response={200: ProductList, 400: HTTPError, 500: HTTPError},
     tags=["Product"],
     summary=" ",  # Deactivate summary.
 )
@@ -1379,7 +1386,7 @@ def get_product_run_latest(request):
 
 @api.put(
     "/product_run/latest/",
-    response={200: PutSummary, 400: HTTPError, 500: HTTPError},
+    response={200: ProductRunList, 400: HTTPError, 500: HTTPError},
     tags=["Product Run"],
     summary=" ",  # Deactivate summary.
 )
@@ -1440,7 +1447,7 @@ def get_plant_latest(
 
 @api.put(
     "/plant/latest/",
-    response={200: PutSummary, 400: HTTPError, 500: HTTPError},
+    response={200: PlantList, 400: HTTPError, 500: HTTPError},
     tags=["Plant"],
     summary=" ",  # Deactivate summary.
 )
