@@ -138,6 +138,15 @@ class TestPlant(TestCase, GenericDjangoModelTestMixin):
                         coverage_to=timedelta(days=1),
                     )
                     product.save()
+
+            # Create dummy datapoints for all entries existing in the test data.
+            if "pv_system" in msg and msg["pv_system"] is not None:
+                if "power_datapoint_id" in msg["pv_system"]:
+                    datapoint, _ = DatapointDb.objects.get_or_create(
+                        id=msg["pv_system"]["power_datapoint_id"],
+                        type="sensor",
+                    )
+                    datapoint.save()
         return msgs
 
 
