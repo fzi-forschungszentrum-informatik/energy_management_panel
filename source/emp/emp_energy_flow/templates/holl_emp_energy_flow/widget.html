@@ -1,0 +1,73 @@
+{% extends "emp_main/base_widget.html" %}
+{% load static %}
+{% load datapoint_helpers %}
+{% load energy_flow_helpers %}
+
+{% block widget-title %}
+  {{widget.name}}
+{% endblock %}
+
+{% block widget-content %}
+  {% if widget.datapoint1 is None %}
+    {# Only one large image if no datapoints to display #}
+    <img src="{% static widget.icon_url %}"
+         class="card_filling_image"
+    >
+  {% else %}
+    <div style="display: flex; justify-content: space-around">
+      <img src="{% static widget.icon_url %}"
+           class="device-icon mr-2"
+      >
+      <div class="my-auto only-lg">
+        <p class="mb-1" style="text-align: right">
+          {{widget.datapoint1_label}}
+          <b>
+            {% dp_field_value widget.datapoint1 "last_value_message.value" field_collector %}
+          </b>
+          {% dp_field_value widget.datapoint1 "unit" field_collector %}
+        </p>
+
+        {% if widget.datapoint2 is not None %}
+          <p class="my-0" style="text-align: right">
+            {{widget.datapoint2_label}}
+            <b>
+              {% dp_field_value widget.datapoint2 "last_value_message.value" field_collector %}
+            </b>
+            {% dp_field_value widget.datapoint2 "unit" field_collector %}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="only-lg">
+      {% if widget.datapoint1_show_progressbar %}
+        <div class="progress m-2">
+          <div
+          class="progress-bar
+                 device-progress-bar
+                 {{widget.datapoint1_color}}
+                 dp{{widget.datapoint1.id}}_progressbar"
+          role="progressbar"
+          style="width: {% compute_progressbar_fill widget.datapoint1 widget.datapoint1_progressbar_reverse %};
+                 --progressbar_reverse: {{widget.datapoint1_progressbar_reverse}}"
+          >
+          </div>
+        </div>
+      {% endif %}
+      {% if widget.datapoint2 is not None %}
+        {% if widget.datapoint2_show_progressbar %}
+          <div class="progress m-2">
+            <div
+            class="progress-bar
+                   device-progress-bar
+                   {{widget.datapoint2_color}}
+                   dp{{widget.datapoint2.id}}_progressbar"
+            role="progressbar"
+            style="width: {% compute_progressbar_fill widget.datapoint2 widget.datapoint2_progressbar_reverse %}"
+            >
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

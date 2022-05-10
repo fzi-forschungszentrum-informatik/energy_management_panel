@@ -1,0 +1,20 @@
+<div
+  class="flow-container
+         {{ flow.flow_color }}
+         {{ flow.moving_stopped}}
+         {{ flow.direction }}
+         dp{{ flow.value_datapoint.id }}_flow
+         p-5"
+  style="--from-device: {{ flow.origin_area_id }};
+         --to-device: {{ flow.target_area_id }};
+         --flow-time: {{flow.time}}s"
+>
+  <div class="flow"
+  >
+    {% for k in flow_cells %}
+      <div class="flow-cell">
+        <div class="ball"></div>
+      </div>
+    {% endfor %}
+  </div>
+</div>

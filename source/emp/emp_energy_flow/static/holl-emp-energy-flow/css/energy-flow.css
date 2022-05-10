@@ -1,0 +1,98 @@
+body, html {
+    font-family: Arial;
+}
+
+/* img {
+    width: 100%
+} */
+
+/* Color settings w.r.t. the then energy carriers. */
+.cold {
+    --energy-color: #77ddff;
+}
+
+.heat {
+    --energy-color: #da391d;
+}
+
+.elec {
+    --energy-color: #ffff0d;
+}
+
+.ngas {
+    --energy-color: #1ed96c;
+}
+
+/*
+  Generic tools.
+*/
+@media not screen and (min-width: 42rem) and (min-height: 32rem) {
+    .only-lg {
+        display: none;
+    }
+}
+
+/*
+  Style for the base container that holds all of the energy flow.
+  Default values should match smartphones.
+*/
+.energy_flow_container {
+    overflow: auto;
+    display: grid;
+    font-size: 1.0rem;
+    grid-template-rows: repeat(var(--n_columns), 1fr);
+    grid-template-columns: repeat(var(--n_rows), 1fr);
+    grid-gap: 2em 2em;
+    grid-template-areas: var(--areas-small);
+}
+
+/* This is for large viewports, e.g. computer screens */
+@media all and (min-width: 42rem) and (min-height: 32rem) {
+    .energy_flow_container {
+
+        grid-template-rows: repeat(var(--n_rows), 1fr);
+        grid-template-columns: repeat(var(--n_columns), 1fr);
+
+        grid-gap: 2em 2em;
+        grid-template-areas: var(--areas-big);
+    }
+}
+
+
+/*
+  Styling for the cards and it's content.
+*/
+
+.emp-widget-card{
+  /* Fill the available space of the grid cell */
+  width: 100%;
+  height: 100%;
+}
+
+.device-card-text {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+}
+
+.device-icon {
+    width: auto;
+    max-height: 3.0em;
+}
+
+.card_filling_image {
+    height: auto;
+    width: 100%;
+}
+
+/* This is for large viewports, e.g. computer screens */
+@media all and (min-width: 42rem) and (min-height: 32rem) {
+    .device-icon {
+        width: auto;
+        max-height: 4.5em;
+    }
+}
+
+.progress-bar.device-progress-bar {
+    background-color: var(--energy-color);
+}

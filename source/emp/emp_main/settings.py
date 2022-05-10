@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "emp_main.apps.EmpMainConfig",
     "emp_demo_ui_app.apps.EmpDemoUiAppConfig",
     "emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig",
+    "emp_energy_flow.apps.EmpEnergyFlow",
     # Uncomment to activate the emp_evaluation_system app.
     # Note that additional depedencies must be installed too.
     # "emp_evaluation_system.apps.EmpEvaluationSystemConfig",
@@ -84,6 +85,7 @@ INSTALLED_APPS = [
 EMP_APPS = [
     "emp_demo_ui_app",
     "emp_django_authenticator",
+    "emp_energy_flow"
     # "emp_evaluation_system",
 ]
 

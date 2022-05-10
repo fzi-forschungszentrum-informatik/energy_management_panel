@@ -1,0 +1,139 @@
+.flow {
+    overflow: hidden;
+    height: 10px;
+    width: 100%;
+}
+
+
+/*
+  Styling for flowing bubbles.
+  Basically center and put to background.
+*/
+
+.flow-container {
+    display: flex;
+    flex-direction: column;
+    place-content: center center;
+    z-index: -1;
+}
+
+
+.flow-container .flow {
+    place-self: center;
+    display: flex;
+    justify-content: center;
+}
+
+@media screen and (min-width: 42rem) and (min-height: 32rem) {
+    .right .flow {
+    }
+
+    .left .flow {
+        transform: scaleX(-1);
+    }
+
+    .up .flow {
+        transform: rotate(-90deg);
+    }
+
+    .down .flow {
+        transform: rotate(90deg);
+    }
+
+    .flow-container.up {
+        grid-area: span 2 / var(--from-device) / var(--from-device) / span 1;
+
+    }
+
+    .flow-container.down {
+        grid-area: var(--from-device) / var(--from-device) / span 2 / span 1;
+    }
+
+    .flow-container.left {
+        grid-area: var(--from-device) / span 2 / span 1 / var(--from-device)
+    }
+
+    .flow-container.right {
+        grid-area: var(--from-device) / var(--from-device) / span 1 / span 2
+    }
+}
+
+@media not screen and (min-width: 42rem) and (min-height: 32rem) {
+    .down .flow {
+    }
+
+    .up .flow {
+        transform: scaleX(-1);
+    }
+
+    .left .flow {
+        transform: rotate(-90deg);
+    }
+
+    .right .flow {
+        transform: rotate(90deg);
+    }
+
+    .flow-container.left {
+        grid-area: span 2 / var(--from-device) / var(--from-device) / span 1
+    }
+
+    .flow-container.right {
+        grid-area: var(--from-device) / var(--from-device) / span 2 / span 1
+    }
+
+    .flow-container.up {
+        grid-area: var(--from-device) / span 2 / span 1 / var(--from-device)
+    }
+
+    .flow-container.down {
+        grid-area: var(--from-device) / var(--from-device) / span 1 / span 2
+    }
+}
+
+/*
+  The grid spacing is em so let's use em here such that the flow balls
+  scale with gaps.
+ */
+.flow-cell {
+    width: 1em;
+    height: 100%;
+    overflow: visible;
+    position: relative;
+    float: right;
+}
+
+.ball {
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 0.25em;
+    overflow: hidden;
+    position: absolute;
+    transition: background-color 1s;
+}
+
+
+.stopped .ball{
+    background-color: #bfbfbf;
+}
+
+.moving .ball {
+    background-color: var(--energy-color);
+    animation-duration: var(--flow-time);
+    animation-iteration-count: infinite;
+    /*
+      Setting the timing function to linear effectively causes 100% CPU load.
+      Use steps to reduce the frame rate.
+    */
+    animation-timing-function: steps(8);
+    animation-name: move-ball;
+}
+
+@keyframes move-ball {
+    from {
+        left: -0.5em;
+    }
+    to {
+        left: 0.5em
+    }
+}

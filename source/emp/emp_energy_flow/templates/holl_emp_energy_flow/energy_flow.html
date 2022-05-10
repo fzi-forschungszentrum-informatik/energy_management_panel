@@ -1,0 +1,99 @@
+{% extends "emp_main/base.html" %}
+{% load static %}
+
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static "holl-emp-energy-flow/css/energy-flow.css" %}">
+  <link rel="stylesheet" type="text/css" href="{% static "holl-emp-energy-flow/css/flow-animations.css" %}">
+{% endblock head %}
+
+
+{% block body_html %}
+  <style>
+    #energy-flow-plot {
+      --n_rows: {{ n_rows }};
+      --n_columns: {{ n_columns }};
+      --areas-small: {{ areas_small | safe }};
+      --areas-big: {{ areas_big | safe }};
+    }
+  </style>
+
+  <div class="energy_flow_container" id="energy-flow-plot">
+    <!-- Arranges seats for all the widgets and flows. -->
+    {% for widget in widgets %}
+      <div style="grid-area: {{ widget.area_id }};">
+        {% include "holl_emp_energy_flow/widget.html" with widget=widget%}
+      </div>
+    {% endfor %}
+    {% for flow in flows %}
+      {% include "holl_emp_energy_flow/flow.html" with flow=flow %}
+    {% endfor %}
+  </div>
+{% endblock body_html %}
+
+{% block body_script %}
+  <script>
+    function animation_freq(energy) {
+      // returns the animation frequency for a given energy level
+      let minimum_frequency = 0.05
+      let maximum_frequency = 4
+      let minimum_energy = 0.1
+      let increment = 0.6
+
+      if (energy < minimum_energy) {
+        return 1e-10;
+      }
+
+      return Math.min(
+        increment * Math.log(1 + energy - minimum_energy)
+        + minimum_energy, maximum_frequency
+      )
+    }
+
+    var min_max_by_datapoint_id = JSON.parse("{{ min_max_by_datapoint_id }}")
+
+    ws.addEventListener("message", function (msg) {
+      let msg_by_datapoint_id = JSON.parse(msg.data);
+      // The normal values are already updated by the script in the
+      // base view, we handle only the the special cases, progress bars
+      // and animations. Let's start with the flows:
+      for ( let datapoint_id in msg_by_datapoint_id ){
+        let field_name = "value";
+        if ( ( ! field_name in msg_by_datapoint_id[datapoint_id] ) ){
+          continue;
+        };
+        let field_value = msg_by_datapoint_id[datapoint_id][field_name];
+        if ( field_value === null ) {
+          // No value means nothing moves.
+          field_value = 0.
+        }
+        // Update the flow objects.
+        let class_name_flows = "dp" + datapoint_id + "_flow";
+        let elements = document.getElementsByClassName(class_name_flows);
+        for ( let element of elements ) {
+          if (field_value == 0) {
+            element.classList.replace('moving', 'stopped');
+          } else {
+            element.classList.replace('stopped', 'moving');
+          }
+          let speed = animation_freq(field_value);
+          element.style.setProperty('--flow-time', 1 / speed + "s");
+        };
+        // Now, update the progress bar with a new width.
+        let class_name_pbs = "dp" + datapoint_id + "_progressbar";
+        elements = document.getElementsByClassName(class_name_pbs);
+        for ( let element of elements ) {
+          let pb_reverse = element.style.getPropertyValue("--progressbar_reverse")
+          let last_value = Number(field_value);
+          let min_value = min_max_by_datapoint_id[datapoint_id][0];
+          let max_value = min_max_by_datapoint_id[datapoint_id][1];
+          let filled = (last_value - min_value) / (max_value - min_value);
+          if ( pb_reverse.includes("True") ) {
+            filled = 1 - filled
+          }
+          let filled_percent = Math.round(filled * 100) + "%";
+          element.style.setProperty("width",  filled_percent);
+        };
+      };
+    })
+  </script>
+{% endblock body_script %}
