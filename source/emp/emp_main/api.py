@@ -17,7 +17,6 @@ the methods to the NinjaAPI must happen outside this classes.
 from datetime import datetime
 import json
 import logging
-from typing import List
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -35,8 +34,6 @@ from pydantic import Field
 
 from esg.models.datapoint import DatapointById
 from esg.models.datapoint import DatapointList
-from esg.models.datapoint import DatapointType
-from esg.models.datapoint import DatapointDataFormat
 from esg.models.datapoint import PutSummary
 from esg.models.datapoint import ValueMessageByDatapointId
 from esg.models.datapoint import ValueMessageListByDatapointId
@@ -45,6 +42,13 @@ from esg.models.datapoint import ScheduleMessageListByDatapointId
 from esg.models.datapoint import SetpointMessageByDatapointId
 from esg.models.datapoint import SetpointMessageListByDatapointId
 from esg.models.datapoint import ForecastMessageListByDatapointId
+from esg.django_models.filter import DatapointFilterParams
+from esg.django_models.filter import ValueMessageFilterParams
+from esg.django_models.filter import ScheduleMessageFilterParams
+from esg.django_models.filter import SetpointFilterParams
+from esg.django_models.filter import ProductFilterParams
+from esg.django_models.filter import ProductRunFilterParams
+from esg.django_models.filter import PlantFilterParams
 from esg.models.metadata import ProductList
 from esg.models.metadata import ProductRunList
 from esg.models.metadata import PlantList
@@ -214,7 +218,7 @@ class GenericAPIView:
         except IntegrityError as exp:
             raise RequestInducedException(
                 detail=(
-                    'Exception while writing messae `{}` to DB: "{}".'
+                    'Exception while writing message `{}` to DB: "{}".'
                     "".format(object_pydantic.json(), str(exp))
                 )
             )
@@ -247,45 +251,9 @@ class GenericDatapointAPIView(GenericAPIView):
     -----------
     DatapointModel: django.db.models.Model
         The django model used to fetch/write datapoint metadata from/to db.
-    DatapointFilterParams: ninja.Schema
-        Define filter possibilities for datapoints.
-        Note the keys must match something expect by `django.QuerySets.filter`.
-        See: https://docs.djangoproject.com/en/4.0/ref/models/querysets/#filter
     """
 
     DatapointModel = DatapointDb
-
-    class DatapointFilterParams(Schema):
-        id__in: List[int] = Field(None, description="`Datapoint.id` in list")
-        origin__exact: str = Field(
-            None, description="`Datapoint.origin` exact match"
-        )
-        origin__regex: str = Field(
-            None, description="`Datapoint.origin` regex match"
-        )
-        origin_id__in: List[str] = Field(
-            None, description="`Datapoint.origin_id` in list"
-        )
-        origin_id__regex: str = Field(
-            None, description="`Datapoint.origin_id` regex match"
-        )
-        short_name__regex: str = Field(
-            None, description="`Datapoint.short_name` regex match"
-        )
-        # Use in here instead of exact as the List[] makes the field
-        # not required in SwaggerUI.
-        type__in: List[DatapointType] = Field(
-            None, description="`Datapoint.type` in list"
-        )
-        data_format__in: List[DatapointDataFormat] = Field(
-            None, description="`Datapoint.data_format` in list"
-        )
-        description__regex: str = Field(
-            None, description="`Datapoint.description` regex match"
-        )
-        unit__regex: str = Field(
-            None, description="`Datapoint.unit` regex match"
-        )
 
     def __init__(self):
         """
@@ -785,8 +753,7 @@ dpm_view = DatapointMetadataAPIView()
     summary=" ",  # Deactivate summary.
 )
 def get_datapoint_metadata_latest(
-    request,
-    datapoint_filter_params: dpm_view.DatapointFilterParams = Query(...),
+    request, datapoint_filter_params: DatapointFilterParams = Query(...),
 ):
     """
     Return a queryset of datapoints matching the requested filter
@@ -844,16 +811,6 @@ class DatapointValueAPIView(GenericDatapointRelatedAPIView):
     list_history_response_model = ValueMessageListByDatapointId
     channel_group_base_name = "datapoint.value.latest."
 
-    # This is defined here every time to adapt the field descriptions.
-    # TODO: Add test that these filters are applicable to the target model.
-    class ValueFilterParams(Schema):
-        time__gte: datetime = Field(
-            None, description="`ValueMessage.time` greater or equal this value."
-        )
-        time__lt: datetime = Field(
-            None, description="`ValueMessage.time` less this value."
-        )
-
 
 dp_value_view = DatapointValueAPIView()
 
@@ -866,8 +823,8 @@ dp_value_view = DatapointValueAPIView()
 )
 def get_datapoint_value_latest(
     request,
-    datapoint_filter_params: dp_value_view.DatapointFilterParams = Query(...),
-    value_filter_params: dp_value_view.ValueFilterParams = Query(...),
+    datapoint_filter_params: DatapointFilterParams = Query(...),
+    value_filter_params: ValueMessageFilterParams = Query(...),
 ):
     """
     Return the latest values for datapoints targeted by the filter.
@@ -893,8 +850,8 @@ def get_datapoint_value_latest(
 )
 def get_datapoint_value_history(
     request,
-    datapoint_filter_params: dp_value_view.DatapointFilterParams = Query(...),
-    value_filter_params: dp_value_view.ValueFilterParams = Query(...),
+    datapoint_filter_params: DatapointFilterParams = Query(...),
+    value_filter_params: ValueMessageFilterParams = Query(...),
 ):
     """
     Return one or more value messages for datapoints targeted by the filter.
@@ -959,17 +916,6 @@ class DatapointScheduleAPIView(GenericDatapointRelatedAPIView):
     list_history_response_model = ScheduleMessageListByDatapointId
     channel_group_base_name = "datapoint.schedule.latest."
 
-    # This is defined here every time to adapt the field descriptions.
-    # TODO: Add test that these filters are applicable to the target model.
-    class ScheduleFilterParams(Schema):
-        time__gte: datetime = Field(
-            None,
-            description="`ScheduleMessage.time` greater or equal this value.",
-        )
-        time__lt: datetime = Field(
-            None, description="`ScheduleMessage.time` less this value."
-        )
-
 
 dp_schedule_view = DatapointScheduleAPIView()
 
@@ -986,10 +932,8 @@ dp_schedule_view = DatapointScheduleAPIView()
 )
 def get_datapoint_schedule_latest(
     request,
-    datapoint_filter_params: dp_schedule_view.DatapointFilterParams = Query(
-        ...
-    ),
-    schedule_filter_params: dp_schedule_view.ScheduleFilterParams = Query(...),
+    datapoint_filter_params: DatapointFilterParams = Query(...),
+    schedule_filter_params: ScheduleMessageFilterParams = Query(...),
 ):
     """
     Return the latest schedules for datapoints targeted by the filter.
@@ -1015,10 +959,8 @@ def get_datapoint_schedule_latest(
 )
 def get_datapoint_schedule_history(
     request,
-    datapoint_filter_params: dp_schedule_view.DatapointFilterParams = Query(
-        ...
-    ),
-    schedule_filter_params: dp_schedule_view.ScheduleFilterParams = Query(...),
+    datapoint_filter_params: DatapointFilterParams = Query(...),
+    schedule_filter_params: ScheduleMessageFilterParams = Query(...),
 ):
     """
     Return one or more schedule messages for datapoints targeted by the filter.
@@ -1083,17 +1025,6 @@ class DatapointSetpointAPIView(GenericDatapointRelatedAPIView):
     list_history_response_model = SetpointMessageListByDatapointId
     channel_group_base_name = "datapoint.setpoint.latest."
 
-    # This is defined here every time to adapt the field descriptions.
-    # TODO: Add test that these filters are applicable to the target model.
-    class SetpointFilterParams(Schema):
-        time__gte: datetime = Field(
-            None,
-            description="`SetpointMessage.time` greater or equal this value.",
-        )
-        time__lt: datetime = Field(
-            None, description="`SetpointMessage.time` less this value."
-        )
-
 
 dp_setpoint_view = DatapointSetpointAPIView()
 
@@ -1110,10 +1041,8 @@ dp_setpoint_view = DatapointSetpointAPIView()
 )
 def get_datapoint_setpoint_latest(
     request,
-    datapoint_filter_params: dp_setpoint_view.DatapointFilterParams = Query(
-        ...
-    ),
-    setpoint_filter_params: dp_setpoint_view.SetpointFilterParams = Query(...),
+    datapoint_filter_params: DatapointFilterParams = Query(...),
+    setpoint_filter_params: SetpointFilterParams = Query(...),
 ):
     """
     Return the latest setpoints for datapoints targeted by the filter.
@@ -1139,10 +1068,8 @@ def get_datapoint_setpoint_latest(
 )
 def get_datapoint_setpoint_history(
     request,
-    datapoint_filter_params: dp_setpoint_view.DatapointFilterParams = Query(
-        ...
-    ),
-    setpoint_filter_params: dp_setpoint_view.SetpointFilterParams = Query(...),
+    datapoint_filter_params: DatapointFilterParams = Query(...),
+    setpoint_filter_params: SetpointFilterParams = Query(...),
 ):
     """
     Return one or more setpoint messages for datapoints targeted by the filter.
@@ -1251,9 +1178,7 @@ dp_forecast_view = DatapointForecastAPIView()
 def get_datapoint_forecast_latest(
     request,
     product_run_filter_params: dp_forecast_view.PathParams = Path(...),
-    datapoint_filter_params: dp_forecast_view.DatapointFilterParams = Query(
-        ...
-    ),
+    datapoint_filter_params: DatapointFilterParams = Query(...),
     forecast_filter_params: dp_forecast_view.ForecastFilterParams = Query(...),
 ):
     """
@@ -1301,12 +1226,6 @@ class ProductAPIView(GenericAPIView):
     PydanticModel = ProductList
     DBModel = ProductDb
 
-    class ProductFilterParams(Schema):
-        id__in: List[int] = Field(
-            None,
-            description=("Matches `Product` items with `id` in this list."),
-        )
-
 
 product_view = ProductAPIView()
 
@@ -1318,7 +1237,7 @@ product_view = ProductAPIView()
     summary=" ",  # Deactivate summary.
 )
 def get_product_latest(
-    request, filter_params: product_view.ProductFilterParams = Query(...),
+    request, filter_params: ProductFilterParams = Query(...),
 ):
     """
     Return the latest state of the `Product` objects.
@@ -1372,7 +1291,9 @@ product_run_view = ProductRunAPIView()
     tags=["Product Run"],
     summary=" ",  # Deactivate summary.
 )
-def get_product_run_latest(request):
+def get_product_run_latest(
+    request, filter_params: ProductRunFilterParams = Query(...),
+):
     """
     Return the latest state of the `Product` objects.
 
@@ -1380,7 +1301,9 @@ def get_product_run_latest(request):
     trigger requests to a defined product service, like e.g. a PV Forecast.
     """
 
-    response = product_run_view.list_latest(request=request)
+    response = product_run_view.list_latest(
+        request=request, filter_params=filter_params
+    )
     return response
 
 
@@ -1413,12 +1336,6 @@ class PlantAPIView(GenericAPIView):
     PydanticModel = PlantList
     DBModel = PlantDb
 
-    class PlantFilterParams(Schema):
-        products__id__in: str = Field(
-            None,
-            description=("Matches `Plant` with `product_ids` in this list."),
-        )
-
 
 plant_view = PlantAPIView()
 
@@ -1430,7 +1347,7 @@ plant_view = PlantAPIView()
     summary=" ",  # Deactivate summary.
 )
 def get_plant_latest(
-    request, filter_params: plant_view.PlantFilterParams = Query(...),
+    request, filter_params: PlantFilterParams = Query(...),
 ):
     """
     Return the latest state of the Plant objects.
