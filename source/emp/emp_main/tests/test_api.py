@@ -890,6 +890,7 @@ TEST_PLANTS_LATEST = [
                 "name": "Test Plant 1",
                 "product_ids": [1],
                 "geographic_position": None,
+                "pv_system": None,
             },
             {
                 "id": 2,
@@ -899,7 +900,8 @@ TEST_PLANTS_LATEST = [
                     "latitude": 49.01365,
                     "longitude": 8.40444,
                     "height": None,
-                }
+                },
+                "pv_system": None,
             },
         ],
         "PutSummary": {"objects_created": 1, "objects_updated": 1},
@@ -1854,7 +1856,7 @@ class TestProductAPIView(GenericAPIViewTests):
     endpoint_url_latest = "/" + API_ROOT_PATH + "product/latest/"
 
 
-class TestPlantAPIView(GenericAPIViewTests, TransactionTestCase):
+class TestPlantAPIView(GenericAPIViewTests):
 
     DbModelLatest = Plant
 
