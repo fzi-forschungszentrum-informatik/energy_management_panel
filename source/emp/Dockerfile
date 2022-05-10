@@ -1,4 +1,4 @@
-FROM iik-gitlab.fzi.de:5050/dwo/energy-service-generics:0.9.2
+FROM iik-gitlab.fzi.de:5050/dwo/energy-service-generics:0.10.0
 
 ENV PYTHONUNBUFFERED 1
 
