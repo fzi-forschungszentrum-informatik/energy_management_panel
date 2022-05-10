@@ -56,7 +56,11 @@ class EMPBaseView(TemplateView):
 
         requested_url = self.request.path_info
         if requested_url not in settings.URLS_PERMISSION_WHITELIST:
-            allowed_urls = apps_cache.get_allowed_urls_for_user(user)
+            if user.is_anonymous:
+                # Anon can't access anything that isn't in whitelist.
+                allowed_urls = []
+            else:
+                allowed_urls = apps_cache.get_allowed_urls_for_user(user)
             if requested_url not in allowed_urls:
                 logger.info(
                     "EMPBaseView blocked request by user %s to access page %s. "
@@ -71,14 +75,8 @@ class EMPBaseView(TemplateView):
 
     def get_context_data(self, **kwargs):
 
-        # Replace the django default anon user with the Guardian version,
-        # as these are not identical and we thus retrieve incorrect page
-        # permissions for the django anon user.
-        user = self.request.user
-        if user.is_anonymous:
-            user = get_user_model().get_anonymous()
-
         # Check permissions first.
+        user = self.request.user
         self.check_permissions_for_url(user=user)
 
         # Add page customization for template to context.
