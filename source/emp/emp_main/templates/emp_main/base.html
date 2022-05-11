@@ -199,8 +199,8 @@
       }
       // Connect to the websocket to get datapoint field updates.
       var ws = new WebSocket(
-        ws_protocol + window.location.host +
-        "/ws/datapoint-update/?datapoint-ids=" + requested_datapoints
+        ws_protocol + window.location.host + "/" + "{{ROOT_PATH}}" +
+        "ws/datapoint-update/?datapoint-ids=" + requested_datapoints
       );
       ws.onmessage = function (msg) {
         {% comment "Optional note" %}

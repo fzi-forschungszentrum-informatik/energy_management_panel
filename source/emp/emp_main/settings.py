@@ -245,16 +245,23 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Root path aka. base url. In theory django doesn't need to know the
+# root path and works as expected behind a reverse proxy. Here the
+# main issue is that we use a lot of absolute URLs, which need to be
+# fixed manually.
+# **NOTE**: ROOT_PATH must be without a leading slash but with a trailing
+# slash if not empty, e.g. `emp/`
+ROOT_PATH = os.getenv("ROOT_PATH") or ""
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR.parent / "static"
+STATIC_URL = "/" + ROOT_PATH + "static/"
 
 # Don't place media files in source folder but next to it.
 MEDIA_ROOT = BASE_DIR.parent / "media"
-MEDIA_URL = "/media/"
+MEDIA_URL = "/" + ROOT_PATH + "media/"
 
 # Finally some security related stuff, that is only relevant for production
 # where we don't offer a plain HTTP page. The first two are suggested by
@@ -299,20 +306,27 @@ TOPBAR_NAME_LONG = (
 # an UI app.
 URLS_PERMISSION_WHITELIST = json.loads(
     os.getenv("EMP_URLS_PERMISSION_WHITELIST")
-    or json.dumps(["/welcome/", "/auth/login/", "/auth/logout/"])
+    or json.dumps(
+        [
+            "/" + ROOT_PATH + "welcome/",
+            "/" + ROOT_PATH + "auth/login/",
+            "/" + ROOT_PATH + "auth/logout/",
+        ]
+    )
 )
 
-
 # Users will be redirected to this page if visiting the sites root.
-HOME_PAGE_URL = os.getenv("EMP_HOME_PAGE_URL") or "/welcome/"
+HOME_PAGE_URL = os.getenv("EMP_HOME_PAGE_URL") or "/" + ROOT_PATH + "welcome/"
 
 # Defines the URLS that are placed in the login/logout buttons in the
 # EMPBaseView. Use ?next= to redirect after login/logout.
 LOGIN_PAGE_URL = (
-    os.getenv("EMP_LOGIN_PAGE_URL") or "/auth/login/?next=%s" % HOME_PAGE_URL
+    os.getenv("EMP_LOGIN_PAGE_URL")
+    or "/" + ROOT_PATH + "auth/login/?next=%s" % HOME_PAGE_URL
 )
 LOGOUT_PAGE_URL = (
-    os.getenv("EMP_LOGOUT_PAGE_URL") or "/auth/logout/?next=%s" % HOME_PAGE_URL
+    os.getenv("EMP_LOGOUT_PAGE_URL")
+    or "/" + ROOT_PATH + "auth/logout/?next=%s" % HOME_PAGE_URL
 )
 
 # EPM evaluation page update interval in milliseconds

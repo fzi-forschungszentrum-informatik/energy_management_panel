@@ -1,7 +1,7 @@
 from django.db import models
+from django.urls import reverse
 
 from emp_main.models import Datapoint
-from .apps import app_url_prefix
 
 COLOR_CHOICES = [
     ("elec", "Electricity"),
@@ -38,7 +38,10 @@ class EnergyFlow(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        u = "/" + app_url_prefix + "/" + self.slug + "/"
+        u = reverse(
+            "emp_energy_flow.emp_energy_flow",
+            kwargs={"energyflow_slug": self.slug},
+        )
         return u
 
 

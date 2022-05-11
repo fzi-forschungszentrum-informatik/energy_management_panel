@@ -89,6 +89,7 @@ class EMPBaseView(TemplateView):
         context["TOPBAR_NAME_LONG"] = settings.TOPBAR_NAME_LONG
         context["LOGIN_PAGE_URL"] = settings.LOGIN_PAGE_URL
         context["LOGOUT_PAGE_URL"] = settings.LOGOUT_PAGE_URL
+        context["ROOT_PATH"] = settings.ROOT_PATH
 
         # This will be populated by the dp_field_value teblate tags.
         # It allows storing which datapoints field exist on the page and

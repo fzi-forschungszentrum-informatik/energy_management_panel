@@ -1,7 +1,7 @@
 from django.db import models
+from django.urls import reverse
 
 from emp_main.models import Datapoint
-from .apps import app_url_prefix
 
 
 class DemoAppPage(models.Model):
@@ -49,9 +49,12 @@ class DemoAppPage(models.Model):
         help_text=("A simple example how to use a Datapoint in a model."),
     )
     page_has_detail = models.BooleanField(
-        default=False, help_text=("Page displays datapoint detail page if True."),
+        default=False,
+        help_text=("Page displays datapoint detail page if True."),
     )
 
     def get_absolute_url(self):
-        u = "/" + app_url_prefix + "/" + self.page_slug + "/"
+        u = reverse(
+            "emp_demo_ui_app.demo_ui_page", kwargs={"page_slug": self.page_slug}
+        )
         return u

@@ -24,6 +24,8 @@ from django.views.generic import RedirectView
 from .views import EMPBaseView
 from .api import api
 
+ROOT_PATH = settings.ROOT_PATH
+
 # This is the root for all API endpoints. This information is used
 # here and there, especially in consumers.py and tests.
 API_ROOT_PATH = "api/"
@@ -31,14 +33,18 @@ API_ROOT_PATH = "api/"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", RedirectView.as_view(url=settings.HOME_PAGE_URL, permanent=False)),
     path(
-        "welcome/", EMPBaseView.as_view(template_name="./emp_main/welcome.html")
+        "", RedirectView.as_view(url=settings.HOME_PAGE_URL, permanent=False),
+    ),
+    path(
+        "welcome/",
+        EMPBaseView.as_view(template_name="./emp_main/welcome.html"),
+        name="emp_main.welcome",
     ),
     # These are the URLS for REST API.
     # path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(API_ROOT_PATH, api.urls),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
 
 # Add url paths for the emp apps.
 for emp_app in settings.EMP_APPS:
@@ -56,5 +62,9 @@ for emp_app in settings.EMP_APPS:
     # Add urls of the app to urlpatterns.
     app_path = path(app_url_prefix, include(emp_app + ".urls"))
     urlpatterns.append(app_path)
+
+urlpatterns = [path(ROOT_PATH, include(urlpatterns))] + static(
+    settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
+)
 
 handler403 = "emp_main.views.emp_403_handler"
