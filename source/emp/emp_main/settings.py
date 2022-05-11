@@ -68,7 +68,7 @@ INSTALLED_APPS = [
     # "emp_evaluation_system.apps.EmpEvaluationSystemConfig",
     # "nested_admin",
     # "multiselectfield",
-]
+] + json.loads(os.getenv("DJANGO_ADDITIONAL_INSTALLED_APPS") or "[]")
 
 # Define all installed apps which extend the EMP functionality.
 # This is used to automatically wire up the urls to these apps and to
@@ -80,7 +80,7 @@ EMP_APPS = [
     "emp_django_authenticator",
     "emp_energy_flow"
     # "emp_evaluation_system",
-]
+] + json.loads(os.getenv("EMP_ADDITIONAL_APPS") or "[]")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -269,39 +269,51 @@ if (os.getenv("HTTPS_ONLY") or "FALSE").lower() == "true":
 # ------------------------------------------------------------------------------
 
 # The string for the <title> tag.
-PAGE_TITLE = "EMP Demo"
+PAGE_TITLE = os.getenv("EMP_PAGE_TITLE") or "EMP Demo"
 
 # The path to the manifest.json file within the static files.
-MANIFEST_JSON_STATIC = "emp-main/manifest.json"
+MANIFEST_JSON_STATIC = (
+    os.getenv("EMP_MANIFEST_JSON_STATIC") or "emp-main/manifest.json"
+)
 
 # The path to the favicon.ico file within the static files.
-FAVICON_ICO_STATIC = "emp-main/icons/favicon.ico"
+FAVICON_ICO_STATIC = (
+    os.getenv("EMP_FAVICON_ICO_STATIC") or "emp-main/icons/favicon.ico"
+)
 
 # The path to the logo displayed in the left corner of the top nav bar,
 # as usual within static files.
-TOPBAR_LOGO_STATIC = "emp-main/icons/title-logo.png"
+TOPBAR_LOGO_STATIC = (
+    os.getenv("EMP_TOPBAR_LOGO_STATIC") or "emp-main/icons/title-logo.png"
+)
 
 # Strings to display in the top navbar.
-TOPBAR_NAME_SHORT = "EMP"
-TOPBAR_NAME_LONG = "Energy Management Panel"
+TOPBAR_NAME_SHORT = os.getenv("EMP_TOPBAR_NAME_SHORT") or "EMP"
+TOPBAR_NAME_LONG = (
+    os.getenv("EMP_TOPBAR_NAME_LONG") or "Energy Management Panel"
+)
 
 # A list of URLS that are excluded from permission checking, i.e. that can be
 # accessed by any user at all times. This is required to allow access to pages
 # generic pages like login/logout or the home page, if those are not part of
 # an UI app.
-URLS_PERMISSION_WHITELIST = [
-    "/welcome/",
-    "/auth/login/",
-    "/auth/logout/",
-]
+URLS_PERMISSION_WHITELIST = json.loads(
+    os.getenv("EMP_URLS_PERMISSION_WHITELIST")
+    or json.dumps(["/welcome/", "/auth/login/", "/auth/logout/"])
+)
+
 
 # Users will be redirected to this page if visiting the sites root.
-HOME_PAGE_URL = "/welcome/"
+HOME_PAGE_URL = os.getenv("EMP_HOME_PAGE_URL") or "/welcome/"
 
 # Defines the URLS that are placed in the login/logout buttons in the
 # EMPBaseView. Use ?next= to redirect after login/logout.
-LOGIN_PAGE_URL = "/auth/login/?next=%s" % HOME_PAGE_URL
-LOGOUT_PAGE_URL = "/auth/logout/?next=%s" % HOME_PAGE_URL
+LOGIN_PAGE_URL = (
+    os.getenv("EMP_LOGIN_PAGE_URL") or "/auth/login/?next=%s" % HOME_PAGE_URL
+)
+LOGOUT_PAGE_URL = (
+    os.getenv("EMP_LOGOUT_PAGE_URL") or "/auth/logout/?next=%s" % HOME_PAGE_URL
+)
 
 # EPM evaluation page update interval in milliseconds
 # EMP_EVALUATION_PAGE_UPDATE_INTERVAL = 60000
