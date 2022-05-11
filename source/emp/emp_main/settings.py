@@ -18,13 +18,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
@@ -41,8 +34,8 @@ if not SECRET_KEY:
         )
     else:
         raise ValueError(
-            "DJANGO_SECRET_KEY must be set explicitly if django-api is "
-            "run with N_WORKER_PROCESSES > 1."
+            "DJANGO_SECRET_KEY must be set explicitly if "
+            "N_WORKER_PROCESSES > 1."
         )
 
 
@@ -91,6 +84,7 @@ EMP_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -125,10 +119,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "emp_main.wsgi.application"
 ASGI_APPLICATION = "emp_main.asgi.application"
 
-# TODO: Replace this with Redis for Prod.
-CHANNEL_LAYERS = {
-    "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
-}
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
@@ -151,6 +141,27 @@ else:
         }
     }
 
+# Configure the Channel Layer used to push updates to websockets. See:
+# https://channels.readthedocs.io/en/stable/topics/channel_layers.html
+if os.getenv("CHANNELS_REDIS_HOST"):
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [
+                    (
+                        os.getenv("CHANNELS_REDIS_HOST"),
+                        int(os.getenv("CHANNELS_REDIS_PORT") or 6379),
+                    )
+                ],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
+    }
+
 # This is just here to silence some warnings and make explicit what
 # django < 3.2 has always done. See:
 # https://docs.djangoproject.com/en/3.2/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
@@ -163,9 +174,7 @@ log_level = os.getenv("LOGLEVEL") or "INFO"
 
 loggers = {}
 # Explicitly add emp_main, as log messages from it won't be displayed else.
-for emp_app in EMP_APPS + [
-    "emp_main",
-]:
+for emp_app in EMP_APPS + ["emp_main"]:
     loggers[emp_app] = {
         "handlers": ["console", "prometheus"],
         "level": log_level,
@@ -241,10 +250,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR.parent / "static"
 
 # Don't place media files in source folder but next to it.
 MEDIA_ROOT = BASE_DIR.parent / "media"
 MEDIA_URL = "/media/"
+
+# Finally some security related stuff, that is only relevant for production
+# where we don't offer a plain HTTP page. The first two are suggested by
+# Django's deployment checklist, the remaining by the check --deploy result.
+if (os.getenv("HTTPS_ONLY") or "FALSE").lower() == "true":
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 # ------------------------------------------------------------------------------

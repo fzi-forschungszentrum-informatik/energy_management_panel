@@ -16,16 +16,18 @@ services:
         volumes:
             - ./source/emp/:/source/emp/
             # Activate this volume if you develop on energy_service_generics in parallel. 
-            - ../energy_service_generics/source/esg/:/opt/conda/lib/python3.8/site-packages/esg/
+            #- ../energy_service_generics/source/esg/:/opt/conda/lib/python3.8/site-packages/esg/
         user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
         ports:
             - 8080:8080
         environment:
+            - N_WORKER_PROCESSES=4
             - LOGLEVEL=INFO
-            - DJANGO_DEBUG=TRUE
-            - DJANGO_ADMINS=
+            - HTTPS_ONLY=
             - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
             - DJANGO_ALLOWED_HOSTS=["emp-devl","localhost"]
+            - DJANGO_DEBUG=
+            - DJANGO_ADMINS=
             - DJANGO_SUPERUSER_USERNAME=emp
             - DJANGO_SUPERUSER_PASSWORD=emp
             - DJANGO_SUPERUSER_EMAIL=emp@example.com
@@ -34,7 +36,9 @@ services:
             - EMPDB_USER=emp
             - EMPDB_PASSWORD=emp
             - EMPDB_DBNAME=emp
-            - N_WORKER_PROCESSES=1
+            - CHANNELS_REDIS_HOST=emp-devl-redis
+            - CHANNELS_REDIS_PORT=
+
 
     emp-devl-db:
         container_name: emp-devl-db
@@ -48,6 +52,10 @@ services:
             - POSTGRES_USER=emp
             - POSTGRES_PASSWORD=emp
             - POSTGRES_DB=emp
+            
+    emp-devl-redis:
+        container_name: emp-devl-redis
+        image: redis:7
             
     emp-devl-demp-dp-interface:
         container_name: emp-devl-demp-dp-interface
