@@ -3,9 +3,6 @@ Django==3.2.*
 channels==3.0.*
 channels-redis==3.4.*
 django-guardian==2.4.*
-#djangorestframework==3.13.*
-#drf-spectacular==0.22.*  # Online Swagger-UI for REST schema
-#django-filter==21.1
 django-ninja==0.17.*
 
 
@@ -20,7 +17,7 @@ pytest-django
 
 # Production servers.
 gunicorn==20.1.*
-uvicorn==0.17.*
+uvicorn[standard]==0.17.*
 whitenoise==6.0.*
 
 # Database engines

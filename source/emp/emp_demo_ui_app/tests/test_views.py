@@ -29,7 +29,9 @@ class TestDemoUIPageView(TestCase):
             page_content=cls.expected_page_content_1,
             page_background_color=cls.expected_page_background_color_1,
         )
-        assign_perm("emp_demo_ui_app.view_demoapppage", cls.anon_user, cls.page1)
+        assign_perm(
+            "emp_demo_ui_app.view_demoapppage", cls.anon_user, cls.page1
+        )
 
         # This page should be visable to anybody.
         page_slug_2 = "test-page-2"
@@ -42,7 +44,9 @@ class TestDemoUIPageView(TestCase):
             page_content=cls.expected_page_content_2,
             page_background_color=cls.expected_page_background_color_2,
         )
-        assign_perm("emp_demo_ui_app.view_demoapppage", cls.test_user_1, cls.page2)
+        assign_perm(
+            "emp_demo_ui_app.view_demoapppage", cls.test_user_1, cls.page2
+        )
 
         # This is an url to a page which does not exist.
         page_slug_na = "test-page-na"
@@ -52,24 +56,29 @@ class TestDemoUIPageView(TestCase):
         """
         The page background color is required by the template.
         """
-        response = self.client.get(self.page_1_url)
+        with self.settings(URLS_PERMISSION_WHITELIST=[self.page_1_url]):
+            response = self.client.get(self.page_1_url)
         self.assertEqual(response.status_code, 200)
         self.assertIn("page_background_color", response.context)
         test_background_color = response.context["page_background_color"]
-        self.assertEqual(test_background_color, self.expected_page_background_color_1)
+        self.assertEqual(
+            test_background_color, self.expected_page_background_color_1
+        )
 
     def test_page_content_in_context(self):
         """
         The page_content is required by the template.
         """
-        response = self.client.get(self.page_1_url)
+        with self.settings(URLS_PERMISSION_WHITELIST=[self.page_1_url]):
+            response = self.client.get(self.page_1_url)
         self.assertEqual(response.status_code, 200)
         self.assertIn("page_content", response.context)
         test_content = response.context["page_content"]
         self.assertEqual(test_content, self.expected_page_content_1)
 
     def test_correct_template_used(self):
-        response = self.client.get(self.page_1_url)
+        with self.settings(URLS_PERMISSION_WHITELIST=[self.page_1_url]):
+            response = self.client.get(self.page_1_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "./emp_demo_ui_app/demo_page.html")
 

@@ -50,7 +50,8 @@ else
     # DJANGO_SECRET_KEY. If you change this to a higher value you will likely
     # get suspicious session warnings and people will need to login on
     # every page the load or so.
-    gunicorn emp_main.asgi:application --chdir /source/emp/ --workers ${N_WORKER_PROCESSES:-1} --worker-class uvicorn.workers.UvicornWorker -b 0.0.0.0:8080 &
+    cd /source/emp
+    gunicorn emp_main.asgi:application /source/emp/ --workers ${N_WORKER_PROCESSES:-1} --worker-class uvicorn.workers.UvicornWorker -b 0.0.0.0:8080 &
 fi
 
 # Patch SIGTERM and SIGINT to the django application.
