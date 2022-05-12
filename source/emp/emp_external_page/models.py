@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 """
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 
@@ -49,11 +50,38 @@ class ExternalPage(models.Model):
         ),
     )
     src = models.URLField(
+        blank=True,
+        null=False,
         max_length=1024,
         help_text=(
             "The URL of the external page that should be loaded in the frame."
         ),
     )
+    grafana_dashboard_url = models.CharField(
+        blank=True,
+        null=False,
+        max_length=50,
+        help_text=(
+            "The relative part of the Grafana dashboard URL. E.g. for "
+            "`http://localhost:8000/emp/grafana/d/WcLAqq_nk/"
+            "test-dashboard?orgId=1`. it would be:"
+            "d/WcLAqq_nk/test-dashboard?orgId=1"
+        ),
+    )
+
+    def clean(self):
+        """
+        Check that only `src` or `grafana_dashboard_id` can be set.
+        """
+        super().clean()
+        if self.src and self.grafana_dashboard_url:
+            raise ValidationError(
+                "Only one of `src` and `grafana_dashboard_url` can be set."
+            )
+        if not self.src and not self.grafana_dashboard_url:
+            raise ValidationError(
+                "Either one of `src` and `grafana_dashboard_url` must be set."
+            )
 
     def get_absolute_url(self):
         u = reverse(
