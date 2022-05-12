@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "emp_demo_ui_app.apps.EmpDemoUiAppConfig",
     "emp_django_authenticator.apps.EmpDjangoAuthenticatorConfig",
     "emp_energy_flow.apps.EmpEnergyFlow",
+    "emp_external_page.apps.EmpExternalPageAppConfig",
     # Uncomment to activate the emp_evaluation_system app.
     # Note that additional depedencies must be installed too.
     # "emp_evaluation_system.apps.EmpEvaluationSystemConfig",
@@ -78,7 +79,8 @@ INSTALLED_APPS = [
 EMP_APPS = [
     "emp_demo_ui_app",
     "emp_django_authenticator",
-    "emp_energy_flow"
+    "emp_energy_flow",
+    "emp_external_page",
     # "emp_evaluation_system",
 ] + json.loads(os.getenv("EMP_ADDITIONAL_APPS") or "[]")
 
@@ -270,6 +272,8 @@ if (os.getenv("HTTPS_ONLY") or "FALSE").lower() == "true":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+# Required to load Grafana dashboards from suburl.
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # ------------------------------------------------------------------------------
 # Here the EMP specific settings.

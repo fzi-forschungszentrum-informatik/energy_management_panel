@@ -27,7 +27,7 @@ services:
             - HTTPS_ONLY=
             - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
             - DJANGO_ALLOWED_HOSTS=["emp-devl","localhost"]
-            - DJANGO_DEBUG=
+            - DJANGO_DEBUG=TRUE
             - DJANGO_ADMINS=
             - DJANGO_ADDITIONAL_INSTALLED_APPS=${DJANGO_ADDITIONAL_INSTALLED_APPS}
             - DJANGO_SUPERUSER_USERNAME=emp
