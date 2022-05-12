@@ -52,7 +52,6 @@ def get_app_nav_content_for_user(user):
     pages_user = get_objects_for_user(
         user, "emp_external_page.view_externalpage"
     )
-    print(pages_user)
     pages_user = pages_user.order_by("group__name", "name")
 
     # Be sure to use slugs here for url components.
@@ -65,7 +64,6 @@ def get_app_nav_content_for_user(user):
 
         page_url = page_obj.get_absolute_url()
         app_nav_content[group_name][page_obj.name] = page_url
-        print(app_nav_content)
 
     return app_nav_content
 
