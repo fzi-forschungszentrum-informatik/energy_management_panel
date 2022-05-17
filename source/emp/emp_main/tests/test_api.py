@@ -1290,10 +1290,9 @@ class TestDatapointMetadataAPIView(TransactionTestCase):
 
         assert response.status_code == 200
 
-        expected_jsonable = {}
+        expected_jsonable = []
         for test_datapoint in TEST_DATAPOINTS:
-            expected_id = str(test_datapoint["Python"]["id"])
-            expected_jsonable[expected_id] = test_datapoint["JSONable"]
+            expected_jsonable.append(test_datapoint["JSONable"])
 
         actual_jsonable = response.json()
 

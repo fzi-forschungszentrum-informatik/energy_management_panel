@@ -644,16 +644,14 @@ class DatapointMetadataAPIView(GenericDatapointAPIView):
         #       datapoints, and of course that the query params are forewarded.
         datapoints = self.get_filtered_datapoints(datapoint_filter_params)
 
-        # Group by datapoint ID.
-        content_as_dict = {}
-        for datapoint in datapoints:
-            content_as_dict[str(datapoint.id)] = model_to_dict(datapoint)
-
         # Convert to jsonable, skip validation.
-        content_pydantic = DatapointById.construct_recursive(
-            __root__=content_as_dict
+        datapoints_as_dict = []
+        for datapoint in datapoints:
+            datapoints_as_dict.append(datapoint.load_to_dict())
+        datapoints_as_pydantic = DatapointList.construct_recursive(
+            __root__=datapoints_as_dict
         )
-        content = content_pydantic.json()
+        content = datapoints_as_pydantic.json()
 
         return HttpResponse(
             content, status=200, content_type="application/json"
@@ -748,7 +746,7 @@ dpm_view = DatapointMetadataAPIView()
 
 @api.get(
     "/datapoint/metadata/latest/",
-    response={200: DatapointById, 400: HTTPError, 500: HTTPError},
+    response={200: DatapointList, 400: HTTPError, 500: HTTPError},
     tags=["Datapoint Metadata"],
     summary=" ",  # Deactivate summary.
 )
@@ -768,7 +766,7 @@ def get_datapoint_metadata_latest(
 
 @api.put(
     "/datapoint/metadata/latest/",
-    response={200: DatapointList},
+    response={200: DatapointList, 400: HTTPError, 500: HTTPError},
     tags=["Datapoint Metadata"],
     summary=" ",  # Deactivate summary.
 )
