@@ -94,8 +94,6 @@ class GenericAPIView:
     PydanticModel = None
     DBModel = None
 
-    unique_together_fields_latest = ["id"]
-
     def _handle_exceptions(method):
         """
         A little decorator that handles exceptions and transforms those into
@@ -204,16 +202,13 @@ class GenericAPIView:
         objects_db_pydantic = []
         for object_pydantic in objects_pydantic.__root__:
 
-            unique_field_values = {}
-            for field_name in self.unique_together_fields_latest:
-                field_value = getattr(object_pydantic, field_name)
-                unique_field_values[field_name] = field_value
-
-            try:
-                object_db = self.DBModel.objects.get(**unique_field_values)
-            except self.DBModel.DoesNotExist:
-                object_db = self.DBModel(**unique_field_values)
-
+            if object_pydantic.id:
+                try:
+                    object_db = self.DBModel.objects.get(id=object_pydantic.id)
+                except self.DBModel.DoesNotExist:
+                    object_db = self.DBModel()
+            else:
+                object_db = self.DBModel()
             objects_db_pydantic.append((object_db, object_pydantic))
 
         try:
