@@ -21,6 +21,7 @@ import logging
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.db import IntegrityError
+from django.db import models
 from django.db import transaction
 from django.forms.models import model_to_dict
 from django.http import HttpResponse
@@ -30,6 +31,7 @@ from ninja import NinjaAPI
 from ninja import Path
 from ninja import Query
 from ninja import Schema
+import pandas as pd
 from pydantic import Field
 
 from esg.models.datapoint import DatapointById
@@ -37,6 +39,7 @@ from esg.models.datapoint import DatapointList
 from esg.models.datapoint import PutSummary
 from esg.models.datapoint import ValueMessageByDatapointId
 from esg.models.datapoint import ValueMessageListByDatapointId
+from esg.models.datapoint import ValueDataFrame
 from esg.models.datapoint import ScheduleMessageByDatapointId
 from esg.models.datapoint import ScheduleMessageListByDatapointId
 from esg.models.datapoint import SetpointMessageByDatapointId
@@ -49,11 +52,13 @@ from esg.django_models.filter import SetpointFilterParams
 from esg.django_models.filter import ProductFilterParams
 from esg.django_models.filter import ProductRunFilterParams
 from esg.django_models.filter import PlantFilterParams
+from esg.django_models.filter import TimeBucketParams
 from esg.models.metadata import ProductList
 from esg.models.metadata import ProductRunList
 from esg.models.metadata import PlantList
 from esg.models.request import HTTPError
 from esg.services.base import RequestInducedException
+from esg.utils.pandas import value_dataframe_from_dataframe
 
 from .models import Datapoint as DatapointDb
 from emp_main.models import ValueMessage as ValueHistoryDb
@@ -809,6 +814,117 @@ class DatapointValueAPIView(GenericDatapointRelatedAPIView):
     list_history_response_model = ValueMessageListByDatapointId
     channel_group_base_name = "datapoint.value.latest."
 
+    @GenericAPIView._handle_exceptions
+    def list_history_at_interval(
+        self,
+        request,
+        datapoint_filter_params,
+        related_filter_params,
+        time_bucket_params,
+        second_related_filter_params=None,
+    ):
+        """
+        Returns datapoint values at specified interval.
+
+        Note: This is not covered in any test yet.
+        TODO: Add a test!
+        """
+        datapoints = self.get_filtered_datapoints(datapoint_filter_params)
+
+        related_objects = self.RelatedDataHistoryModel.timescale.filter(
+            datapoint__in=datapoints
+        )
+
+        # Filter by query parameters.
+        active_filters = self.build_active_filter_dict(related_filter_params)
+        if self.SecondRelatedModel is not None:
+            # Add some additional filter if a second related object is defined.
+            active_filters_second = self.build_active_filter_dict(
+                second_related_filter_params
+            )
+            active_filters.update(active_filters_second)
+        related_objects = related_objects.filter(**active_filters)
+
+        # Aggregate by interval.
+        related_objects = related_objects.time_bucket(
+            "time", time_bucket_params.interval
+        )
+        aggregation_func = getattr(models, time_bucket_params.aggregation)
+        related_objects = related_objects.annotate(
+            value=aggregation_func("_value_float"),
+            datapoint_id=models.F("datapoint__id"),
+        )
+        # Late first, newest item last in list. This should not cost anything
+        # extra as the timescaledb django plugin orders too, but just the other
+        # way around.
+        related_objects = related_objects.order_by("bucket")
+
+        # Shortcut for an empty queryset, as `from_records` below will
+        # fail for an empty QS.
+        if not related_objects:
+            return HttpResponse(
+                content=ValueDataFrame(values={}, times=[]).json(),
+                status=200,
+                content_type="application/json",
+            )
+
+        """
+        At this point related_objects is a TimescaleQuerySet type.
+        The elements are dicts that look like this:
+        {
+            'bucket': datetime.datetime(2022, 5, 17, 8, 55, tzinfo=<UTC>),
+            'value': 23.275,
+            'datapoint_id': 1
+        }
+
+        In order to retrieve the desired DataFrame style output we would need
+        to group by `datapoint_id` and `bucket` fields and fill any possibly
+        empty values. This might become very complex and to keep it simple
+        we let pandas to the work.
+        """
+        # Parse to DataFrame,
+        related_objects_as_df = pd.DataFrame.from_records(
+            related_objects, index="bucket"
+        )
+        """
+        `related_objects_as_df` looks like this:
+                                       value  datapoint_id
+        bucket
+        2022-05-17 08:30:00+00:00  23.328571             2
+        2022-05-17 08:30:00+00:00  23.328571             1
+        2022-05-17 08:35:00+00:00  23.507143             2
+        2022-05-17 08:35:00+00:00  23.507143             1
+        """
+        related_objects_as_df = related_objects_as_df.pivot(
+            columns="datapoint_id", values="value"
+        )
+        # This is important! `ValueDataFrame` expects a string
+        # as column and `dataframe_from_value_dataframe` doesn't
+        # check if it is a string or not.
+        related_objects_as_df.columns = related_objects_as_df.columns.astype(
+            str
+        )
+        """
+        And now organized by datapoint id:
+        datapoint_id                       1          2
+        bucket
+        2022-05-17 08:30:00+00:00  23.328571  23.328571
+        2022-05-17 08:35:00+00:00  23.507143  23.507143
+        2022-05-17 08:40:00+00:00  23.455000  23.455000
+        """
+
+        # Convert to json, skips validation.
+        related_objects_as_pydantic = value_dataframe_from_dataframe(
+            pandas_dataframe=related_objects_as_df
+        )
+        related_objects_as_json = related_objects_as_pydantic.json()
+
+        return HttpResponse(
+            content=related_objects_as_json,
+            status=200,
+            content_type="application/json",
+        )
+
 
 dp_value_view = DatapointValueAPIView()
 
@@ -859,6 +975,31 @@ def get_datapoint_value_history(
         request=request,
         datapoint_filter_params=datapoint_filter_params,
         related_filter_params=value_filter_params,
+    )
+    return response
+
+
+@api.get(
+    "/datapoint/value/history/at_interval/",
+    response={200: ValueDataFrame, 400: HTTPError, 500: HTTPError},
+    tags=["Datapoint Value"],
+    summary=" ",  # Deactivate summary.
+)
+def get_datapoint_value_history_at_interval(
+    request,
+    datapoint_filter_params: DatapointFilterParams = Query(...),
+    value_filter_params: ValueMessageFilterParams = Query(...),
+    time_bucket_params: TimeBucketParams = Query(...),
+):
+    """
+    Return one or more value messages for datapoints targeted by the filter.
+    """
+
+    response = dp_value_view.list_history_at_interval(
+        request=request,
+        datapoint_filter_params=datapoint_filter_params,
+        related_filter_params=value_filter_params,
+        time_bucket_params=time_bucket_params,
     )
     return response
 

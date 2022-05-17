@@ -26,3 +26,6 @@ django-timescaledb==0.2.11
 
 # For exposing Prometheus metrics
 django-prometheus==2.2.*
+
+# For some endpoints of the REST API.
+pandas==1.*
