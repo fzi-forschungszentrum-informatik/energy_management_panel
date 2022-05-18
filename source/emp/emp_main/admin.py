@@ -360,6 +360,7 @@ class GeographicPositionInline(admin.TabularInline):
 class PVSystemInline(admin.TabularInline):
     model = PVSystem
     verbose_name_plural = "PV System"
+    autocomplete_fields = ("_power_datapoint",)
 
 
 @admin.register(Plant)
@@ -388,13 +389,12 @@ class ProductRunAdmin(admin.ModelAdmin):
     fields = (
         "_product",
         "plants",
-        "started_at",
         "available_at",
         "coverage_from",
         "coverage_to",
     )
     autocomplete_fields = ("_product", "plants")
-    search_fields = ("started_at", "available_at", "_plant__name")
+    search_fields = ("available_at", "_plant__name")
 
 
 @admin.register(ForecastMessage)
