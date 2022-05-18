@@ -186,7 +186,10 @@ class PVSystem(PVSystemTemplate):
 
     @property
     def power_datapoint_id(self):
-        return self._power_datapoint.id
+        if self._power_datapoint is not None:
+            return self._power_datapoint.id
+        else:
+            return None
 
     @power_datapoint_id.setter
     def power_datapoint_id(self, value):
