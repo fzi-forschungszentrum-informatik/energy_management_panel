@@ -7,7 +7,7 @@ dependencies:
   - pip
   - pydantic=1.9.*
   - fastapi=0.78.*
-  - uvicorn=0.17.*
+  #- uvicorn=0.17.*
   - python-dotenv=0.20.*
   - prometheus-fastapi-instrumentator=5.7.*
   - pytest
@@ -28,6 +28,7 @@ dependencies:
   - pytest-django
   # Production servers.
   - gunicorn=20.1.*
+  - uvicorn-standard=0.17.*
   - whitenoise=6.1.*
   # Database engines
   - psycopg2-binary
