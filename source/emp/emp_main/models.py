@@ -218,7 +218,9 @@ class ProductRun(ProductRunTemplate):
         null=True,
         related_name="product_runs",
     )
-    plants = models.ManyToManyField(Plant, related_name="product_runs")
+    plants = models.ManyToManyField(
+        Plant, related_name="product_runs", blank=True
+    )
 
     @property
     def product_id(self):
