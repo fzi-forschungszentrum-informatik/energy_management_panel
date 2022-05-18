@@ -67,8 +67,8 @@ class DemoDPInterface:
 
         # Make a map between internal EMP IDs and EMP IDs.
         self.datapoint_id_map = {}
-        for emp_id in datapoints_by_id.__root__:
-            datapoint_obj = datapoints_by_id.__root__[emp_id]
+        for datapoint_obj in datapoints_by_id.__root__:
+            emp_id = datapoint_obj.id
             self.datapoint_id_map[datapoint_obj.origin_id] = emp_id
 
         logger.info(

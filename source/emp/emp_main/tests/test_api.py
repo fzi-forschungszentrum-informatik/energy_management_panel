@@ -1333,7 +1333,7 @@ class TestDatapointMetadataAPIView(TransactionTestCase):
         # ignore IDs.
         actual_content = []
         ids = []
-        for actual_datapoint in json.loads(response.content).values():
+        for actual_datapoint in json.loads(response.content):
             ids.append(actual_datapoint["id"])
             actual_datapoint["id"] = None
             actual_content.append(actual_datapoint)

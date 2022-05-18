@@ -716,19 +716,19 @@ class DatapointMetadataAPIView(GenericDatapointAPIView):
             )
 
         # Now we know all datapoints are all right, save and prepare output.
-        created_datapoints_by_id = {}
+        created_datapoints_dict = []
         for dp_db in created_datapoints:
             dp_db.save()
-            created_datapoints_by_id[str(dp_db.id)] = model_to_dict(dp_db)
+            created_datapoints_dict.append(dp_db.load_to_dict())
 
-        created_datapoints_pydantic = DatapointById.construct_recursive(
-            __root__=created_datapoints_by_id
+        created_datapoints_pydantic = DatapointList.construct_recursive(
+            __root__=created_datapoints_dict
         )
 
         # Publish updated datapoints in channel layer.
         # TODO: Make this parallel
-        for dp_id in created_datapoints_pydantic.__root__:
-            dp_pydantic = created_datapoints_pydantic.__root__[dp_id]
+        for dp_pydantic in created_datapoints_pydantic.__root__:
+            dp_id = str(dp_pydantic.id)
             dp_json = dp_pydantic.json()
             async_to_sync(self.channel_layer.group_send)(
                 "datapoint.metadata.latest." + dp_id,
