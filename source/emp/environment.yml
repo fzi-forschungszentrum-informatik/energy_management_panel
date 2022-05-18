@@ -1,0 +1,35 @@
+name: base
+channels:
+  - conda-forge
+dependencies:
+  # These are the dependencies of energy-service-generics version 0.11.2
+  - python=3.10
+  - pip
+  - pydantic=1.9.*
+  - fastapi=0.78.*
+  - uvicorn=0.17.*
+  - python-dotenv=0.20.*
+  - prometheus-fastapi-instrumentator=5.7.*
+  - pytest
+  - pytest-httpserver=1.0.*
+  - requests
+  - watchdog=2.1.*
+  - pytz
+  # Below all additional dependencies of the EMP.
+  # Django itself plus addons.
+  - django=3.2.*
+  - channels=3.0.*
+  - django-guardian=2.4.*
+  - django-ninja=0.17.*
+  # This is a dependency of channels-redis which fails to install from pip.
+  # Actually, a dependency of this package fails (hiredis).
+  - aioredis=1.*
+  # To allow running the tests.
+  - pytest-django
+  # Production servers.
+  - gunicorn=20.1.*
+  - whitenoise=6.1.*
+  # Database engines
+  - psycopg2-binary
+  # For some endpoints of the REST API.
+  - pandas=1.*

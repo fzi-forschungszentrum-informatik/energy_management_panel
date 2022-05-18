@@ -1,31 +1,15 @@
-# Django itself plus addon packages.
-Django==3.2.*
-channels==3.0.*
-channels-redis==3.4.*
-django-guardian==2.4.*
-django-ninja==0.17.*
+# Only packages here that are not available on conda(-forge).
 
+# Django itself plus addons.
+channels-redis==3.4.*
 
 # Additional dependencies required for the emp_evaluation_system. Note that
 # django-multiselectfield is apparently not maintained any more.
 #django-nested-admin==3.4.* #enables nested admin forms in djangos admin
 #django-multiselectfield==0.1.* #Includes Multiselect (multiple radio buttons) for djangos admin page
 
-# To allow running the tests.
-pytest
-pytest-django
-
-# Production servers.
-gunicorn==20.1.*
-uvicorn[standard]==0.17.*
-whitenoise==6.0.*
-
 # Database engines
-psycopg2-binary
 django-timescaledb==0.2.11
 
 # For exposing Prometheus metrics
 django-prometheus==2.2.*
-
-# For some endpoints of the REST API.
-pandas==1.*
