@@ -459,7 +459,11 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
             active_filters_second = self.build_active_filter_dict(
                 second_related_filter_params
             )
-            active_filters.update(active_filters_second)
+            second_related_objects = self.SecondRelatedModel.objects.filter(
+                **active_filters_second
+            )
+            second_objects_filter = self.second_related_field_name + "__in"
+            active_filters[second_objects_filter] = second_related_objects
         related_objects = related_objects.filter(**active_filters)
 
         # Make a list of objects belonging to datapoint ID for each datapoint.
