@@ -109,8 +109,8 @@ class DatapointAdmin(admin.ModelAdmin):
                 return datetime_to_pretty_str(ts)
         return "-"
 
-    last_value_timestamp_pretty.admin_order_field = "last_value_timestamp"
-    last_value_timestamp_pretty.short_description = "Last value timestamp"
+    last_value_timestamp_pretty.admin_order_field = "last_value_message__time"
+    last_value_timestamp_pretty.short_description = "Last value message time"
 
     def last_value_truncated(self, obj):
         """
@@ -126,8 +126,8 @@ class DatapointAdmin(admin.ModelAdmin):
             value = value[:truncation_length] + " [truncated]"
         return value
 
-    last_value_truncated.admin_order_field = "last_value"
-    last_value_truncated.short_description = "last_value"
+    last_value_truncated.admin_order_field = "last_value_message__value"
+    last_value_truncated.short_description = "Last value message value"
 
     def get_fieldsets(self, request, obj=None):
         """
