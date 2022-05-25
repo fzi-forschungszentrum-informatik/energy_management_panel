@@ -30,7 +30,6 @@ class ExternPageAdmin(GuardedModelAdmin):
         "group",
         "name",
         "slug",
-        "src",
     )
     list_editable = list_display[1:]
     autocomplete_fields = ("group",)

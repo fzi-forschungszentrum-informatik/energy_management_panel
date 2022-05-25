@@ -23,7 +23,6 @@ from channels.layers import get_channel_layer
 from django.db import IntegrityError
 from django.db import models
 from django.db import transaction
-from django.forms.models import model_to_dict
 from django.http import HttpResponse
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -34,7 +33,6 @@ from ninja import Schema
 import pandas as pd
 from pydantic import Field
 
-from esg.models.datapoint import DatapointById
 from esg.models.datapoint import DatapointList
 from esg.models.datapoint import PutSummary
 from esg.models.datapoint import ValueMessageByDatapointId

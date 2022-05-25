@@ -27,6 +27,12 @@ class ExternalPageGroup(models.Model):
         ),
     )
 
+    def __str__(self):
+        if self.name is not None:
+            return str(self.id) + " - " + self.name
+        else:
+            return str(self.id)
+
 
 class ExternalPage(models.Model):
     """
