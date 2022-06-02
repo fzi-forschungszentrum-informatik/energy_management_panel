@@ -6,7 +6,11 @@ from urllib import parse as urlparse
 
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
+from esg.django_models.filter import DatapointFilterParams
 
+from .api import dp_value_view
+from .api import dp_schedule_view
+from .api import dp_setpoint_view
 from .urls import API_ROOT_PATH
 
 logger = logging.getLogger(__name__)
@@ -164,6 +168,12 @@ class DatapointRelatedLatestConsumer(WebsocketConsumer):
     TODO: Secure data access here!
     """
 
+    dp_msg_views = {
+        "datapoint.value.latest": dp_value_view,
+        "datapoint.setpoint.latest": dp_setpoint_view,
+        "datapoint.schedule.latest": dp_schedule_view,
+    }
+
     def connect(self):
         if "user" in self.scope:
             self.user = self.scope["user"]
@@ -222,6 +232,18 @@ class DatapointRelatedLatestConsumer(WebsocketConsumer):
 
         groups_truncated = str(self.groups)[:60]
         logger.info("Connected to channel groups %s...", groups_truncated)
+
+        # Push the latest messages as initial values too.
+        datapoint_filter_params = DatapointFilterParams(
+            id__in=requested_dp_ids,
+        )
+        dp_msg_view = self.dp_msg_views[group_base_name]
+        latest_msgs_as_http_response = dp_msg_view.list_latest(
+            request=None,
+            datapoint_filter_params=datapoint_filter_params,
+            related_filter_params=None,
+        )
+        self.send(latest_msgs_as_http_response.content.decode())
 
     def datapoint_related(self, message):
         """
