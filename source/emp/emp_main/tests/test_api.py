@@ -1456,6 +1456,11 @@ class TestDatapointMetadataAPIView(TransactionTestCase):
         connected, _ = event_loop.run_until_complete(communicator.connect())
         assert connected
 
+        initial_response = event_loop.run_until_complete(
+            communicator.receive_from()
+        )
+        assert len(json.loads(initial_response)) == 2
+
         self._put_test_datapoints(test_datapoints=TEST_DATAPOINTS)
 
         response1 = json.loads(
@@ -1682,6 +1687,13 @@ class GenericDatapointRelatedAPIViewTests(TransactionTestCase):
 
             connected, _ = event_loop.run_until_complete(communicator.connect())
             assert connected
+
+            # Directly after connect we expect to receive the latest known
+            # messages, which are empty here as nothing has been pushed yet.
+            initial_response = event_loop.run_until_complete(
+                communicator.receive_from()
+            )
+            assert initial_response == "{}"
 
             response = self.client.put(
                 self.endpoint_url_latest,

@@ -382,7 +382,7 @@ class GenericDatapointRelatedAPIView(GenericDatapointAPIView):
         self,
         request,
         datapoint_filter_params,
-        related_filter_params,
+        related_filter_params=None,
         second_related_filter_params=None,
     ):
         """

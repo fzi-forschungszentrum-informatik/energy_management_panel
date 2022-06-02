@@ -27,6 +27,11 @@ class TestDatapointRelatedLatestConsumer(TestCase):
         connected, _ = await communicator.connect()
         assert connected
 
+        # We expect an empty response before any data is pushed, due to
+        # the part of the consumer that pushes the latest message on connect.
+        response = await communicator.receive_from()
+        assert response == "[]"
+
         channel_layer = get_channel_layer()
         await channel_layer.group_send(
             "datapoint.metadata.latest.1",

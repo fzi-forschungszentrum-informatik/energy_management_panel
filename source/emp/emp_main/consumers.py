@@ -8,6 +8,7 @@ from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
 from esg.django_models.filter import DatapointFilterParams
 
+from .api import dpm_view
 from .api import dp_value_view
 from .api import dp_schedule_view
 from .api import dp_setpoint_view
@@ -169,6 +170,7 @@ class DatapointRelatedLatestConsumer(WebsocketConsumer):
     """
 
     dp_msg_views = {
+        "datapoint.metadata.latest": dpm_view,
         "datapoint.value.latest": dp_value_view,
         "datapoint.setpoint.latest": dp_setpoint_view,
         "datapoint.schedule.latest": dp_schedule_view,
@@ -239,9 +241,7 @@ class DatapointRelatedLatestConsumer(WebsocketConsumer):
         )
         dp_msg_view = self.dp_msg_views[group_base_name]
         latest_msgs_as_http_response = dp_msg_view.list_latest(
-            request=None,
-            datapoint_filter_params=datapoint_filter_params,
-            related_filter_params=None,
+            request=None, datapoint_filter_params=datapoint_filter_params,
         )
         self.send(latest_msgs_as_http_response.content.decode())
 
