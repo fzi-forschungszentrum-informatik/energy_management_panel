@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 
+from emp_main.models import Product
+
 
 class ExternalPageGroup(models.Model):
     """
@@ -72,6 +74,16 @@ class ExternalPage(models.Model):
             "`http://localhost:8000/emp/grafana/d/WcLAqq_nk/"
             "test-dashboard?orgId=1`. it would be:"
             "d/WcLAqq_nk/test-dashboard?orgId=1"
+        ),
+    )
+    product_for_run = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        help_text=(
+            "Optionally specify a product here, if you do so will append "
+            "each Grafana URL with the latest product run for this product. "
         ),
     )
 
