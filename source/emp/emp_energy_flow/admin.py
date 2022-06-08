@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django import forms, db
 from django.contrib.admin.widgets import AutocompleteSelect
+from guardian.admin import GuardedModelAdmin
 
 from .models import EnergyFlow, Widget, Flow
 
 
 @admin.register(EnergyFlow)
-class EnergyFlowAdmin(admin.ModelAdmin):
+class EnergyFlowAdmin(GuardedModelAdmin):
     list_display = [
         "id",
         "name",
@@ -14,9 +15,7 @@ class EnergyFlowAdmin(admin.ModelAdmin):
         "slug",
     ]
     list_editable = list_display[1:]
-    prepopulated_fields = {
-        "slug": ("name",)
-    }
+    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Widget)
@@ -30,7 +29,7 @@ class WidgetAdmin(admin.ModelAdmin):
         "grid_position_right",
         "grid_position_top",
         "grid_position_bottom",
-        "icon_url"
+        "icon_url",
     ]
     list_editable = list_display[1:]
     list_filter = [

@@ -52,7 +52,7 @@ def get_app_nav_content_for_user(user):
     pages_user = get_objects_for_user(
         user, "emp_external_page.view_externalpage"
     )
-    pages_user = pages_user.order_by("group__name", "name")
+    pages_user = pages_user.order_by("name")
 
     # Be sure to use slugs here for url components.
     # Also ensure that any user gets a copy of the pages the AU gets and
