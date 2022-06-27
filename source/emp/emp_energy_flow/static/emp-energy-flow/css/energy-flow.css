@@ -85,7 +85,7 @@ body, html {
     margin-left: auto;
     margin-right: auto;
     height: auto;
-    width: auto;
+    width: 100%;
     max-width: max-content;
     max-height: max-content;
 }
