@@ -10,7 +10,9 @@ register = template.Library()
 
 
 @register.simple_tag
-def dp_field_value(datapoint, field_name, field_collector=None):
+def dp_field_value(
+    datapoint, field_name, field_collector=None,
+):
     """
     Returns a field value of a datapoint incl. an class label that allows
     dynamic updateing of the value via websocket.
@@ -30,6 +32,14 @@ def dp_field_value(datapoint, field_name, field_collector=None):
         )
     else:
         field_value = getattr(datapoint, field_name_this_model)
+
+    # For any usual number this limits the number to 9 characters.
+    # E.g. '-1.23e+07'
+    if isinstance(field_value, float):
+        if field_value >= 10000.0 or field_value <= -10000.0:
+            field_value = "{:.2e}".format(field_value)
+        else:
+            field_value = "{:.2f}".format(field_value)
 
     if not hasattr(datapoint, "id"):
         emsg = "Datapoint %s has no id." % datapoint

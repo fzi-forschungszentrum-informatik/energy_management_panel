@@ -223,6 +223,17 @@
               // Makes dislay identical to the inital field value from ORM.
               field_value = "None"
             }
+
+            // If not empty the field should hold a JSON encoded value.
+            field_value = JSON.parse(field_value)
+            // format float nicely similar to initial formating.
+            if ( typeof field_value == "number" ) {
+              if ( field_value >= 10000. || field_value <= -10000 ) {
+                field_value = field_value.toExponential(2)
+              } else {
+                field_value = field_value.toFixed(2)
+              }
+            }
             // Get the elements in DOM using that class name and update them.
             let elements = document.getElementsByClassName(class_label);
             for ( let element of elements ) {
