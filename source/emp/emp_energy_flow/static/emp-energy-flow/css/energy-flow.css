@@ -81,8 +81,13 @@ body, html {
 }
 
 .card_filling_image {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
     height: auto;
-    width: 100%;
+    width: auto;
+    max-width: max-content;
+    max-height: max-content;
 }
 
 /* This is for large viewports, e.g. computer screens */
