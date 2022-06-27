@@ -18,7 +18,6 @@ class EnergyFlow(models.Model):
 
     name = models.CharField(
         max_length=18,
-        unique=True,  # As we use this name as ids in the energyflow plot.
         help_text=(
             "The name of the Energy Flow, will be displayed in the Nav menu."
         ),
@@ -59,7 +58,6 @@ class Widget(models.Model):
 
     name = models.CharField(
         max_length=100,
-        unique=True,  # As we use this name as ids in the energyflow plot.
         help_text=(
             "The Name of the Widget displayed in the header of the card. "
         ),
