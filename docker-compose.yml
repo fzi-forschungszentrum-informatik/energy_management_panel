@@ -1,6 +1,7 @@
+# This is for demonstration/development only!
+# Please adjust the settings to reasonable values before deploying to production, see the docs.
 version: '3'
 
-# Use these volumes for development only.
 volumes:
     emp-devl-db-pgdata:
         name: emp-devl-db-pgdata
@@ -13,6 +14,15 @@ services:
         restart: unless-stopped
         init: true  # Faster shutdown.
         tty: true  # This must be set to colorize output.
+        depends_on:
+            emp-devl-db:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD", "/opt/conda/bin/curl", "--fail", "http://localhost:8080/api/"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
         volumes:
             - ./source/emp/:/source/emp/
             # Activate this volume if you develop on energy_service_generics in parallel.
@@ -21,41 +31,48 @@ services:
         ports:
             - 8080:8080
         environment:
+            # NOTE: Adapt the healthcheck endpoint too if you change this.
             - ROOT_PATH=
-            - N_WORKER_PROCESSES=4
+            # Don't go over one here yet. The update mechanism for new permissions isn't process safe yet.
+            - N_WORKER_PROCESSES=1
             - LOGLEVEL=INFO
             - HTTPS_ONLY=
-            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+            - DJANGO_SECRET_KEY=
             - DJANGO_ALLOWED_HOSTS=["emp-devl","localhost"]
             - DJANGO_DEBUG=TRUE
             - DJANGO_ADMINS=
-            - DJANGO_ADDITIONAL_INSTALLED_APPS=${DJANGO_ADDITIONAL_INSTALLED_APPS}
+            - DJANGO_ADDITIONAL_INSTALLED_APPS=
             - DJANGO_SUPERUSER_USERNAME=emp
             - DJANGO_SUPERUSER_PASSWORD=emp
             - DJANGO_SUPERUSER_EMAIL=emp@example.com
-            # - EMPDB_HOST=emp-devl-db
+            - EMPDB_HOST=emp-devl-db
             - EMPDB_PORT=5432
             - EMPDB_USER=emp
             - EMPDB_PASSWORD=emp
             - EMPDB_DBNAME=emp
             - CHANNELS_REDIS_HOST=emp-devl-redis
             - CHANNELS_REDIS_PORT=
-            - EMP_ADDITIONAL_APPS=${EMP_ADDITIONAL_APPS}
-            - EMP_PAGE_TITLE=${EMP_PAGE_TITLE}
-            - EMP_MANIFEST_JSON_STATIC=${EMP_MANIFEST_JSON_STATIC}
-            - EMP_FAVICON_ICO_STATIC=${EMP_FAVICON_ICO_STATIC}
-            - EMP_TOPBAR_LOGO_STATIC=${EMP_TOPBAR_LOGO_STATIC}
-            - EMP_TOPBAR_NAME_SHORT=${EMP_TOPBAR_NAME_SHORT}
-            - EMP_TOPBAR_NAME_LONG=${EMP_TOPBAR_NAME_LONG}
-            - EMP_URLS_PERMISSION_WHITELIST=${EMP_URLS_PERMISSION_WHITELIST}
-            - EMP_HOME_PAGE_URL=${EMP_HOME_PAGE_URL}
-            - EMP_LOGIN_PAGE_URL=${EMP_LOGIN_PAGE_URL}
-            - EMP_LOGOUT_PAGE_URL=${EMP_LOGOUT_PAGE_URL}
+            - EMP_ADDITIONAL_APPS=
+            - EMP_PAGE_TITLE=FZI EMP
+            - EMP_MANIFEST_JSON_STATIC=
+            - EMP_FAVICON_ICO_STATIC=
+            - EMP_TOPBAR_LOGO_STATIC=
+            - EMP_TOPBAR_NAME_SHORT=
+            - EMP_TOPBAR_NAME_LONG=
+            - EMP_URLS_PERMISSION_WHITELIST=
+            - EMP_HOME_PAGE_URL=
+            - EMP_LOGIN_PAGE_URL=
+            - EMP_LOGOUT_PAGE_URL=
 
     emp-devl-db:
         container_name: emp-devl-db
         image: timescale/timescaledb:2.4.1-pg13
         restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "sh", "-c", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER "]
+            interval: 5s
+            retries: 5
+
         ports:
             - 5432:5432
         volumes:
@@ -68,6 +85,7 @@ services:
     emp-devl-redis:
         container_name: emp-devl-redis
         image: redis:7
+        restart: unless-stopped
 
     emp-devl-demp-dp-interface:
         container_name: emp-devl-demp-dp-interface
@@ -76,9 +94,12 @@ services:
         restart: unless-stopped
         init: true  # Faster shutdown.
         tty: true  # This must be set to colorize output.
+        depends_on:
+            emp-devl:
+                condition: service_healthy
         volumes:
             - ./source/demo_datapoint_interface/:/source/demo_datapoint_interface/
             # Activate this volume if you develop on energy_service_generics in parallel.
-            - ../energy_service_generics/source/esg/:/opt/conda/lib/python3.8/site-packages/esg/
+            # - ../energy_service_generics/source/esg/:/opt/conda/lib/python3.8/site-packages/esg/
         environment:
             - EMP_API_URL=http://emp-devl:8080/api

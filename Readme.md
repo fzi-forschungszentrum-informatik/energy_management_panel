@@ -6,32 +6,14 @@ The EMP is the outcome of the continuous research on algorithmic energy manageme
 
 ## Documentation
 
-**First things first: All documentation assumes that you are familiar at least with the basics of the Django web development framework. If this is not the case for you, please work through the offical [docs of the project](https://docs.djangoproject.com/) (at least the tutorial) or consult the excellent [Practical Django 2 and Channels 2](https://www.springer.com/de/book/9781484240984) book by Federico Marani.**
+**First things first: All documentation assumes that you are familiar at least with the basics of the Django web development framework. If this is not the case for you, please work through the offical [docs of the project](https://docs.djangoproject.com/) (at least the tutorial) or consult the excellent [Practical Django 2 and Channels 2](https://www.springer.com/de/book/9781484240984) book by Federico Marani. Furthermore, this project relies heavily on Docker and Docker Compose. You may wish to familiarize yourself with these tools beforehand. A good starting point are the getting started pages of [Docker](https://docs.docker.com/get-started/) and [Docker Compose](https://docs.docker.com/compose/gettingstarted/) respectively.**
 
-* An introduction to the EMP, including installation, can be found in [docs/Getting_started.md](./docs/Getting_started.md).
-* Additional documentation is provided in the [docs](./docs) folder.
-* The source code of the "Demo UI app" shown in the [docs/Getting_started.md](./docs/Getting_started.md) is provided in [source/emp_demo_ui_app](./source/emp_demo_ui_app). The source code is extensively commented and serves as a best practice for developing UI apps.
-* In order to retrieve measurements and send actuator signals to hardware devices in buildings it is necessary to implement a "Datapoint interface" that takes care of this communication. Source code of a dummy interface that pushes random data into the EMP is provided in [source/emp_demo_dp_interface](./source/emp_demo_dp_interface) as an example.
-* The EMP ships with an stand alone authenticator module that allows user management and authentication, that is used in the demo, and for which source code is placed in [source/emp_django_authenticator](./source/emp_django_authenticator/). Integration of the EMP into existing authentication infrastructure (e.g. LDAP) should be easily possible, see the source code of the provided authenticator as example. 
-
-## Development Quick Start
-
-On a Linux system you can start developing on the code quickly by following these steps.
-
-* In a terminal execute:
-  ```bash
-  docker-compose down -v && USER_ID=$(id -u) GROUP_ID=$(id -g) docker-compose up --build
-  ```
-
-* For automatic execution of tests run the following in a second terminal:
-  ```bash
-  docker exec -it emp-devl auto-pytest /source/emp/
-  ```
-
-* For an interactive python terminal execute:
-  ```bash
-  docker exec -it emp-devl /opt/conda/bin/python /source/emp/manage.py shell
-  ```
+* An interactive introduction to the EMP, including installation, can be found in [docs/Getting_started.md](./docs/Getting_started.md).
+* The source code of the "Demo UI app" shown in the [docs/Getting_started.md](./docs/Getting_started.md) is provided in [source/emp/emp_demo_ui_app](./source/emp/emp_demo_ui_app). The source code is extensively commented and serves as a best practice for developing UI apps.
+* In order to retrieve measurements and send actuator signals to hardware devices in buildings it is necessary to implement a "Datapoint interface" that takes care of this communication. Source code of a dummy interface that pushes random data into the EMP is provided in [source/demo_datapoint_interface](./source/demo_datapoint_interface) as an example. You might also consider using the [BEMCom framework](https://bemcom.readthedocs.io/) for connecting to devices, as it integrates nicely with the EMP. 
+* The EMP ships with an stand alone authenticator module that allows user management and authentication, that is used in the demo, and for which source code is placed in [source/emp/emp_django_authenticator](./source/emp/emp_django_authenticator/). Integration of the EMP into existing authentication infrastructure (e.g. LDAP) should be easily possible, see the source code of the provided authenticator as example.
+* Be aware that the configuration provided in the [docker-compose.yml](docker-compose.yml) is not suited for production. A documentation about the available configuration options is provided in [docs/Deployment.md](docs/Deployment.md)
+* Finally, contributions and pull requests are welcome! Additional documentation and contribution guidelines are provided in [docs/Development.md](docs/Development.md)
 
 ## Contact
 

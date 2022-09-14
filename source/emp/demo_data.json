@@ -1,10 +1,28 @@
 [
 {
     "model": "auth.user",
+    "pk": 1,
+    "fields": {
+        "password": "!qV3pJMSHng1IHilPLA9cgCeq6w5X7WkIr88OvTUt",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "AnonymousUser",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2022-09-13T14:12:55.374Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
     "pk": 2,
     "fields": {
         "password": "pbkdf2_sha256$260000$lEdKkh3XMaP7UOPYbW8jvq$OjK+dK8DgP39q5N9wOc3gdAk4aHsFzMXetN/+hxEghk=",
-        "last_login": "2022-04-19T10:28:35.553Z",
+        "last_login": "2022-09-13T15:10:53.516Z",
         "is_superuser": false,
         "username": "test",
         "first_name": "",
@@ -18,8 +36,101 @@
     }
 },
 {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+        "password": "pbkdf2_sha256$260000$uHiwNRWVAgtTIE2NtaTPPP$X5hxzM1VqKrbj9j+8TcOdJ+1AJEojTshNd9ExASjMFo=",
+        "last_login": "2022-09-13T15:26:48.878Z",
+        "is_superuser": true,
+        "username": "emp",
+        "first_name": "",
+        "last_name": "",
+        "email": "emp@example.com",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2022-09-13T14:12:59.369Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+        "password": "pbkdf2_sha256$260000$E0nh4Hgks4mg9xjUyucTK3$9ltNXltCz3DCIeEIl901jVC3bBo81J9ZZLnDv6f5x3A=",
+        "last_login": "2022-09-13T15:26:07.655Z",
+        "is_superuser": false,
+        "username": "test2",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2022-09-13T15:20:36.136Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
     "model": "guardian.userobjectpermission",
-    "pk": 10,
+    "pk": 11,
+    "fields": {
+        "permission": [
+            "view_demoapppage",
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "content_type": [
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "object_pk": "1",
+        "user": [
+            "test"
+        ]
+    }
+},
+{
+    "model": "guardian.userobjectpermission",
+    "pk": 12,
+    "fields": {
+        "permission": [
+            "view_demoapppage",
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "content_type": [
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "object_pk": "3",
+        "user": [
+            "test"
+        ]
+    }
+},
+{
+    "model": "guardian.userobjectpermission",
+    "pk": 13,
+    "fields": {
+        "permission": [
+            "view_demoapppage",
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "content_type": [
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "object_pk": "1",
+        "user": [
+            "test2"
+        ]
+    }
+},
+{
+    "model": "guardian.userobjectpermission",
+    "pk": 14,
     "fields": {
         "permission": [
             "view_demoapppage",
@@ -32,7 +143,26 @@
         ],
         "object_pk": "2",
         "user": [
-            "test"
+            "test2"
+        ]
+    }
+},
+{
+    "model": "guardian.userobjectpermission",
+    "pk": 15,
+    "fields": {
+        "permission": [
+            "view_demoapppage",
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "content_type": [
+            "emp_demo_ui_app",
+            "demoapppage"
+        ],
+        "object_pk": "3",
+        "user": [
+            "test2"
         ]
     }
 },
@@ -42,23 +172,14 @@
     "fields": {
         "origin": "DemoDPInterface",
         "origin_id": "42",
-        "short_name": null,
+        "short_name": "T_dummy",
         "type": "Sensor",
         "data_format": "Continuous Numeric",
         "description": "A dummy temperature like datapoint.",
         "allowed_values": null,
-        "min_value": 19.0,
-        "max_value": 25.0,
+        "min_value": 0.0,
+        "max_value": 50.0,
         "unit": "°C"
-    }
-},
-{
-    "model": "emp_main.lastvaluemessage",
-    "pk": 1,
-    "fields": {
-        "value": 22.1,
-        "time": "2022-04-21T20:48:04.216Z",
-        "datapoint": 1
     }
 },
 {
@@ -79,7 +200,7 @@
     "fields": {
         "page_name": "2 - Permissions",
         "page_slug": "2-permissions",
-        "page_content": "This page is only available for the user \"test\" (and for the admin of course).",
+        "page_content": "This page is only available for the user \"test2\" (and for the admin of course).",
         "page_background_color": "transparent",
         "demo_datapoint": null,
         "page_has_detail": false

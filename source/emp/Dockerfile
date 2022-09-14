@@ -1,4 +1,6 @@
-FROM iik-gitlab.fzi.de:5050/dwo/energy-service-generics:0.12.3
+# Generic libraries used in [BEMCom](https://github.com/fzi-forschungszentrum-informatik/BEMCom)
+# as well as in the EMP. The code should move into a dedicated OS repo once there is spare time.
+FROM bemcom/energy-service-generics:0.12.3
 
 ENV PYTHONUNBUFFERED 1
 

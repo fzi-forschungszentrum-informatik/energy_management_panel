@@ -34,3 +34,5 @@ dependencies:
   - psycopg2-binary
   # For some endpoints of the REST API.
   - pandas=1.*
+  # For container healthcheck
+  - curl
