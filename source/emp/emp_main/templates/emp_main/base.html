@@ -161,11 +161,24 @@
       // Session storage can only store strings.
       shown_submenus = JSON.stringify(shown_submenus);
       sessionStorage.setItem("shown_submenus", shown_submenus);
+      // Store the state if navbar is visible or not too.
+      let nb = document.querySelector(".emp-side-navbar");
+      if (nb.classList.contains("hidden-lg")) {
+        sessionStorage.setItem("navbar_hidden", "false");
+      } else {
+        sessionStorage.setItem("navbar_hidden", "true");
+      };
     });
 
     // Restore the opened submenus on page load by clicking on the button
     // which should expand the collapsed submenu.
     function restore_subnavs() {
+      // Restores if the navbar has been hidden before.
+      let navbar_hidden = sessionStorage.getItem("navbar_hidden") || "false";
+      if (navbar_hidden==="false"){
+        document.getElementById("toggle-sidebar").click();
+      }
+      // This restores the subnavs
       let shown_submenus = sessionStorage.getItem("shown_submenus") || "[]";
       shown_submenus = JSON.parse(shown_submenus);
       for (let sm_href_id of shown_submenus){
